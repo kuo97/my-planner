@@ -324,9 +324,11 @@
 <div id="authView" class="auth" style="display:none">
   <h1>플래너</h1>
   <p>머릿속을 비우고, 오늘 할 일만 보기</p>
-  <input type="email" id="authEmail" placeholder="이메일" autocomplete="email">
-  <input type="password" id="authPw" placeholder="비밀번호" autocomplete="current-password">
-  <button id="btnLogin">로그인</button>
+  <form id="authForm" autocomplete="on">
+    <input type="email" id="authEmail" name="email" placeholder="이메일" autocomplete="username" required>
+    <input type="password" id="authPw" name="password" placeholder="비밀번호" autocomplete="current-password" required>
+    <button type="submit" id="btnLogin">로그인</button>
+  </form>
   <button class="sub" id="btnSignup">처음이면 가입하기</button>
   <div class="err" id="authErr"></div>
 </div>
@@ -972,7 +974,8 @@ $("btnDelete").addEventListener("click", async () => {
   toast("삭제했어요");
 });
 
-$("btnLogin").addEventListener("click", async () => {
+$("authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
   const { error } = await sb.auth.signInWithPassword({ email: $("authEmail").value, password: $("authPw").value });
   $("authErr").textContent = error ? "로그인 실패: " + error.message : "";
 });
