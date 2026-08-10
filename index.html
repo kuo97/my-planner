@@ -230,6 +230,13 @@
   }
   .auth .sub { background: none; color: var(--muted); font-weight: 600; font-size: 13px; margin-top: 12px; font-family: 'Pretendard'; }
   .auth .err { color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .remember-row {
+    display: flex; align-items: center; gap: 7px; justify-content: flex-start;
+    font-size: 13.5px; color: var(--muted); margin: 2px 2px 12px; cursor: pointer; user-select: none;
+  }
+  .remember-row input[type="checkbox"] {
+    width: 17px; height: 17px; margin: 0; accent-color: var(--coral); cursor: pointer;
+  }
 
   .toast {
     position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%) translateY(6px);
@@ -327,6 +334,7 @@
   <form id="authForm" autocomplete="on">
     <input type="email" id="authEmail" name="email" placeholder="이메일" autocomplete="username" required>
     <input type="password" id="authPw" name="password" placeholder="비밀번호" autocomplete="current-password" required>
+    <label class="remember-row"><input type="checkbox" id="rememberId"> 아이디 저장</label>
     <button type="submit" id="btnLogin">로그인</button>
   </form>
   <button class="sub" id="btnSignup">처음이면 가입하기</button>
@@ -742,9 +750,18 @@ async function init() {
   });
 }
 
+const REMEMBER_KEY = "planner_saved_email";
 function showAuth() {
   $("authView").style.display = "block";
   $("appView").style.display = "none";
+  const saved = localStorage.getItem(REMEMBER_KEY);
+  if (saved) {
+    $("authEmail").value = saved;
+    $("rememberId").checked = true;
+    $("authPw").focus();
+  } else {
+    $("authEmail").focus();
+  }
 }
 
 async function showApp() {
@@ -976,8 +993,13 @@ $("btnDelete").addEventListener("click", async () => {
 
 $("authForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const { error } = await sb.auth.signInWithPassword({ email: $("authEmail").value, password: $("authPw").value });
+  const email = $("authEmail").value;
+  const { error } = await sb.auth.signInWithPassword({ email, password: $("authPw").value });
   $("authErr").textContent = error ? "로그인 실패: " + error.message : "";
+  if (!error) {
+    if ($("rememberId").checked) localStorage.setItem(REMEMBER_KEY, email);
+    else localStorage.removeItem(REMEMBER_KEY);
+  }
 });
 $("btnSignup").addEventListener("click", async () => {
   const { error } = await sb.auth.signUp({ email: $("authEmail").value, password: $("authPw").value });
