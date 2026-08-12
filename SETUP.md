@@ -72,6 +72,29 @@ create policy "own cities" on cities for all
 
 날씨는 Open-Meteo 무료 API(키 불필요)를 쓰므로 별도 가입이 필요 없음.
 
+## 1-3. 사진 첨부 기능 (추가 SQL + 버킷 생성)
+
+일기에 사진을 첨부하려면 아래 SQL을 SQL Editor에서 한 번 실행:
+
+```sql
+alter table diary add column if not exists photos jsonb default '[]'::jsonb;
+
+create policy "diary photos - own insert" on storage.objects for insert
+  with check (bucket_id = 'diary-photos' and auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "diary photos - own delete" on storage.objects for delete
+  using (bucket_id = 'diary-photos' and auth.uid()::text = (storage.foldername(name))[1]);
+```
+
+그리고 사진 저장용 버킷을 만들어야 함:
+
+1. 대시보드 왼쪽 메뉴 **Storage** → **New bucket**
+2. 이름: `diary-photos` (정확히 이 이름이어야 함)
+3. **Public bucket** 옵션을 **켜기** (사진을 `<img src>`로 바로 보여주기 때문에 필요)
+4. Create bucket
+
+이렇게 하면 사진은 로그인한 본인만 업로드/삭제할 수 있고(Storage 정책), 저장된 사진은 공개 URL로 조회 가능함(개인 식별 정보가 아닌 일반 사진이라 안전함).
+
 ## 2. 프로젝트 키 확인
 
 대시보드 → **Settings → API** 에서 두 값을 복사:
