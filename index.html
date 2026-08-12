@@ -353,6 +353,23 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .past-photos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .past-photos img { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--line); }
+  .pe-exercise { color: var(--sage) !important; }
+
+  /* ---------- 운동 ---------- */
+  .exercise-row {
+    display: flex; align-items: center; gap: 9px; margin-top: 12px; cursor: pointer; user-select: none;
+  }
+  .exercise-row input[type="checkbox"] {
+    width: 20px; height: 20px; accent-color: var(--sage); cursor: pointer; margin: 0;
+  }
+  .exercise-row span { font-size: 14.5px; font-weight: 600; }
+  .exercise-input {
+    width: 100%; border: 1.5px solid var(--line); border-radius: 12px;
+    background: var(--paper); padding: 11px 14px; font-size: 14px; font-family: inherit;
+    outline: none; margin-top: 8px; transition: opacity 0.15s;
+  }
+  .exercise-input:focus { border-color: var(--sage); }
+  .exercise-input:disabled { opacity: 0.5; cursor: not-allowed; }
 
   /* ---------- 달력 ---------- */
   .cal-card { background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 18px; padding: 16px 17px; margin-bottom: 12px; }
@@ -580,6 +597,8 @@ async function loadDiary() {
 async function saveDiary() {
   const content = $("diaryContent") ? $("diaryContent").value.trim() : "";
   const feel = $("diaryFeel") ? $("diaryFeel").value.trim() : "";
+  const exercised = $("exerciseCheck") ? $("exerciseCheck").checked : false;
+  const exerciseNote = $("exerciseNote") ? $("exerciseNote").value.trim() : "";
   const primary = cities[0];
   let wx = todayEntry && todayEntry.weather ? todayEntry.weather : null;
   if (primary && wxCache[primary.id]) {
@@ -590,6 +609,7 @@ async function saveDiary() {
     on_date: todayStr(),
     content, weather_note: feel, weather: wx,
     city_notes: todayEntry ? todayEntry.city_notes : null,
+    exercised, exercise_note: exercised ? (exerciseNote || null) : null,
   };
   const { error } = await sb.from("diary").upsert(row, { onConflict: "user_id,on_date" });
   if (error) { toast("저장 실패: " + error.message); return; }
@@ -659,6 +679,11 @@ async function renderDiary() {
     <div class="dlabel">오늘 일기</div>
     <textarea class="diary-input" id="diaryContent" placeholder="오늘 하루는 어땠나요?"></textarea>
     <input class="feel-input" id="diaryFeel" placeholder="오늘 날씨, 몸으로는 어떻게 느꼈나요? (예: 습해서 축 처지는 날)">
+    <label class="exercise-row">
+      <input type="checkbox" id="exerciseCheck">
+      <span>오늘 운동했어요</span>
+    </label>
+    <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 30분)" disabled>
     <div class="photo-label">사진</div>
     <div class="photo-grid" id="photoGrid"></div>
     <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
@@ -667,7 +692,15 @@ async function renderDiary() {
   if (todayEntry) {
     dCard.querySelector("#diaryContent").value = todayEntry.content || "";
     dCard.querySelector("#diaryFeel").value = todayEntry.weather_note || "";
+    dCard.querySelector("#exerciseCheck").checked = !!todayEntry.exercised;
+    dCard.querySelector("#exerciseNote").value = todayEntry.exercise_note || "";
+    dCard.querySelector("#exerciseNote").disabled = !todayEntry.exercised;
   }
+  dCard.querySelector("#exerciseCheck").addEventListener("change", (e) => {
+    const noteInput = dCard.querySelector("#exerciseNote");
+    noteInput.disabled = !e.target.checked;
+    if (!e.target.checked) noteInput.value = "";
+  });
   dCard.querySelector("#diarySave").addEventListener("click", saveDiary);
   renderPhotoGrid();
   dCard.querySelector("#photoInput").addEventListener("change", (e) => {
@@ -748,6 +781,7 @@ async function renderDiary() {
         ${w ? `<span>${wmoEmoji(w.code)} ${w.tmax}°/${w.tmin}°</span>` : ""}</div>
         <div class="pe-body"></div>
         ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
+        ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
         ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
       el.querySelector(".pe-body").textContent = e.content || "";
       pCard.appendChild(el);
@@ -854,7 +888,7 @@ async function removePhoto(photo) {
 /* ---------- 달력 ---------- */
 async function loadCalendarData() {
   if (!calSel) calSel = todayStr();
-  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos");
+  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note");
   if (error) { toast("달력 로드 실패: " + error.message); calMap = {}; return; }
   calMap = {};
   (data || []).forEach(e => { calMap[e.on_date] = e; });
@@ -899,7 +933,7 @@ function renderCalendarView() {
     const cell = document.createElement("div");
     cell.className = "cal-day" + (c.other ? " other" : "") + (c.dateStr === today ? " today" : "") + (c.dateStr === calSel ? " selected" : "");
     const entry = c.dateStr && calMap[c.dateStr];
-    const has = entry && (entry.content || (entry.photos && entry.photos.length));
+    const has = entry && (entry.content || entry.exercised || (entry.photos && entry.photos.length));
     cell.innerHTML = `<span>${c.d}</span>${has ? '<span class="dot"></span>' : ""}`;
     if (c.dateStr) cell.addEventListener("click", () => { calSel = c.dateStr; renderCalendarView(); });
     grid.appendChild(cell);
@@ -918,7 +952,7 @@ function renderCalendarView() {
   const entry = calMap[calSel];
   const [, dm, dd] = calSel.split("-").map(Number);
   const dateLabel = `${dm}월 ${dd}일 (${DAY_NAMES[new Date(calSel + "T00:00:00").getDay()]})`;
-  if (!entry || (!entry.content && !entry.weather_note && !(entry.photos && entry.photos.length))) {
+  if (!entry || (!entry.content && !entry.weather_note && !entry.exercised && !(entry.photos && entry.photos.length))) {
     detail.innerHTML = `<div class="cd-date hand">${dateLabel}</div><div class="cd-empty">이 날짜엔 기록이 없어요.</div>`;
   } else {
     const w = entry.weather;
@@ -927,6 +961,7 @@ function renderCalendarView() {
       ${w ? `<div style="font-size:13px;color:var(--muted);margin-bottom:6px;">${wmoEmoji(w.code)} 최고 ${w.tmax}° · 최저 ${w.tmin}°</div>` : ""}
       <div class="cd-body"></div>
       ${entry.weather_note ? `<div class="cd-feel">☁ ${entry.weather_note}</div>` : ""}
+      ${entry.exercised ? `<div class="cd-feel" style="color:var(--sage)">🏃 ${entry.exercise_note || "운동함"}</div>` : ""}
       ${entry.photos && entry.photos.length ? `<div class="cd-photos">${entry.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
     detail.querySelector(".cd-body").textContent = entry.content || "";
   }

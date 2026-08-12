@@ -95,6 +95,15 @@ create policy "diary photos - own delete" on storage.objects for delete
 
 이렇게 하면 사진은 로그인한 본인만 업로드/삭제할 수 있고(Storage 정책), 저장된 사진은 공개 URL로 조회 가능함(개인 식별 정보가 아닌 일반 사진이라 안전함).
 
+## 1-4. 운동 체크 기능 (추가 SQL)
+
+일기에 운동 체크박스를 쓰려면 아래 SQL을 SQL Editor에서 한 번 실행:
+
+```sql
+alter table diary add column if not exists exercised boolean default false;
+alter table diary add column if not exists exercise_note text;
+```
+
 ## 2. 프로젝트 키 확인
 
 대시보드 → **Settings → API** 에서 두 값을 복사:
