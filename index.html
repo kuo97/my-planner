@@ -370,6 +370,13 @@
   }
   .exercise-input:focus { border-color: var(--sage); }
   .exercise-input:disabled { opacity: 0.5; cursor: not-allowed; }
+  .date-toggle { display: flex; gap: 4px; }
+  .date-toggle button {
+    padding: 5px 12px; border: 1.5px solid var(--line); border-radius: 999px;
+    background: var(--paper); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 12.5px;
+    color: var(--muted); cursor: pointer; transition: transform 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .date-toggle button.on { background: var(--coral); border-color: var(--coral); color: white; }
 
   /* ---------- 달력 ---------- */
   .cal-card { background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 18px; padding: 16px 17px; margin-bottom: 12px; }
@@ -581,12 +588,19 @@ const lastYearStr = () => {
 };
 
 let cities = [], todayEntry = null, lastYearEntry = null;
+let editDate = null;
 const wxCache = {};
 
+const yesterdayStr = () => {
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+};
+
 async function loadDiary() {
+  if (!editDate) editDate = todayStr();
   const [c, t, ly] = await Promise.all([
     sb.from("cities").select("*").order("sort", { ascending: true }),
-    sb.from("diary").select("*").eq("on_date", todayStr()).maybeSingle(),
+    sb.from("diary").select("*").eq("on_date", editDate).maybeSingle(),
     sb.from("diary").select("*").eq("on_date", lastYearStr()).maybeSingle(),
   ]);
   cities = c.data || [];
@@ -601,23 +615,24 @@ async function saveDiary() {
   const exerciseNote = $("exerciseNote") ? $("exerciseNote").value.trim() : "";
   const primary = cities[0];
   let wx = todayEntry && todayEntry.weather ? todayEntry.weather : null;
-  if (primary && wxCache[primary.id]) {
+  if (editDate === todayStr() && primary && wxCache[primary.id]) {
     const w = wxCache[primary.id];
     wx = { city: primary.name, code: w.code, tmax: w.tmax, tmin: w.tmin };
   }
   const row = {
-    on_date: todayStr(),
+    on_date: editDate,
     content, weather_note: feel, weather: wx,
     city_notes: todayEntry ? todayEntry.city_notes : null,
     exercised, exercise_note: exercised ? (exerciseNote || null) : null,
   };
   const { error } = await sb.from("diary").upsert(row, { onConflict: "user_id,on_date" });
   if (error) { toast("저장 실패: " + error.message); return; }
-  toast("오늘 일기를 저장했어요");
+  toast(editDate === todayStr() ? "오늘 일기를 저장했어요" : "어제 일기를 저장했어요");
   await loadDiary(); render();
 }
 
 async function toggleCityNote(city) {
+  if (editDate !== todayStr()) { toast("도시 날씨 기록은 오늘 일기에서만 할 수 있어요"); return; }
   const w = wxCache[city.id];
   if (!w) { toast("날씨를 불러오는 중이에요"); return; }
   let notes = (todayEntry && todayEntry.city_notes) || [];
@@ -625,7 +640,7 @@ async function toggleCityNote(city) {
   notes = exists ? notes.filter(n => n.city !== city.name)
                  : [...notes, { city: city.name, code: w.code, tmax: w.tmax, tmin: w.tmin, temp: w.temp }];
   const row = {
-    on_date: todayStr(),
+    on_date: editDate,
     content: todayEntry ? todayEntry.content : "",
     weather_note: todayEntry ? todayEntry.weather_note : "",
     weather: todayEntry ? todayEntry.weather : null,
@@ -672,22 +687,30 @@ async function renderDiary() {
   lyCard.innerHTML = `<div class="dlabel">작년 이맘때 · ${lastYearStr().slice(0,4)}년 ${new Date().getMonth()+1}월 ${new Date().getDate()}일</div><div class="wx-loading" id="wxLast">불러오는 중...</div>`;
   list.appendChild(lyCard);
 
-  /* 오늘 일기 카드 */
+  /* 오늘/어제 일기 카드 */
+  const isToday = editDate === todayStr();
+  const dayWord = isToday ? "오늘" : "어제";
   const dCard = document.createElement("div");
   dCard.className = "dcard";
   dCard.innerHTML = `
-    <div class="dlabel">오늘 일기</div>
-    <textarea class="diary-input" id="diaryContent" placeholder="오늘 하루는 어땠나요?"></textarea>
-    <input class="feel-input" id="diaryFeel" placeholder="오늘 날씨, 몸으로는 어떻게 느꼈나요? (예: 습해서 축 처지는 날)">
+    <div class="dlabel" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>${dayWord} 일기</span>
+      <div class="date-toggle" id="dateToggle">
+        <button type="button" data-d="today" class="${isToday ? "on" : ""}">오늘</button>
+        <button type="button" data-d="yesterday" class="${!isToday ? "on" : ""}">어제</button>
+      </div>
+    </div>
+    <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
+    <input class="feel-input" id="diaryFeel" placeholder="${dayWord} 날씨, 몸으로는 어떻게 느꼈나요? (예: 습해서 축 처지는 날)">
     <label class="exercise-row">
       <input type="checkbox" id="exerciseCheck">
-      <span>오늘 운동했어요</span>
+      <span>${dayWord} 운동했어요</span>
     </label>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 30분)" disabled>
     <div class="photo-label">사진</div>
     <div class="photo-grid" id="photoGrid"></div>
     <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
-    <button class="diary-save" id="diarySave">오늘 일기 저장</button>`;
+    <button class="diary-save" id="diarySave">${dayWord} 일기 저장</button>`;
   list.appendChild(dCard);
   if (todayEntry) {
     dCard.querySelector("#diaryContent").value = todayEntry.content || "";
@@ -702,6 +725,14 @@ async function renderDiary() {
     if (!e.target.checked) noteInput.value = "";
   });
   dCard.querySelector("#diarySave").addEventListener("click", saveDiary);
+  dCard.querySelectorAll("#dateToggle button").forEach(b => {
+    b.addEventListener("click", () => {
+      const next = b.dataset.d === "today" ? todayStr() : yesterdayStr();
+      if (next === editDate) return;
+      editDate = next;
+      loadDiary().then(renderDiary);
+    });
+  });
   renderPhotoGrid();
   dCard.querySelector("#photoInput").addEventListener("change", (e) => {
     uploadPhotos(e.target.files);
@@ -723,10 +754,13 @@ async function renderDiary() {
     chip.dataset.cityId = city.id;
     const noted = notes.find(n => n.city === city.name);
     chip.innerHTML = `<span>${city.name}</span><span class="cw" data-cw>...</span><span class="cw-hilo" data-hilo></span>
-      <button class="rec-btn ${noted ? "on" : ""}">${noted ? "기록됨" : "기록"}</button>
+      <span class="rec-btn ${noted ? "on" : ""}">${noted ? "기록됨" : "기록"}</span>
       <button class="del-btn" title="삭제">×</button>`;
-    chip.querySelector(".rec-btn").addEventListener("click", () => toggleCityNote(city));
-    chip.querySelector(".del-btn").addEventListener("click", () => deleteCity(city));
+    chip.addEventListener("click", (e) => {
+      if (e.target.closest(".del-btn")) return;
+      toggleCityNote(city);
+    });
+    chip.querySelector(".del-btn").addEventListener("click", (e) => { e.stopPropagation(); deleteCity(city); });
 
     /* 드래그로 순서 바꾸기 — 맨 앞 도시가 '내 도시' */
     chip.addEventListener("dragstart", () => { dragSrc = chip; chip.classList.add("dragging"); });
@@ -861,7 +895,7 @@ async function uploadPhotos(fileList) {
   for (const file of files) {
     try {
       const ext = ((file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "")) || "jpg";
-      const path = `${user.id}/${todayStr()}-${Date.now()}-${Math.random().toString(36).slice(2,7)}.${ext}`;
+      const path = `${user.id}/${editDate}-${Date.now()}-${Math.random().toString(36).slice(2,7)}.${ext}`;
       const { error: upErr } = await sb.storage.from("diary-photos").upload(path, file);
       if (upErr) throw upErr;
       const { data: pub } = sb.storage.from("diary-photos").getPublicUrl(path);
@@ -870,7 +904,7 @@ async function uploadPhotos(fileList) {
       toast("업로드 실패: " + err.message);
     }
   }
-  const { error } = await sb.from("diary").upsert({ on_date: todayStr(), photos: current }, { onConflict: "user_id,on_date" });
+  const { error } = await sb.from("diary").upsert({ on_date: editDate, photos: current }, { onConflict: "user_id,on_date" });
   if (error) toast("저장 실패: " + error.message);
   await loadDiary();
   renderPhotoGrid();
@@ -879,7 +913,7 @@ async function uploadPhotos(fileList) {
 async function removePhoto(photo) {
   const next = ((todayEntry && todayEntry.photos) || []).filter(p => p.path !== photo.path);
   await sb.storage.from("diary-photos").remove([photo.path]);
-  const { error } = await sb.from("diary").upsert({ on_date: todayStr(), photos: next }, { onConflict: "user_id,on_date" });
+  const { error } = await sb.from("diary").upsert({ on_date: editDate, photos: next }, { onConflict: "user_id,on_date" });
   if (error) { toast("삭제 실패: " + error.message); return; }
   await loadDiary();
   renderPhotoGrid();
@@ -1217,6 +1251,7 @@ document.querySelectorAll("nav button").forEach(b => {
     document.querySelectorAll("nav button").forEach(x => x.classList.remove("active"));
     b.classList.add("active");
     view = b.dataset.view;
+    if (view === "diary") editDate = todayStr();
     render();
   });
 });
