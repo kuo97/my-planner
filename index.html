@@ -332,7 +332,7 @@
     position: relative; width: 76px; height: 76px; border-radius: 14px; overflow: hidden;
     border: 1.5px solid var(--line); flex-shrink: 0; background: var(--paper);
   }
-  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
   .photo-thumb .pdel {
     position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 999px;
     border: none; background: rgba(43,36,30,0.62); color: white; font-size: 12px; line-height: 1;
@@ -352,7 +352,21 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
   .past-photos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .past-photos img { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--line); }
+  .past-photos img { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--line); cursor: zoom-in; }
+  .photo-lightbox {
+    position: fixed; inset: 0; background: rgba(20,16,12,0.86); z-index: 999;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    opacity: 0; pointer-events: none; transition: opacity 0.18s ease;
+  }
+  .photo-lightbox.open { opacity: 1; pointer-events: auto; }
+  .photo-lightbox img {
+    max-width: 100%; max-height: 100%; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .photo-lightbox .plb-close {
+    position: absolute; top: 16px; right: 20px; width: 38px; height: 38px; border-radius: 999px;
+    border: none; background: rgba(255,255,255,0.14); color: #fff; font-size: 20px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
   .pe-exercise { color: var(--sage) !important; }
   .past-cities { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .pc-chip {
@@ -421,7 +435,7 @@
   .cal-detail .cd-feel { font-size: 12.5px; color: var(--coral); margin-top: 6px; }
   .cal-detail .cd-empty { color: var(--muted); font-size: 13.5px; padding: 6px 0; }
   .cal-detail .cd-photos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  .cal-detail .cd-photos img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--line); }
+  .cal-detail .cd-photos img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--line); cursor: zoom-in; }
   .cal-jump { margin-top: 10px; background: var(--coral-soft); color: var(--coral); border: none; border-radius: 999px; padding: 7px 14px; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; display: block; }
 
   /* ---------- 할 일 서브탭 ---------- */
@@ -1410,6 +1424,30 @@ $("authForm").addEventListener("submit", async (e) => {
 $("btnSignup").addEventListener("click", async () => {
   const { error } = await sb.auth.signUp({ email: $("authEmail").value, password: $("authPw").value });
   $("authErr").textContent = error ? "가입 실패: " + error.message : "가입 완료. 바로 로그인해보세요.";
+});
+
+/* ---------- 사진 확대 보기 ---------- */
+const photoLightbox = document.createElement("div");
+photoLightbox.className = "photo-lightbox";
+photoLightbox.innerHTML = `<button class="plb-close" title="닫기">×</button><img alt="">`;
+document.body.appendChild(photoLightbox);
+function openPhotoViewer(url) {
+  photoLightbox.querySelector("img").src = url;
+  photoLightbox.classList.add("open");
+}
+function closePhotoViewer() {
+  photoLightbox.classList.remove("open");
+  photoLightbox.querySelector("img").src = "";
+}
+photoLightbox.addEventListener("click", (e) => {
+  if (e.target === photoLightbox || e.target.closest(".plb-close")) closePhotoViewer();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closePhotoViewer();
+});
+document.addEventListener("click", (e) => {
+  const img = e.target.closest(".photo-thumb img, .past-photos img, .cd-photos img");
+  if (img) openPhotoViewer(img.src);
 });
 
 init();
