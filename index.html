@@ -359,6 +359,8 @@
     font-size: 12px; font-weight: 600; background: var(--paper); border: 1.5px solid var(--line);
     border-radius: 999px; padding: 4px 10px; color: var(--ink);
   }
+  .pc-chip b { color: var(--danger); font-weight: 700; }
+  .pc-chip i { color: #5B8BC9; font-style: normal; font-weight: 700; }
 
   /* ---------- 운동 ---------- */
   .exercise-row {
@@ -421,6 +423,23 @@
   .cal-detail .cd-photos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .cal-detail .cd-photos img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--line); }
   .cal-jump { margin-top: 10px; background: var(--coral-soft); color: var(--coral); border: none; border-radius: 999px; padding: 7px 14px; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; display: block; }
+
+  /* ---------- 할 일 서브탭 ---------- */
+  .task-subnav { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .task-subnav button {
+    padding: 7px 14px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper-card);
+    font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer;
+    transition: transform 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .task-subnav button.on { background: var(--ink); border-color: var(--ink); color: white; }
+
+  /* ---------- 월별 구분 ---------- */
+  .month-head {
+    font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; color: var(--muted);
+    margin: 18px 0 8px; padding-top: 14px; border-top: 1.5px solid var(--line);
+    letter-spacing: 0.02em;
+  }
+  .month-head:first-child { margin-top: 2px; padding-top: 0; border-top: none; }
 </style>
 </head>
 <body>
@@ -453,11 +472,8 @@
   </main>
   <nav>
     <button data-view="today" class="active"><span class="ico">☀️</span>오늘</button>
-    <button data-view="inbox"><span class="ico">📥</span>인박스</button>
-    <button data-view="project"><span class="ico">📁</span>프로젝트</button>
     <button data-view="diary"><span class="ico">📖</span>일기</button>
     <button data-view="calendar"><span class="ico">📅</span>달력</button>
-    <button data-view="log"><span class="ico">✅</span>완료</button>
   </nav>
 </div>
 
@@ -506,6 +522,7 @@ const EXERCISE_PRESETS = [
   { key: "run", label: "런닝", note: "런닝" },
 ];
 let sb = null, user = null, tasks = [], repeatLog = [], view = "today", editing = null;
+let taskTab = "today";
 let calY = new Date().getFullYear(), calM = new Date().getMonth(), calSel = null, calMap = {};
 
 const $ = (id) => document.getElementById(id);
@@ -547,6 +564,9 @@ function spawnConfetti(anchorEl) {
 const WMO = {0:["☀️","맑음"],1:["🌤️","대체로 맑음"],2:["⛅","구름 조금"],3:["☁️","흐림"],45:["🌫️","안개"],48:["🌫️","안개"],51:["🌦️","이슬비"],53:["🌦️","이슬비"],55:["🌧️","이슬비"],56:["🌧️","어는 비"],57:["🌧️","어는 비"],61:["🌧️","비"],63:["🌧️","비"],65:["🌧️","강한 비"],66:["🌧️","진눈깨비"],67:["🌧️","진눈깨비"],71:["🌨️","눈"],73:["🌨️","눈"],75:["❄️","폭설"],77:["🌨️","눈날림"],80:["🌦️","소나기"],81:["🌧️","소나기"],82:["⛈️","강한 소나기"],85:["🌨️","눈 소나기"],86:["🌨️","눈 소나기"],95:["⛈️","뇌우"],96:["⛈️","뇌우"],99:["⛈️","뇌우"]};
 const wmoEmoji = (c) => (WMO[c] || ["🌡️","날씨"])[0];
 const wmoLabel = (c) => (WMO[c] || ["🌡️","날씨"])[1];
+const cityChipsHtml = (notes) => notes && notes.length
+  ? `<div class="past-cities">${notes.map(n => `<span class="pc-chip">${wmoEmoji(n.code)} ${n.city} ${Math.round(n.temp)}° <b>↑${n.tmax}°</b> <i>↓${n.tmin}°</i></span>`).join("")}</div>`
+  : "";
 
 async function fetchTodayWx(lat, lon) {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=1`;
@@ -839,13 +859,23 @@ async function renderDiary() {
   hint.textContent = "칩을 드래그해서 순서를 바꿀 수 있어요. 맨 앞 도시가 '내 도시'가 됩니다.";
   cCard.appendChild(hint);
 
-  /* 지난 일기 */
-  const { data: past } = await sb.from("diary").select("*").lt("on_date", todayStr()).order("on_date", { ascending: false }).limit(10);
+  /* 지난 일기 (월별로 묶어서 표시) */
+  const { data: past } = await sb.from("diary").select("*").lt("on_date", todayStr()).order("on_date", { ascending: false }).limit(60);
   if (past && past.length) {
     const pCard = document.createElement("div");
     pCard.className = "dcard";
     pCard.innerHTML = `<div class="dlabel">지난 일기</div>`;
+    let lastMonth = "";
     past.forEach(e => {
+      const month = e.on_date.slice(0, 7);
+      if (month !== lastMonth) {
+        const [yy, mm] = month.split("-");
+        const mHead = document.createElement("div");
+        mHead.className = "month-head";
+        mHead.textContent = `${yy}년 ${Number(mm)}월`;
+        pCard.appendChild(mHead);
+        lastMonth = month;
+      }
       const el = document.createElement("div");
       el.className = "past-entry";
       const w = e.weather;
@@ -855,7 +885,7 @@ async function renderDiary() {
         <div class="pe-body"></div>
         ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
         ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
-        ${e.city_notes && e.city_notes.length ? `<div class="past-cities">${e.city_notes.map(n => `<span class="pc-chip">${wmoEmoji(n.code)} ${n.city} ${Math.round(n.temp)}°</span>`).join("")}</div>` : ""}
+        ${cityChipsHtml(e.city_notes)}
         ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
       el.querySelector(".pe-body").textContent = e.content || "";
       pCard.appendChild(el);
@@ -1037,7 +1067,7 @@ function renderCalendarView() {
       <div class="cd-body"></div>
       ${entry.weather_note ? `<div class="cd-feel">☁ ${entry.weather_note}</div>` : ""}
       ${entry.exercised ? `<div class="cd-feel" style="color:var(--sage)">🏃 ${entry.exercise_note || "운동함"}</div>` : ""}
-      ${entry.city_notes && entry.city_notes.length ? `<div class="past-cities">${entry.city_notes.map(n => `<span class="pc-chip">${wmoEmoji(n.code)} ${n.city} ${Math.round(n.temp)}°</span>`).join("")}</div>` : ""}
+      ${cityChipsHtml(entry.city_notes)}
       ${entry.photos && entry.photos.length ? `<div class="cd-photos">${entry.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
     detail.querySelector(".cd-body").textContent = entry.content || "";
   }
@@ -1129,7 +1159,7 @@ async function loadAll() {
 
 async function addTask(title) {
   const row = { title };
-  if (view === "today") row.due = todayStr();
+  if (taskTab === "today") row.due = todayStr();
   const { error } = await sb.from("tasks").insert(row);
   if (error) { toast("추가 실패: " + error.message); return; }
   await loadAll(); render();
@@ -1201,43 +1231,72 @@ function render() {
   list.innerHTML = "";
   const today = todayStr();
   const dow = new Date().getDay();
-  const titles = { today: "오늘", inbox: "인박스", project: "프로젝트", diary: "일기", calendar: "달력", log: "완료" };
-  $("viewTitle").textContent = titles[view];
-  $("quickInput").placeholder = view === "today" ? "오늘 할 일 추가" : "생각나는 건 뭐든 적어두기";
-  $("quickHint").textContent = view === "inbox" ? "여기 쌓아두고, 나중에 눌러서 프로젝트·마감일을 정하면 돼요" : "";
-  document.querySelector(".quick").style.display = (view === "log" || view === "project" || view === "diary" || view === "calendar") ? "none" : "flex";
-  $("quickHint").style.display = view === "inbox" ? "block" : "none";
 
-  if (view === "diary") { loadDiary().then(renderDiary); return; }
-  if (view === "calendar") { loadCalendarData().then(renderCalendarView); return; }
+  if (view === "diary") {
+    $("viewTitle").textContent = "일기";
+    document.querySelector(".quick").style.display = "none";
+    $("quickHint").style.display = "none";
+    loadDiary().then(renderDiary);
+    return;
+  }
+  if (view === "calendar") {
+    $("viewTitle").textContent = "달력";
+    document.querySelector(".quick").style.display = "none";
+    $("quickHint").style.display = "none";
+    loadCalendarData().then(renderCalendarView);
+    return;
+  }
 
-  if (view === "today") {
+  /* view === "today" — 할 일 탭 (서브탭: 오늘/인박스/프로젝트/완료) */
+  const taskTitles = { today: "오늘", inbox: "인박스", project: "프로젝트", log: "완료" };
+  $("viewTitle").textContent = taskTitles[taskTab];
+  $("quickInput").placeholder = taskTab === "today" ? "오늘 할 일 추가" : "생각나는 건 뭐든 적어두기";
+  $("quickHint").textContent = taskTab === "inbox" ? "여기 쌓아두고, 나중에 눌러서 프로젝트·마감일을 정하면 돼요" : "";
+  document.querySelector(".quick").style.display = (taskTab === "log" || taskTab === "project") ? "none" : "flex";
+  $("quickHint").style.display = taskTab === "inbox" ? "block" : "none";
+
+  const subNav = document.createElement("div");
+  subNav.className = "task-subnav";
+  subNav.innerHTML = `
+    <button type="button" data-t="today" class="${taskTab === "today" ? "on" : ""}">오늘</button>
+    <button type="button" data-t="inbox" class="${taskTab === "inbox" ? "on" : ""}">인박스</button>
+    <button type="button" data-t="project" class="${taskTab === "project" ? "on" : ""}">프로젝트</button>
+    <button type="button" data-t="log" class="${taskTab === "log" ? "on" : ""}">완료</button>`;
+  subNav.querySelectorAll("button").forEach(b => {
+    b.addEventListener("click", () => { taskTab = b.dataset.t; render(); });
+  });
+  list.appendChild(subNav);
+
+  const taskList = document.createElement("div");
+  list.appendChild(taskList);
+
+  if (taskTab === "today") {
     const repeats = tasks.filter(t => t.repeat_days && t.repeat_days.includes(dow));
     const dueTasks = tasks.filter(t => !t.done_at && !(t.repeat_days && t.repeat_days.length) && t.due && t.due <= today);
     const doneToday = tasks.filter(t => t.done_at && t.done_at.slice(0,10) === today);
     if (repeats.length) {
-      list.appendChild(section("반복 일정"));
-      repeats.forEach(t => list.appendChild(taskRow(t, !!repeatLog.find(r => r.task_id === t.id))));
+      taskList.appendChild(section("반복 일정"));
+      repeats.forEach(t => taskList.appendChild(taskRow(t, !!repeatLog.find(r => r.task_id === t.id))));
     }
     if (dueTasks.length) {
-      list.appendChild(section("할 일"));
-      dueTasks.forEach(t => list.appendChild(taskRow(t)));
+      taskList.appendChild(section("할 일"));
+      dueTasks.forEach(t => taskList.appendChild(taskRow(t)));
     }
     if (doneToday.length) {
-      list.appendChild(section("오늘 완료"));
-      doneToday.forEach(t => list.appendChild(taskRow(t)));
+      taskList.appendChild(section("오늘 완료"));
+      doneToday.forEach(t => taskList.appendChild(taskRow(t)));
     }
     if (!repeats.length && !dueTasks.length && !doneToday.length)
-      list.innerHTML = emptyDoodle("오늘 예정된 일이 없어요", "위에서 바로 추가하거나, 인박스를 정리해보세요");
+      taskList.innerHTML = emptyDoodle("오늘 예정된 일이 없어요", "위에서 바로 추가하거나, 인박스를 정리해보세요");
   }
 
-  if (view === "inbox") {
+  if (taskTab === "inbox") {
     const inbox = tasks.filter(t => !t.done_at && !t.due && !(t.repeat_days && t.repeat_days.length));
-    if (!inbox.length) list.innerHTML = emptyDoodle("인박스가 비어있어요", "머릿속에 떠도는 건 뭐든 던져놓으세요");
-    inbox.forEach(t => list.appendChild(taskRow(t)));
+    if (!inbox.length) taskList.innerHTML = emptyDoodle("인박스가 비어있어요", "머릿속에 떠도는 건 뭐든 던져놓으세요");
+    inbox.forEach(t => taskList.appendChild(taskRow(t)));
   }
 
-  if (view === "project") {
+  if (taskTab === "project") {
     const open = tasks.filter(t => !t.done_at);
     const groups = {};
     open.forEach(t => {
@@ -1245,21 +1304,21 @@ function render() {
       (groups[key] = groups[key] || []).push(t);
     });
     const keys = Object.keys(groups).sort();
-    if (!keys.length) list.innerHTML = emptyDoodle("진행 중인 일이 없어요", "");
+    if (!keys.length) taskList.innerHTML = emptyDoodle("진행 중인 일이 없어요", "");
     keys.forEach(k => {
-      list.appendChild(section(`${k} (${groups[k].length})`));
-      groups[k].forEach(t => list.appendChild(taskRow(t)));
+      taskList.appendChild(section(`${k} (${groups[k].length})`));
+      groups[k].forEach(t => taskList.appendChild(taskRow(t)));
     });
   }
 
-  if (view === "log") {
+  if (taskTab === "log") {
     const done = tasks.filter(t => t.done_at).sort((a,b) => b.done_at.localeCompare(a.done_at)).slice(0, 50);
-    if (!done.length) list.innerHTML = emptyDoodle("아직 완료 기록이 없어요", "");
+    if (!done.length) taskList.innerHTML = emptyDoodle("아직 완료 기록이 없어요", "");
     let lastDate = "";
     done.forEach(t => {
       const d = t.done_at.slice(0,10);
-      if (d !== lastDate) { list.appendChild(section(d.slice(5).replace("-","/"))); lastDate = d; }
-      list.appendChild(taskRow(t));
+      if (d !== lastDate) { taskList.appendChild(section(d.slice(5).replace("-","/"))); lastDate = d; }
+      taskList.appendChild(taskRow(t));
     });
   }
 }
@@ -1294,6 +1353,7 @@ document.querySelectorAll("nav button").forEach(b => {
     b.classList.add("active");
     view = b.dataset.view;
     if (view === "diary") editDate = todayStr();
+    if (view === "today") taskTab = "today";
     render();
   });
 });
