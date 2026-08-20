@@ -354,6 +354,11 @@
   .past-photos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .past-photos img { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--line); }
   .pe-exercise { color: var(--sage) !important; }
+  .past-cities { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .pc-chip {
+    font-size: 12px; font-weight: 600; background: var(--paper); border: 1.5px solid var(--line);
+    border-radius: 999px; padding: 4px 10px; color: var(--ink);
+  }
 
   /* ---------- 운동 ---------- */
   .exercise-row {
@@ -370,6 +375,14 @@
   }
   .exercise-input:focus { border-color: var(--sage); }
   .exercise-input:disabled { opacity: 0.5; cursor: not-allowed; }
+  .exercise-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .ex-chip {
+    padding: 6px 12px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper);
+    font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 12.5px; color: var(--muted); cursor: pointer;
+    transition: transform 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .ex-chip:active { transform: scale(0.94); }
+  .ex-chip.on { background: var(--sage); border-color: var(--sage); color: white; }
   .date-toggle { display: flex; gap: 4px; }
   .date-toggle button {
     padding: 5px 12px; border: 1.5px solid var(--line); border-radius: 999px;
@@ -391,12 +404,15 @@
   .cal-day {
     aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
     border-radius: 12px; border: 1.5px solid transparent; cursor: pointer; position: relative; gap: 2px;
-    font-size: 13px; color: var(--ink); background: none;
+    font-size: 13px; color: var(--ink); background: none; overflow: hidden;
   }
   .cal-day.other { color: var(--line); cursor: default; }
   .cal-day.today { border-color: var(--coral); font-weight: 700; }
   .cal-day.selected { background: var(--sage-soft); border-color: var(--sage); font-weight: 700; }
-  .cal-day .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--coral); }
+  .cal-day .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--coral); position: relative; z-index: 1; }
+  .cal-day .cal-thumb { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; border-radius: 9px; z-index: 0; }
+  .cal-day .cal-thumb + .daynum { color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+  .cal-day .daynum { position: relative; z-index: 1; }
   .cal-detail { margin-top: 14px; padding-top: 14px; border-top: 1.5px dashed var(--line); }
   .cal-detail .cd-date { font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 8px; }
   .cal-detail .cd-body { font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: break-all; }
@@ -481,6 +497,14 @@ const SUPABASE_ANON_KEY = "sb_publishable_XhakCx4w4s7KRczs1kOcJQ_J8Qq11hK";
 
 const DAY_NAMES = ["일","월","화","수","목","금","토"];
 const MAX_PHOTOS = 6;
+const EXERCISE_PRESETS = [
+  { key: "push", label: "Push", note: "Push — 벤치프레스, 오버헤드프레스, 케이블푸쉬다운" },
+  { key: "legsA", label: "Legs A", note: "Legs A — V스쿼트, 레그컬, 사이드레터럴레이즈" },
+  { key: "pull", label: "Pull", note: "Pull — 렛풀다운, 티바로우, 리버스펙덱플라이, 케이블이두컬" },
+  { key: "legsB", label: "Legs B", note: "Legs B — 카프레이즈, 펙덱플라이, 라잉트라이셉스" },
+  { key: "core", label: "코어", note: "코어 — 플랭크 40초×3, 데드버그 10회×3" },
+  { key: "run", label: "런닝", note: "런닝" },
+];
 let sb = null, user = null, tasks = [], repeatLog = [], view = "today", editing = null;
 let calY = new Date().getFullYear(), calM = new Date().getMonth(), calSel = null, calMap = {};
 
@@ -707,6 +731,9 @@ async function renderDiary() {
       <span>${dayWord} 운동했어요</span>
     </label>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 30분)" disabled>
+    <div class="exercise-presets" id="exercisePresets">
+      ${EXERCISE_PRESETS.map(p => `<button type="button" class="ex-chip" data-k="${p.key}">${p.label}</button>`).join("")}
+    </div>
     <div class="photo-label">사진</div>
     <div class="photo-grid" id="photoGrid"></div>
     <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
@@ -723,6 +750,18 @@ async function renderDiary() {
     const noteInput = dCard.querySelector("#exerciseNote");
     noteInput.disabled = !e.target.checked;
     if (!e.target.checked) noteInput.value = "";
+  });
+  dCard.querySelectorAll(".ex-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const preset = EXERCISE_PRESETS.find(p => p.key === chip.dataset.k);
+      if (!preset) return;
+      const check = dCard.querySelector("#exerciseCheck");
+      const noteInput = dCard.querySelector("#exerciseNote");
+      check.checked = true;
+      noteInput.disabled = false;
+      noteInput.value = preset.note;
+      dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", c === chip));
+    });
   });
   dCard.querySelector("#diarySave").addEventListener("click", saveDiary);
   dCard.querySelectorAll("#dateToggle button").forEach(b => {
@@ -816,6 +855,7 @@ async function renderDiary() {
         <div class="pe-body"></div>
         ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
         ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
+        ${e.city_notes && e.city_notes.length ? `<div class="past-cities">${e.city_notes.map(n => `<span class="pc-chip">${wmoEmoji(n.code)} ${n.city} ${Math.round(n.temp)}°</span>`).join("")}</div>` : ""}
         ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
       el.querySelector(".pe-body").textContent = e.content || "";
       pCard.appendChild(el);
@@ -922,7 +962,7 @@ async function removePhoto(photo) {
 /* ---------- 달력 ---------- */
 async function loadCalendarData() {
   if (!calSel) calSel = todayStr();
-  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note");
+  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note,city_notes");
   if (error) { toast("달력 로드 실패: " + error.message); calMap = {}; return; }
   calMap = {};
   (data || []).forEach(e => { calMap[e.on_date] = e; });
@@ -967,8 +1007,9 @@ function renderCalendarView() {
     const cell = document.createElement("div");
     cell.className = "cal-day" + (c.other ? " other" : "") + (c.dateStr === today ? " today" : "") + (c.dateStr === calSel ? " selected" : "");
     const entry = c.dateStr && calMap[c.dateStr];
-    const has = entry && (entry.content || entry.exercised || (entry.photos && entry.photos.length));
-    cell.innerHTML = `<span>${c.d}</span>${has ? '<span class="dot"></span>' : ""}`;
+    const hasText = entry && (entry.content || entry.exercised || (entry.city_notes && entry.city_notes.length));
+    const thumb = entry && entry.photos && entry.photos[0];
+    cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}`;
     if (c.dateStr) cell.addEventListener("click", () => { calSel = c.dateStr; renderCalendarView(); });
     grid.appendChild(cell);
   });
@@ -986,7 +1027,7 @@ function renderCalendarView() {
   const entry = calMap[calSel];
   const [, dm, dd] = calSel.split("-").map(Number);
   const dateLabel = `${dm}월 ${dd}일 (${DAY_NAMES[new Date(calSel + "T00:00:00").getDay()]})`;
-  if (!entry || (!entry.content && !entry.weather_note && !entry.exercised && !(entry.photos && entry.photos.length))) {
+  if (!entry || (!entry.content && !entry.weather_note && !entry.exercised && !(entry.city_notes && entry.city_notes.length) && !(entry.photos && entry.photos.length))) {
     detail.innerHTML = `<div class="cd-date hand">${dateLabel}</div><div class="cd-empty">이 날짜엔 기록이 없어요.</div>`;
   } else {
     const w = entry.weather;
@@ -996,6 +1037,7 @@ function renderCalendarView() {
       <div class="cd-body"></div>
       ${entry.weather_note ? `<div class="cd-feel">☁ ${entry.weather_note}</div>` : ""}
       ${entry.exercised ? `<div class="cd-feel" style="color:var(--sage)">🏃 ${entry.exercise_note || "운동함"}</div>` : ""}
+      ${entry.city_notes && entry.city_notes.length ? `<div class="past-cities">${entry.city_notes.map(n => `<span class="pc-chip">${wmoEmoji(n.code)} ${n.city} ${Math.round(n.temp)}°</span>`).join("")}</div>` : ""}
       ${entry.photos && entry.photos.length ? `<div class="cd-photos">${entry.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
     detail.querySelector(".cd-body").textContent = entry.content || "";
   }
