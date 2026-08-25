@@ -1187,9 +1187,17 @@ async function loadAll() {
 async function addTask(title) {
   const row = { title };
   if (taskTab === "today") row.due = todayStr();
-  const { error } = await sb.from("tasks").insert(row);
-  if (error) { toast("추가 실패: " + error.message); return; }
-  await loadAll(); render();
+  const tempId = "temp-" + Date.now();
+  tasks.push({ ...row, id: tempId, created_at: new Date().toISOString() });
+  render();
+  const { data, error } = await sb.from("tasks").insert(row).select().single();
+  if (error) {
+    tasks = tasks.filter(t => t.id !== tempId);
+    toast("추가 실패: " + error.message); render(); return;
+  }
+  const idx = tasks.findIndex(t => t.id === tempId);
+  if (idx !== -1) tasks[idx] = data;
+  render();
 }
 
 /* ---------- 4트랙 사업 일정 불러오기 (2026-08-24 확정 스케줄, KST) ---------- */
@@ -1202,7 +1210,6 @@ const SCHEDULE_TASKS = [
   { title: "화잠 릴스 발행 확인 (19:30)", project: "화잠", repeat_days: [0,1,2,3,4,5,6] },
   { title: "화잠 월요일 배치 제작 (릴스 7편)", project: "화잠", repeat_days: [1] },
   { title: "건강친구 산이 쇼츠 발행 (08:30)", project: "건강친구 산이", repeat_days: [0,1,2,3,4,5,6] },
-  { title: "다음 주 소재 큐 채우기 + 주간 리뷰", project: null, repeat_days: [0] },
 ];
 function scheduleSeeded() {
   return tasks.some(t => ["우주사전2","화잠","건강친구 산이"].includes(t.project));
@@ -1211,9 +1218,10 @@ async function seedSchedule() {
   const existingTitles = new Set(tasks.map(t => t.title));
   const rows = SCHEDULE_TASKS.filter(s => !existingTitles.has(s.title));
   if (!rows.length) { toast("이미 다 불러왔어요"); return; }
-  const { error } = await sb.from("tasks").insert(rows);
+  const { data, error } = await sb.from("tasks").insert(rows).select();
   if (error) { toast("불러오기 실패: " + error.message); return; }
-  await loadAll(); render();
+  tasks.push(...(data || rows));
+  render();
   toast(`사업 일정 ${rows.length}개를 불러왔어요`);
 }
 
@@ -1229,14 +1237,23 @@ async function toggleTask(task, rowEl, chkEl) {
     if (turningOn) spawnConfetti(chkEl);
   }
 
+  if (isRepeat) {
+    if (wasDone) repeatLog = repeatLog.filter(r => r.task_id !== task.id);
+    else repeatLog.push({ task_id: task.id, done_on: todayStr() });
+  } else {
+    task.done_at = task.done_at ? null : new Date().toISOString();
+  }
+
   const dbCall = isRepeat
     ? (wasDone
-        ? sb.from("repeat_log").delete().eq("id", repeatLog.find(r => r.task_id === task.id).id)
+        ? sb.from("repeat_log").delete().eq("task_id", task.id).eq("done_on", todayStr())
         : sb.from("repeat_log").insert({ task_id: task.id, done_on: todayStr() }))
-    : sb.from("tasks").update({ done_at: task.done_at ? null : new Date().toISOString() }).eq("id", task.id);
+    : sb.from("tasks").update({ done_at: task.done_at }).eq("id", task.id);
 
-  await Promise.all([dbCall, turningOn ? sleep(320) : sleep(0)]);
-  await loadAll(); render();
+  await sleep(turningOn ? 320 : 0);
+  render();
+  const { error } = await dbCall;
+  if (error) { toast("저장 실패: " + error.message); await loadAll(); render(); }
 }
 
 /* ---------- 렌더 ---------- */
@@ -1300,7 +1317,7 @@ function render() {
   }
 
   /* view === "today" — 할 일 탭 (서브탭: 오늘/인박스/프로젝트/완료) */
-  const taskTitles = { today: "오늘", inbox: "인박스", project: "프로젝트", log: "완료" };
+  const taskTitles = { today: "오늘", inbox: "메모함", project: "프로젝트", log: "완료" };
   $("viewTitle").textContent = taskTitles[taskTab];
   $("quickInput").placeholder = taskTab === "today" ? "오늘 할 일 추가" : "생각나는 건 뭐든 적어두기";
   $("quickHint").textContent = taskTab === "inbox" ? "여기 쌓아두고, 나중에 눌러서 프로젝트·마감일을 정하면 돼요" : "";
@@ -1311,7 +1328,7 @@ function render() {
   subNav.className = "task-subnav";
   subNav.innerHTML = `
     <button type="button" data-t="today" class="${taskTab === "today" ? "on" : ""}">오늘</button>
-    <button type="button" data-t="inbox" class="${taskTab === "inbox" ? "on" : ""}">인박스</button>
+    <button type="button" data-t="inbox" class="${taskTab === "inbox" ? "on" : ""}">메모함</button>
     <button type="button" data-t="project" class="${taskTab === "project" ? "on" : ""}">프로젝트</button>
     <button type="button" data-t="log" class="${taskTab === "log" ? "on" : ""}">완료</button>`;
   subNav.querySelectorAll("button").forEach(b => {
@@ -1354,12 +1371,12 @@ function render() {
       doneToday.forEach(t => taskList.appendChild(taskRow(t)));
     }
     if (!repeats.length && !dueTasks.length && !doneToday.length)
-      taskList.insertAdjacentHTML("beforeend", emptyDoodle("오늘 예정된 일이 없어요", "위에서 바로 추가하거나, 인박스를 정리해보세요"));
+      taskList.insertAdjacentHTML("beforeend", emptyDoodle("오늘 예정된 일이 없어요", "위에서 바로 추가하거나, 메모함을 정리해보세요"));
   }
 
   if (taskTab === "inbox") {
     const inbox = tasks.filter(t => !t.done_at && !t.due && !(t.repeat_days && t.repeat_days.length));
-    if (!inbox.length) taskList.innerHTML = emptyDoodle("인박스가 비어있어요", "머릿속에 떠도는 건 뭐든 던져놓으세요");
+    if (!inbox.length) taskList.innerHTML = emptyDoodle("메모함이 비어있어요", "머릿속에 떠도는 건 뭐든 던져놓으세요");
     inbox.forEach(t => taskList.appendChild(taskRow(t)));
   }
 
@@ -1443,25 +1460,30 @@ document.querySelectorAll("#dayRow button").forEach(b => {
 });
 $("btnSave").addEventListener("click", async () => {
   if (!editing) return;
+  const id = editing.id;
   const upd = {
     title: $("editTitle").value.trim() || editing.title,
     project: $("editProject").value || null,
     due: $("editDue").value || null,
     repeat_days: editDays.length ? editDays : null,
   };
-  const { error } = await sb.from("tasks").update(upd).eq("id", editing.id);
-  if (error) { toast("저장 실패: " + error.message); return; }
-  closeSheet();
-  await loadAll(); render();
+  const t = tasks.find(t => t.id === id);
+  if (t) Object.assign(t, upd);
+  closeSheet(); render();
   toast("저장했어요");
+  const { error } = await sb.from("tasks").update(upd).eq("id", id);
+  if (error) { toast("저장 실패: " + error.message); await loadAll(); render(); }
 });
 $("btnDelete").addEventListener("click", async () => {
   if (!editing) return;
-  await sb.from("repeat_log").delete().eq("task_id", editing.id);
-  await sb.from("tasks").delete().eq("id", editing.id);
-  closeSheet();
-  await loadAll(); render();
+  const id = editing.id;
+  tasks = tasks.filter(t => t.id !== id);
+  repeatLog = repeatLog.filter(r => r.task_id !== id);
+  closeSheet(); render();
   toast("삭제했어요");
+  await sb.from("repeat_log").delete().eq("task_id", id);
+  const { error } = await sb.from("tasks").delete().eq("id", id);
+  if (error) { toast("삭제 실패: " + error.message); await loadAll(); render(); }
 });
 
 $("authForm").addEventListener("submit", async (e) => {
