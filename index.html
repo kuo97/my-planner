@@ -819,8 +819,14 @@ async function renderDiary() {
     chip.addEventListener("click", () => {
       const preset = EXERCISE_PRESETS.find(p => p.key === chip.dataset.k);
       if (!preset) return;
-      dCard.querySelector("#exerciseNote").value = preset.note;
-      dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", c === chip));
+      const noteInput = dCard.querySelector("#exerciseNote");
+      if (chip.classList.contains("on")) {
+        chip.classList.remove("on");
+        if (noteInput.value === preset.note) noteInput.value = "";
+      } else {
+        noteInput.value = preset.note;
+        dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", c === chip));
+      }
     });
   });
   dCard.querySelector("#diarySave").addEventListener("click", saveDiary);
