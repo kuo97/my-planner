@@ -372,11 +372,15 @@
   /* ---------- 편수 체크리스트 ---------- */
   .sub-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
   .sub-chip {
-    width: 26px; height: 26px; border-radius: 8px; border: 1.5px solid var(--line);
+    min-width: 30px; height: 38px; padding: 3px 4px; border-radius: 8px; border: 1.5px solid var(--line);
     background: var(--paper); color: var(--ink); font-family: 'Gaegu', sans-serif; font-weight: 700;
-    font-size: 11.5px; cursor: pointer; transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    cursor: pointer; transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; line-height: 1;
   }
+  .sub-chip .sub-day { font-size: 9.5px; color: var(--muted); }
+  .sub-chip .sub-num { font-size: 12.5px; }
   .sub-chip.on { background: var(--sage); border-color: var(--sage); color: white; }
+  .sub-chip.on .sub-day { color: rgba(255,255,255,0.85); }
   .sub-chip:active { transform: scale(0.9); }
 
   /* ---------- 사진 ---------- */
@@ -1384,6 +1388,13 @@ const SCHEDULE_TASKS = [
   { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 12, sub_start: 20 },
   { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7, sub_start: 18 },
 ];
+/* 편수 체크리스트의 각 칸이 실제로 예약 발행되는 요일 (0=일 ... 6=토), 칸 순서대로.
+   화잠: 화요일(제작일)부터 월요일까지 7일 연속 하루 1편.
+   우주사전2: 월요일부터 매일 2편씩, 토요일만 쉬고 일요일까지 (예전 반복 일정과 동일한 패턴). */
+const SUB_DAY_PATTERNS = {
+  "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)": [2,3,4,5,6,0,1],
+  "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)": [1,1,2,2,3,3,4,4,5,5,0,0],
+};
 /* 당연히 매번 하는 일이라 일정에 넣을 필요 없거나, 예약 발행으로 자동 게시돼서
    더 이상 매일 확인이 필요 없거나, 주 1회 배치 제작 방식으로 재편되며 이름이 바뀐,
    아직 배치일을 정하지 못한(추후 결정) 일정 등, 예전에 씨딩됐던 일정 제목들 */
@@ -1540,14 +1551,19 @@ async function toggleSubItem(task, n, onDate) {
 function subChecklist(task, onDate) {
   const done = getSubDone(task, onDate);
   const start = task.sub_start || 1;
+  const dayPattern = SUB_DAY_PATTERNS[task.title];
   const grid = document.createElement("div");
   grid.className = "sub-grid";
-  for (let n = start; n < start + task.sub_total; n++) {
+  for (let i = 0; i < task.sub_total; i++) {
+    const n = start + i;
+    const dow = dayPattern ? dayPattern[i] : undefined;
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "sub-chip" + (done.includes(n) ? " on" : "");
-    chip.textContent = n;
-    chip.title = `${n}호`;
+    chip.innerHTML = dow !== undefined
+      ? `<span class="sub-day">${DAY_NAMES[dow]}</span><span class="sub-num">${n}</span>`
+      : `<span class="sub-num">${n}</span>`;
+    chip.title = dow !== undefined ? `${n}호 · ${DAY_NAMES[dow]}요일 예약` : `${n}호`;
     chip.addEventListener("click", (e) => { e.stopPropagation(); toggleSubItem(task, n, onDate); });
     grid.appendChild(chip);
   }
