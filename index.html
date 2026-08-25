@@ -88,6 +88,12 @@
     margin: 20px 4px 10px; display: flex; align-items: center; gap: 6px;
   }
   .section-title::before { content: '✦'; color: var(--coral); font-size: 11px; }
+  .project-head { justify-content: space-between; padding-right: 4px; }
+  .project-del {
+    border: none; background: none; color: var(--muted); font-size: 16px; line-height: 1;
+    cursor: pointer; padding: 2px 6px;
+  }
+  .project-del:hover { color: var(--coral); }
 
   .task {
     display: flex; align-items: center; gap: 12px;
@@ -522,15 +528,9 @@
   <h3>할 일 편집</h3>
   <label>내용</label>
   <input type="text" id="editTitle">
-  <label>프로젝트</label>
-  <select id="editProject">
-    <option value="">없음</option>
-    <option>찬작스튜디오</option>
-    <option>우주사전2</option>
-    <option>화잠</option>
-    <option>건강친구 산이</option>
-    <option>개인</option>
-  </select>
+  <label>프로젝트 (새 이름을 입력하면 새로 만들어져요)</label>
+  <input type="text" id="editProject" list="projectList" placeholder="없음">
+  <datalist id="projectList"></datalist>
   <label>마감일</label>
   <input type="date" id="editDue">
   <label>반복 요일 (반복 일정으로 쓰려면 선택)</label>
@@ -1330,6 +1330,33 @@ function section(title) {
   return el;
 }
 
+function projectSectionHeader(key, count) {
+  const el = document.createElement("div");
+  el.className = "section-title project-head";
+  const label = document.createElement("span");
+  label.textContent = `${key} (${count})`;
+  el.appendChild(label);
+  if (key !== "미분류") {
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "project-del";
+    del.title = "프로젝트 삭제";
+    del.textContent = "×";
+    del.addEventListener("click", (e) => { e.stopPropagation(); deleteProject(key); });
+    el.appendChild(del);
+  }
+  return el;
+}
+
+async function deleteProject(name) {
+  if (!confirm(`"${name}" 프로젝트를 삭제할까요? 안에 있는 일들은 미분류로 이동해요.`)) return;
+  tasks.forEach(t => { if (t.project === name) t.project = null; });
+  render();
+  const { error } = await sb.from("tasks").update({ project: null }).eq("project", name);
+  if (error) { toast("삭제 실패: " + error.message); await loadAll(); render(); }
+  else toast(`"${name}" 프로젝트를 지웠어요`);
+}
+
 function render() {
   const list = $("list");
   list.innerHTML = "";
@@ -1424,8 +1451,11 @@ function render() {
     const keys = Object.keys(groups).sort();
     if (!keys.length) taskList.insertAdjacentHTML("beforeend", emptyDoodle("진행 중인 일이 없어요", ""));
     keys.forEach(k => {
-      taskList.appendChild(section(`${k} (${groups[k].length})`));
-      groups[k].forEach(t => taskList.appendChild(taskRow(t)));
+      taskList.appendChild(projectSectionHeader(k, groups[k].length));
+      groups[k].forEach(t => {
+        const isRepeat = t.repeat_days && t.repeat_days.length;
+        taskList.appendChild(taskRow(t, isRepeat ? !!repeatLog.find(r => r.task_id === t.id) : undefined));
+      });
     });
 
     const done = tasks.filter(t => t.done_at).sort((a,b) => b.done_at.localeCompare(a.done_at)).slice(0, 50);
@@ -1453,6 +1483,8 @@ function openSheet(task) {
   $("editTitle").value = task.title;
   $("editProject").value = task.project || "";
   $("editDue").value = task.due || "";
+  const projectNames = [...new Set(tasks.map(t => t.project).filter(Boolean))].sort();
+  $("projectList").innerHTML = projectNames.map(p => `<option value="${p}">`).join("");
   updateDayRow();
   $("sheetBack").classList.add("show");
   $("sheet").classList.add("show");
@@ -1501,7 +1533,7 @@ $("btnSave").addEventListener("click", async () => {
   const id = editing.id;
   const upd = {
     title: $("editTitle").value.trim() || editing.title,
-    project: $("editProject").value || null,
+    project: $("editProject").value.trim() || null,
     due: $("editDue").value || null,
     repeat_days: editDays.length ? editDays : null,
   };
