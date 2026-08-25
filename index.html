@@ -369,6 +369,16 @@
   .pe-daychip.on { background: var(--coral); border-color: var(--coral); color: white; }
   .pe-detailwrap:not(:empty) { margin-top: 10px; border-top: 1.5px dashed var(--line); }
 
+  /* ---------- 편수 체크리스트 ---------- */
+  .sub-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .sub-chip {
+    width: 26px; height: 26px; border-radius: 8px; border: 1.5px solid var(--line);
+    background: var(--paper); color: var(--ink); font-family: 'Gaegu', sans-serif; font-weight: 700;
+    font-size: 11.5px; cursor: pointer; transition: transform 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .sub-chip.on { background: var(--sage); border-color: var(--sage); color: white; }
+  .sub-chip:active { transform: scale(0.9); }
+
   /* ---------- 사진 ---------- */
   .photo-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 14px 0 8px; }
   .photo-grid { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -583,6 +593,8 @@
     <button data-d="0">일</button><button data-d="1">월</button><button data-d="2">화</button>
     <button data-d="3">수</button><button data-d="4">목</button><button data-d="5">금</button><button data-d="6">토</button>
   </div>
+  <label>한 번에 올리는 편수 (여러 개를 하나씩 체크하려면 입력, 비우면 일반 할 일)</label>
+  <input type="number" id="editSubTotal" min="1" step="1" placeholder="예: 12">
   <div class="sheet-actions">
     <button class="btn-del" id="btnDelete">삭제</button>
     <button class="btn-save" id="btnSave">저장</button>
@@ -1365,8 +1377,8 @@ async function addTask(title) {
 /* ---------- 4트랙 사업 일정 불러오기 (2026-08-25 재편성: 계정별 주 1회 배치 제작 + 예약 발행, KST) ---------- */
 const SCHEDULE_TASKS = [
   { title: "찬작 수요일 배치 제작 (릴스+블로그 1주일치, 예약 발행)", project: "찬작스튜디오", repeat_days: [3] },
-  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1] },
-  { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2] },
+  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 12 },
+  { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7 },
   { title: "건강친구 산이 월요일 배치 제작 (예약 발행)", project: "건강친구 산이", repeat_days: [1] },
 ];
 /* 당연히 매번 하는 일이라 일정에 넣을 필요 없거나, 예약 발행으로 자동 게시돼서
@@ -1415,7 +1427,20 @@ async function cleanupSchedule() {
     const { data } = await sb.from("tasks").insert(missing).select();
     if (data) tasks.push(...data);
   }
-  if (removeIds.length || missing.length) render();
+
+  // 이미 있던 사업 일정에 편수(sub_total)가 새로 정해졌으면 채워준다
+  let subSynced = false;
+  for (const s of SCHEDULE_TASKS) {
+    if (!s.sub_total) continue;
+    const t = tasks.find(x => x.title === s.title);
+    if (t && t.sub_total !== s.sub_total) {
+      t.sub_total = s.sub_total;
+      await sb.from("tasks").update({ sub_total: s.sub_total }).eq("id", t.id);
+      subSynced = true;
+    }
+  }
+
+  if (removeIds.length || missing.length || subSynced) render();
 }
 function scheduleSeeded() {
   return tasks.some(t => ["우주사전2","화잠","건강친구 산이"].includes(t.project));
@@ -1466,10 +1491,64 @@ async function toggleTask(task, rowEl, chkEl, onDate = todayStr()) {
   }
 }
 
+/* ---------- 편수 체크리스트 (한 번에 여러 개 올리는 배치 콘텐츠용) ---------- */
+function getSubDone(task, onDate) {
+  const isRepeat = task.repeat_days && task.repeat_days.length;
+  if (isRepeat) {
+    const row = repeatLog.find(r => r.task_id === task.id && r.done_on === onDate);
+    return (row && row.sub_done) || [];
+  }
+  return task.sub_done || [];
+}
+
+async function toggleSubItem(task, n, onDate) {
+  const isRepeat = task.repeat_days && task.repeat_days.length;
+  const current = getSubDone(task, onDate);
+  const has = current.includes(n);
+  const next = has ? current.filter(x => x !== n) : [...current, n].sort((a, b) => a - b);
+  const turningComplete = next.length >= task.sub_total && current.length < task.sub_total;
+  if (turningComplete) toast(`${task.title} 다 올렸어요 🎉`);
+
+  if (isRepeat) {
+    repeatLog = repeatLog.filter(r => !(r.task_id === task.id && r.done_on === onDate));
+    if (next.length) repeatLog.push({ task_id: task.id, done_on: onDate, sub_done: next });
+    render();
+    const { error: delErr } = await sb.from("repeat_log").delete().eq("task_id", task.id).eq("done_on", onDate);
+    if (!delErr && next.length) {
+      const { error } = await sb.from("repeat_log").insert({ task_id: task.id, done_on: onDate, sub_done: next });
+      if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
+    } else if (delErr) { toast("동기화 실패: " + delErr.message); await loadAll(); render(); }
+  } else {
+    const idx = tasks.findIndex(t => t.id === task.id);
+    if (idx !== -1) tasks[idx] = { ...tasks[idx], sub_done: next };
+    render();
+    const { error } = await sb.from("tasks").update({ sub_done: next }).eq("id", task.id);
+    if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
+  }
+}
+
+function subChecklist(task, onDate) {
+  const done = getSubDone(task, onDate);
+  const grid = document.createElement("div");
+  grid.className = "sub-grid";
+  for (let n = 1; n <= task.sub_total; n++) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "sub-chip" + (done.includes(n) ? " on" : "");
+    chip.textContent = n;
+    chip.title = `${n}호`;
+    chip.addEventListener("click", (e) => { e.stopPropagation(); toggleSubItem(task, n, onDate); });
+    grid.appendChild(chip);
+  }
+  return grid;
+}
+
 /* ---------- 렌더 ---------- */
 function taskRow(task, doneOverride, onDate = todayStr()) {
   const isRepeat = task.repeat_days && task.repeat_days.length;
-  const done = doneOverride !== undefined ? doneOverride : !!task.done_at;
+  const hasSub = task.sub_total > 0;
+  const subDone = hasSub ? getSubDone(task, onDate) : [];
+  const done = hasSub ? subDone.length >= task.sub_total : (doneOverride !== undefined ? doneOverride : !!task.done_at);
   const div = document.createElement("div");
   div.className = "task" + (done ? " done" : "");
   const badges = [];
@@ -1479,6 +1558,7 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
     const overdue = task.due < todayStr() && !done;
     badges.push(`<span class="badge ${overdue ? "overdue" : "plain"}">${overdue ? "지남 " : ""}${task.due.slice(5).replace("-","/")}</span>`);
   }
+  if (hasSub) badges.push(`<span class="badge plain">${subDone.length}/${task.sub_total}편 · 1~${task.sub_total}호</span>`);
   div.innerHTML = `
     <div class="chk">
       <svg viewBox="0 0 27 27">
@@ -1492,8 +1572,13 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
       ${badges.length ? `<div class="meta">${badges.join("")}</div>` : ""}
     </div>`;
   div.querySelector(".title").textContent = task.title;
-  const chkEl = div.querySelector(".chk");
-  chkEl.addEventListener("click", (e) => { e.stopPropagation(); toggleTask(task, div, chkEl, onDate); });
+  if (hasSub) {
+    div.querySelector(".body").appendChild(subChecklist(task, onDate));
+    div.querySelector(".chk").style.visibility = "hidden"; // 완료 여부는 편수 체크로만 결정
+  } else {
+    const chkEl = div.querySelector(".chk");
+    chkEl.addEventListener("click", (e) => { e.stopPropagation(); toggleTask(task, div, chkEl, onDate); });
+  }
   div.addEventListener("click", () => openSheet(task));
   div.addEventListener("contextmenu", (e) => {
     e.preventDefault();
@@ -1652,6 +1737,7 @@ function openSheet(task) {
   $("editTitle").value = task.title;
   $("editProject").value = task.project || "";
   $("editDue").value = task.due || "";
+  $("editSubTotal").value = task.sub_total || "";
   const projectNames = [...new Set(tasks.map(t => t.project).filter(Boolean))].sort();
   $("projectList").innerHTML = projectNames.map(p => `<option value="${p}">`).join("");
   $("btnDeleteProject").style.display = task.project ? "inline" : "none";
@@ -1737,11 +1823,13 @@ $("btnSave").addEventListener("click", async () => {
   const before = tasks.find(t => t.id === id);
   if (!before) return;
   const beforeSnap = { ...before };
+  const subTotalVal = $("editSubTotal").value.trim();
   const upd = {
     title: $("editTitle").value.trim() || editing.title,
     project: $("editProject").value.trim() || null,
     due: $("editDue").value || null,
     repeat_days: editDays.length ? editDays : null,
+    sub_total: subTotalVal ? Math.max(1, parseInt(subTotalVal, 10)) : null,
   };
   const afterSnap = { ...beforeSnap, ...upd };
   closeSheet();
