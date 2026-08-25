@@ -23,7 +23,10 @@
     --sage-soft: #E3F0E8;
     --danger: #E15B4F;
     --danger-soft: #FBE4E0;
+    --content-max: 560px;
   }
+  @media (min-width: 900px) { :root { --content-max: 920px; } }
+  @media (min-width: 1300px) { :root { --content-max: 1180px; } }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
   body {
@@ -43,7 +46,7 @@
   }
 
   /* ---------- 레이아웃 ---------- */
-  .app { max-width: 560px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+  .app { max-width: var(--content-max); margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
   header {
     padding: 22px 20px 6px;
     display: flex; align-items: center; justify-content: space-between;
@@ -187,7 +190,7 @@
     border-top: 1.5px solid var(--line);
     display: flex; justify-content: space-around;
     padding: 10px 0 calc(8px + env(safe-area-inset-bottom));
-    max-width: 560px; margin: 0 auto;
+    max-width: var(--content-max); margin: 0 auto;
   }
   nav button {
     flex: 1; background: none; border: none; font-family: 'Gaegu', sans-serif;
@@ -211,7 +214,7 @@
   .sheet-back.show { display: block; opacity: 1; }
   .sheet {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 51;
-    max-width: 560px; margin: 0 auto;
+    max-width: var(--content-max); margin: 0 auto;
     background: var(--paper-card); border-radius: 24px 24px 0 0;
     padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
     transform: translateY(105%); transition: transform 0.28s cubic-bezier(.32,.9,.36,1.1);
