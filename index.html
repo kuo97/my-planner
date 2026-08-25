@@ -458,13 +458,18 @@
   }
   .task-subnav button.on { background: var(--ink); border-color: var(--ink); color: white; }
 
-  /* ---------- 월별 구분 ---------- */
+  /* ---------- 월별 구분 (접기/펼치기) ---------- */
+  .month-group { margin: 18px 0 0; padding-top: 14px; border-top: 1.5px solid var(--line); }
+  .month-group:first-of-type { margin-top: 2px; padding-top: 0; border-top: none; }
   .month-head {
     font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; color: var(--muted);
-    margin: 18px 0 8px; padding-top: 14px; border-top: 1.5px solid var(--line);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.02em; cursor: pointer; list-style: none;
+    display: flex; align-items: center; gap: 6px; padding: 4px 0;
   }
-  .month-head:first-child { margin-top: 2px; padding-top: 0; border-top: none; }
+  .month-head::-webkit-details-marker { display: none; }
+  .month-head::before { content: "▸"; font-size: 11px; transition: transform 0.15s ease; }
+  .month-group[open] > .month-head::before { transform: rotate(90deg); }
+  .month-group[open] > .month-head { margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -681,7 +686,6 @@ async function loadDiary() {
 
 async function saveDiary() {
   const content = $("diaryContent") ? $("diaryContent").value.trim() : "";
-  const feel = $("diaryFeel") ? $("diaryFeel").value.trim() : "";
   const exercised = $("exerciseCheck") ? $("exerciseCheck").checked : false;
   const exerciseNote = $("exerciseNote") ? $("exerciseNote").value.trim() : "";
   const primary = cities[0];
@@ -692,7 +696,7 @@ async function saveDiary() {
   }
   const row = {
     on_date: editDate,
-    content, weather_note: feel, weather: wx,
+    content, weather: wx,
     city_notes: todayEntry ? todayEntry.city_notes : null,
     exercised, exercise_note: exercised ? (exerciseNote || null) : null,
   };
@@ -772,7 +776,6 @@ async function renderDiary() {
       </div>
     </div>
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
-    <input class="feel-input" id="diaryFeel" placeholder="${dayWord} 날씨, 몸으로는 어떻게 느꼈나요? (예: 습해서 축 처지는 날)">
     <label class="exercise-row">
       <input type="checkbox" id="exerciseCheck">
       <span>${dayWord} 운동했어요</span>
@@ -788,7 +791,6 @@ async function renderDiary() {
   list.appendChild(dCard);
   if (todayEntry) {
     dCard.querySelector("#diaryContent").value = todayEntry.content || "";
-    dCard.querySelector("#diaryFeel").value = todayEntry.weather_note || "";
     dCard.querySelector("#exerciseCheck").checked = !!todayEntry.exercised;
     dCard.querySelector("#exerciseNote").value = todayEntry.exercise_note || "";
     dCard.querySelector("#exerciseNote").disabled = !todayEntry.exercised;
@@ -886,36 +888,43 @@ async function renderDiary() {
   hint.textContent = "칩을 드래그해서 순서를 바꿀 수 있어요. 맨 앞 도시가 '내 도시'가 됩니다.";
   cCard.appendChild(hint);
 
-  /* 지난 일기 (월별로 묶어서 표시) */
+  /* 지난 일기 (월별로 묶어서, 클릭하면 펼쳐지게 표시) */
   const { data: past } = await sb.from("diary").select("*").lt("on_date", todayStr()).order("on_date", { ascending: false }).limit(60);
   if (past && past.length) {
     const pCard = document.createElement("div");
     pCard.className = "dcard";
     pCard.innerHTML = `<div class="dlabel">지난 일기</div>`;
-    let lastMonth = "";
+    const months = [];
     past.forEach(e => {
       const month = e.on_date.slice(0, 7);
-      if (month !== lastMonth) {
-        const [yy, mm] = month.split("-");
-        const mHead = document.createElement("div");
-        mHead.className = "month-head";
-        mHead.textContent = `${yy}년 ${Number(mm)}월`;
-        pCard.appendChild(mHead);
-        lastMonth = month;
-      }
-      const el = document.createElement("div");
-      el.className = "past-entry";
-      const w = e.weather;
-      el.innerHTML = `
-        <div class="pe-head"><span class="pe-date">${e.on_date.slice(5).replace("-","/")}</span>
-        ${w ? `<span>${wmoEmoji(w.code)} ${w.tmax}°/${w.tmin}°</span>` : ""}</div>
-        <div class="pe-body"></div>
-        ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
-        ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
-        ${cityChipsHtml(e.city_notes)}
-        ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
-      el.querySelector(".pe-body").textContent = e.content || "";
-      pCard.appendChild(el);
+      let group = months.find(g => g.month === month);
+      if (!group) { group = { month, entries: [] }; months.push(group); }
+      group.entries.push(e);
+    });
+    months.forEach(g => {
+      const [yy, mm] = g.month.split("-");
+      const details = document.createElement("details");
+      details.className = "month-group";
+      const summary = document.createElement("summary");
+      summary.className = "month-head";
+      summary.textContent = `${yy}년 ${Number(mm)}월 (${g.entries.length})`;
+      details.appendChild(summary);
+      g.entries.forEach(e => {
+        const el = document.createElement("div");
+        el.className = "past-entry";
+        const w = e.weather;
+        el.innerHTML = `
+          <div class="pe-head"><span class="pe-date">${e.on_date.slice(5).replace("-","/")}</span>
+          ${w ? `<span>${wmoEmoji(w.code)} ${w.tmax}°/${w.tmin}°</span>` : ""}</div>
+          <div class="pe-body"></div>
+          ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
+          ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
+          ${cityChipsHtml(e.city_notes)}
+          ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
+        el.querySelector(".pe-body").textContent = e.content || "";
+        details.appendChild(el);
+      });
+      pCard.appendChild(details);
     });
     list.appendChild(pCard);
   }
