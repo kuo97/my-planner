@@ -88,6 +88,8 @@
     margin: 20px 4px 10px; display: flex; align-items: center; gap: 6px;
   }
   .section-title::before { content: '✦'; color: var(--coral); font-size: 11px; }
+  .week-day-head.is-today { color: var(--coral); }
+  .week-day-head.is-today::before { content: '☀︎'; }
   .project-head { justify-content: space-between; padding-right: 4px; }
   .project-del {
     border: none; background: none; color: var(--muted); font-size: 16px; line-height: 1;
@@ -587,6 +589,18 @@ const todayStr = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 };
+const dateStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+/* 이번 주 일~토 날짜 목록 */
+function weekDates() {
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay());
+  const out = [];
+  for (let i = 0; i < 7; i++) {
+    out.push(dateStr(d));
+    d.setDate(d.getDate() + 1);
+  }
+  return out;
+}
 
 function toast(msg) {
   const t = $("toast");
@@ -1221,13 +1235,15 @@ async function showApp() {
   $("todayDate").textContent = `${d.getMonth()+1}월 ${d.getDate()}일 (${DAY_NAMES[d.getDay()]})`;
   await loadAll();
   render();
+  await cleanupSchedule();
 }
 
 /* ---------- 데이터 ---------- */
 async function loadAll() {
+  const week = weekDates();
   const [t, r] = await Promise.all([
     sb.from("tasks").select("*").order("created_at", { ascending: true }),
-    sb.from("repeat_log").select("*").eq("done_on", todayStr()),
+    sb.from("repeat_log").select("*").gte("done_on", week[0]).lte("done_on", week[6]),
   ]);
   // 네트워크/세션 오류로 조회가 실패하면 기존 화면을 비우지 않고 그대로 둔다
   // (실패했다고 tasks를 []로 덮어쓰면 프로젝트/할 일이 전부 사라진 것처럼 보임)
@@ -1283,16 +1299,16 @@ async function applyTaskState(id, state, { silent } = {}) {
     if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
   }
 }
-async function applyRepeatLogState(taskId, exists, { silent } = {}) {
+async function applyRepeatLogState(taskId, exists, { on = todayStr(), silent } = {}) {
   if (exists) {
-    if (!repeatLog.find(r => r.task_id === taskId)) repeatLog.push({ task_id: taskId, done_on: todayStr() });
+    if (!repeatLog.find(r => r.task_id === taskId && r.done_on === on)) repeatLog.push({ task_id: taskId, done_on: on });
     if (!silent) render();
-    const { error } = await sb.from("repeat_log").insert({ task_id: taskId, done_on: todayStr() });
+    const { error } = await sb.from("repeat_log").insert({ task_id: taskId, done_on: on });
     if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
   } else {
-    repeatLog = repeatLog.filter(r => r.task_id !== taskId);
+    repeatLog = repeatLog.filter(r => !(r.task_id === taskId && r.done_on === on));
     if (!silent) render();
-    const { error } = await sb.from("repeat_log").delete().eq("task_id", taskId).eq("done_on", todayStr());
+    const { error } = await sb.from("repeat_log").delete().eq("task_id", taskId).eq("done_on", on);
     if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
   }
 }
@@ -1321,13 +1337,52 @@ async function addTask(title) {
 const SCHEDULE_TASKS = [
   { title: "찬작 콘텐츠 발행 (릴스+블로그 동시 19:00)", project: "찬작스튜디오", repeat_days: [1,3,5] },
   { title: "찬작 DM 응대", project: "찬작스튜디오", repeat_days: [0,1,2,3,4,5,6] },
-  { title: "우주사전 쇼츠 발행 확인 (11:30·19:00)", project: "우주사전2", repeat_days: [0,1,2,3,4,5] },
   { title: "우주사전 월요일 배치 제작 (쇼츠 12편)", project: "우주사전2", repeat_days: [1] },
   { title: "우주사전 롱폼 제작+발행 (19:00)", project: "우주사전2", repeat_days: [6] },
-  { title: "화잠 릴스 발행 확인 (19:30)", project: "화잠", repeat_days: [0,1,2,3,4,5,6] },
   { title: "화잠 월요일 배치 제작 (릴스 7편)", project: "화잠", repeat_days: [1] },
-  { title: "건강친구 산이 쇼츠 발행 (08:30)", project: "건강친구 산이", repeat_days: [0,1,2,3,4,5,6] },
+  { title: "건강친구 산이 월요일 배치 제작 (예약 발행)", project: "건강친구 산이", repeat_days: [1] },
 ];
+/* 예약 발행으로 자동 게시되어 더 이상 매일 확인이 필요 없는, 예전에 씨딩됐던 일정 제목들 */
+const RETIRED_SCHEDULE_TITLES = [
+  "우주사전 쇼츠 발행 확인 (11:30·19:00)",
+  "화잠 릴스 발행 확인 (19:30)",
+  "건강친구 산이 쇼츠 발행 (08:30)",
+];
+/* 중복 씨딩 및 은퇴된 일정 정리 — 앱 실행 시 한 번 조용히 실행 */
+async function cleanupSchedule() {
+  // 아래 정리는 4트랙 사업 일정(SCHEDULE_TASKS/RETIRED_SCHEDULE_TITLES)에 등록된
+  // 반복 일정 제목에만 적용한다 — 사용자가 직접 만든 일반 할 일은 절대 건드리지 않는다.
+  const knownTitles = new Set([...SCHEDULE_TASKS.map(s => s.title), ...RETIRED_SCHEDULE_TITLES]);
+  const byTitle = {};
+  tasks.forEach(t => {
+    if (t.repeat_days && t.repeat_days.length && knownTitles.has(t.title)) {
+      (byTitle[t.title] = byTitle[t.title] || []).push(t);
+    }
+  });
+  const removeIds = [];
+  Object.values(byTitle).forEach(list => {
+    if (list.length > 1) {
+      list.sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
+      removeIds.push(...list.slice(1).map(t => t.id));
+    }
+  });
+  tasks.forEach(t => { if (RETIRED_SCHEDULE_TITLES.includes(t.title) && !removeIds.includes(t.id)) removeIds.push(t.id); });
+
+  if (removeIds.length) {
+    tasks = tasks.filter(t => !removeIds.includes(t.id));
+    repeatLog = repeatLog.filter(r => !removeIds.includes(r.task_id));
+    await sb.from("repeat_log").delete().in("task_id", removeIds);
+    await sb.from("tasks").delete().in("id", removeIds);
+  }
+
+  // 이미 "4트랙 사업 일정"을 불러온 적 있는 사용자에 한해서만 새로 추가된 항목(건강친구 산이 배치일 등)을 채워준다
+  const missing = scheduleSeeded() ? SCHEDULE_TASKS.filter(s => !tasks.some(t => t.title === s.title)) : [];
+  if (missing.length) {
+    const { data } = await sb.from("tasks").insert(missing).select();
+    if (data) tasks.push(...data);
+  }
+  if (removeIds.length || missing.length) render();
+}
 function scheduleSeeded() {
   return tasks.some(t => ["우주사전2","화잠","건강친구 산이"].includes(t.project));
 }
@@ -1347,9 +1402,9 @@ async function seedSchedule() {
   );
 }
 
-async function toggleTask(task, rowEl, chkEl) {
+async function toggleTask(task, rowEl, chkEl, onDate = todayStr()) {
   const isRepeat = task.repeat_days && task.repeat_days.length;
-  const wasDone = isRepeat ? !!repeatLog.find(r => r.task_id === task.id) : !!task.done_at;
+  const wasDone = isRepeat ? !!repeatLog.find(r => r.task_id === task.id && r.done_on === onDate) : !!task.done_at;
   const turningOn = !wasDone;
 
   // 낙관적 UI: 서버 응답 기다리지 않고 바로 애니메이션 재생
@@ -1361,10 +1416,10 @@ async function toggleTask(task, rowEl, chkEl) {
   await sleep(turningOn ? 320 : 0);
 
   if (isRepeat) {
-    await applyRepeatLogState(task.id, turningOn);
+    await applyRepeatLogState(task.id, turningOn, { on: onDate });
     pushHistory(
-      () => applyRepeatLogState(task.id, wasDone),
-      () => applyRepeatLogState(task.id, turningOn)
+      () => applyRepeatLogState(task.id, wasDone, { on: onDate }),
+      () => applyRepeatLogState(task.id, turningOn, { on: onDate })
     );
   } else {
     const before = { ...task };
@@ -1378,7 +1433,7 @@ async function toggleTask(task, rowEl, chkEl) {
 }
 
 /* ---------- 렌더 ---------- */
-function taskRow(task, doneOverride) {
+function taskRow(task, doneOverride, onDate = todayStr()) {
   const isRepeat = task.repeat_days && task.repeat_days.length;
   const done = doneOverride !== undefined ? doneOverride : !!task.done_at;
   const div = document.createElement("div");
@@ -1404,7 +1459,7 @@ function taskRow(task, doneOverride) {
     </div>`;
   div.querySelector(".title").textContent = task.title;
   const chkEl = div.querySelector(".chk");
-  chkEl.addEventListener("click", (e) => { e.stopPropagation(); toggleTask(task, div, chkEl); });
+  chkEl.addEventListener("click", (e) => { e.stopPropagation(); toggleTask(task, div, chkEl, onDate); });
   div.addEventListener("click", () => openSheet(task));
   div.addEventListener("contextmenu", (e) => {
     e.preventDefault();
@@ -1451,7 +1506,6 @@ function render() {
   const list = $("list");
   list.innerHTML = "";
   const today = todayStr();
-  const dow = new Date().getDay();
 
   if (view === "diary") {
     $("viewTitle").textContent = "일기";
@@ -1498,7 +1552,7 @@ function render() {
       banner.innerHTML = `
         <div class="body">
           <div class="title" style="color:var(--coral)">＋ 4트랙 사업 일정 불러오기</div>
-          <div class="meta"><span class="badge plain">탭해서 반복 일정 9개 한번에 추가</span></div>
+          <div class="meta"><span class="badge plain">탭해서 반복 일정 한번에 추가</span></div>
         </div>`;
       banner.addEventListener("click", async () => {
         banner.querySelector(".title").textContent = "불러오는 중...";
@@ -1506,23 +1560,32 @@ function render() {
       });
       taskList.appendChild(banner);
     }
-    const repeats = tasks.filter(t => t.repeat_days && t.repeat_days.includes(dow));
-    const dueTasks = tasks.filter(t => !t.done_at && !(t.repeat_days && t.repeat_days.length) && t.due && t.due <= today);
-    const doneToday = tasks.filter(t => t.done_at && t.done_at.slice(0,10) === today);
-    if (repeats.length) {
-      taskList.appendChild(section("반복 일정"));
-      repeats.forEach(t => taskList.appendChild(taskRow(t, !!repeatLog.find(r => r.task_id === t.id))));
-    }
-    if (dueTasks.length) {
-      taskList.appendChild(section("할 일"));
-      dueTasks.forEach(t => taskList.appendChild(taskRow(t)));
-    }
-    if (doneToday.length) {
-      taskList.appendChild(section("오늘 완료"));
-      doneToday.forEach(t => taskList.appendChild(taskRow(t)));
-    }
-    if (!repeats.length && !dueTasks.length && !doneToday.length)
-      taskList.insertAdjacentHTML("beforeend", emptyDoodle("오늘 예정된 일이 없어요", "위에서 바로 추가하거나, 메모함을 정리해보세요"));
+
+    const week = weekDates();
+    let any = false;
+    week.forEach((d, i) => {
+      const dTasks = tasks.filter(t => {
+        const isRepeat = t.repeat_days && t.repeat_days.length;
+        if (isRepeat) return t.repeat_days.includes(i);
+        if (!t.due) return false;
+        // 마감 지난(오늘 포함) 미완료 할 일은 원래 요일이 아니라 '오늘' 칸에 모아 보여준다
+        if (!t.done_at && t.due <= today) return d === today;
+        return t.due === d;
+      });
+      if (!dTasks.length) return;
+      any = true;
+      const head = document.createElement("div");
+      head.className = "section-title week-day-head";
+      head.textContent = `${DAY_NAMES[i]}요일 ${Number(d.slice(5,7))}/${Number(d.slice(8,10))}` + (d === today ? " · 오늘" : "");
+      if (d === today) head.classList.add("is-today");
+      taskList.appendChild(head);
+      dTasks.forEach(t => {
+        const isRepeat = t.repeat_days && t.repeat_days.length;
+        taskList.appendChild(taskRow(t, isRepeat ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === d) : undefined, d));
+      });
+    });
+    if (!any)
+      taskList.insertAdjacentHTML("beforeend", emptyDoodle("이번 주 예정된 일이 없어요", "위에서 바로 추가하거나, 메모함을 정리해보세요"));
   }
 
   if (taskTab === "inbox") {
@@ -1544,7 +1607,7 @@ function render() {
       taskList.appendChild(projectSectionHeader(k, groups[k].length));
       groups[k].forEach(t => {
         const isRepeat = t.repeat_days && t.repeat_days.length;
-        taskList.appendChild(taskRow(t, isRepeat ? !!repeatLog.find(r => r.task_id === t.id) : undefined));
+        taskList.appendChild(taskRow(t, isRepeat ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === today) : undefined));
       });
     });
 
@@ -1682,7 +1745,7 @@ $("btnDelete").addEventListener("click", async () => {
 async function deleteTask(task) {
   const id = task.id;
   const snapshot = { ...task };
-  const hadLogToday = !!repeatLog.find(r => r.task_id === id);
+  const hadLogToday = !!repeatLog.find(r => r.task_id === id && r.done_on === todayStr());
   await applyRepeatLogState(id, false, { silent: true });
   await applyTaskState(id, null);
   toast("삭제했어요");
