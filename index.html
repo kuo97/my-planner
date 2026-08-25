@@ -1316,12 +1316,12 @@ function render() {
     return;
   }
 
-  /* view === "today" — 할 일 탭 (서브탭: 오늘/인박스/프로젝트/완료) */
-  const taskTitles = { today: "오늘", inbox: "메모함", project: "프로젝트", log: "완료" };
+  /* view === "today" — 할 일 탭 (서브탭: 오늘/메모함/프로젝트) */
+  const taskTitles = { today: "오늘", inbox: "메모함", project: "프로젝트" };
   $("viewTitle").textContent = taskTitles[taskTab];
   $("quickInput").placeholder = taskTab === "today" ? "오늘 할 일 추가" : "생각나는 건 뭐든 적어두기";
   $("quickHint").textContent = taskTab === "inbox" ? "여기 쌓아두고, 나중에 눌러서 프로젝트·마감일을 정하면 돼요" : "";
-  document.querySelector(".quick").style.display = (taskTab === "log" || taskTab === "project") ? "none" : "flex";
+  document.querySelector(".quick").style.display = taskTab === "project" ? "none" : "flex";
   $("quickHint").style.display = taskTab === "inbox" ? "block" : "none";
 
   const subNav = document.createElement("div");
@@ -1329,8 +1329,7 @@ function render() {
   subNav.innerHTML = `
     <button type="button" data-t="today" class="${taskTab === "today" ? "on" : ""}">오늘</button>
     <button type="button" data-t="inbox" class="${taskTab === "inbox" ? "on" : ""}">메모함</button>
-    <button type="button" data-t="project" class="${taskTab === "project" ? "on" : ""}">프로젝트</button>
-    <button type="button" data-t="log" class="${taskTab === "log" ? "on" : ""}">완료</button>`;
+    <button type="button" data-t="project" class="${taskTab === "project" ? "on" : ""}">프로젝트</button>`;
   subNav.querySelectorAll("button").forEach(b => {
     b.addEventListener("click", () => { taskTab = b.dataset.t; render(); });
   });
@@ -1388,22 +1387,26 @@ function render() {
       (groups[key] = groups[key] || []).push(t);
     });
     const keys = Object.keys(groups).sort();
-    if (!keys.length) taskList.innerHTML = emptyDoodle("진행 중인 일이 없어요", "");
+    if (!keys.length) taskList.insertAdjacentHTML("beforeend", emptyDoodle("진행 중인 일이 없어요", ""));
     keys.forEach(k => {
       taskList.appendChild(section(`${k} (${groups[k].length})`));
       groups[k].forEach(t => taskList.appendChild(taskRow(t)));
     });
-  }
 
-  if (taskTab === "log") {
     const done = tasks.filter(t => t.done_at).sort((a,b) => b.done_at.localeCompare(a.done_at)).slice(0, 50);
-    if (!done.length) taskList.innerHTML = emptyDoodle("아직 완료 기록이 없어요", "");
-    let lastDate = "";
-    done.forEach(t => {
-      const d = t.done_at.slice(0,10);
-      if (d !== lastDate) { taskList.appendChild(section(d.slice(5).replace("-","/"))); lastDate = d; }
-      taskList.appendChild(taskRow(t));
-    });
+    if (done.length) {
+      const logHead = document.createElement("div");
+      logHead.className = "section-title";
+      logHead.style.marginTop = "18px";
+      logHead.textContent = "완료";
+      taskList.appendChild(logHead);
+      let lastDate = "";
+      done.forEach(t => {
+        const d = t.done_at.slice(0,10);
+        if (d !== lastDate) { taskList.appendChild(section(d.slice(5).replace("-","/"))); lastDate = d; }
+        taskList.appendChild(taskRow(t));
+      });
+    }
   }
 }
 
