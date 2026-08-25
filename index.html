@@ -1454,17 +1454,17 @@ async function cleanupSchedule() {
     if (data) tasks.push(...data);
   }
 
-  // 이미 있던 사업 일정에 편수(sub_total)가 새로 정해졌으면 채워준다
+  // 편수(sub_total)/시작 호수(sub_start)는 값이 아예 없을 때(=아직 한 번도 안 정해졌을 때)만 최초 한 번 채워준다.
+  // 이후 SCHEDULE_TASKS 템플릿 값이 바뀌어도(다음 배치부터 반영할 새 편수 등) 진행 중인 실제 값을
+  // 조용히 덮어쓰지 않는다 — 배치 전환은 사용자가 편집 시트에서 직접 한다.
   let subSynced = false;
   for (const s of SCHEDULE_TASKS) {
-    if (!s.sub_total) continue;
     const t = tasks.find(x => x.title === s.title);
-    if (t && t.sub_total !== s.sub_total) {
+    if (t && s.sub_total && t.sub_total == null) {
       t.sub_total = s.sub_total;
       await sb.from("tasks").update({ sub_total: s.sub_total }).eq("id", t.id);
       subSynced = true;
     }
-    // sub_start는 최초 한 번만 채워주고, 그 뒤로는 편집 시트에서 직접 다음 배치 호수로 바꿔가며 쓰도록 둔다
     if (t && s.sub_start && t.sub_start == null) {
       t.sub_start = s.sub_start;
       await sb.from("tasks").update({ sub_start: s.sub_start }).eq("id", t.id);
