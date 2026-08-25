@@ -88,14 +88,37 @@
     margin: 20px 4px 10px; display: flex; align-items: center; gap: 6px;
   }
   .section-title::before { content: '✦'; color: var(--coral); font-size: 11px; }
-  .week-day-head.is-today { color: var(--coral); }
-  .week-day-head.is-today::before { content: '☀︎'; }
-  .project-head { justify-content: space-between; padding-right: 4px; }
-  .project-del {
-    border: none; background: none; color: var(--muted); font-size: 16px; line-height: 1;
-    cursor: pointer; padding: 2px 6px;
+  .project-del-link {
+    border: none; background: none; color: var(--muted); font-size: 12px; font-weight: 700;
+    cursor: pointer; text-decoration: underline; padding: 0;
   }
-  .project-del:hover { color: var(--coral); }
+  .project-del-link:hover { color: var(--coral); }
+
+  /* ---------- 오늘 탭: 월~일 주간 보드 ---------- */
+  .week-board {
+    display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px;
+    scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+  }
+  .week-col {
+    flex: 0 0 208px; scroll-snap-align: start;
+    border: 1.5px solid var(--line); border-radius: 16px; padding: 10px;
+    background: var(--paper-card);
+  }
+  .week-col .task { padding: 11px 12px; margin-bottom: 7px; }
+  .week-col-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; color: var(--muted);
+    margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1.5px dashed var(--line);
+  }
+  .week-col-date { font-size: 11.5px; }
+  .week-col-empty { color: var(--muted); font-size: 12.5px; padding: 6px 2px; }
+  .week-col.is-today {
+    background: var(--coral-soft); border-color: var(--coral); border-width: 2px;
+    box-shadow: 0 4px 14px rgba(255,107,74,0.16);
+  }
+  .week-col.is-today .week-col-head {
+    color: var(--coral); font-size: 15px; border-bottom-color: rgba(255,107,74,0.35);
+  }
 
   .task {
     display: flex; align-items: center; gap: 12px;
@@ -544,7 +567,10 @@
   <h3>할 일 편집</h3>
   <label>내용</label>
   <input type="text" id="editTitle">
-  <label>프로젝트 (새 이름을 입력하면 새로 만들어져요)</label>
+  <label style="display:flex;align-items:center;justify-content:space-between;">
+    <span>프로젝트 (새 이름을 입력하면 새로 만들어져요)</span>
+    <button type="button" id="btnDeleteProject" class="project-del-link" style="display:none;">이 프로젝트 삭제</button>
+  </label>
   <input type="text" id="editProject" list="projectList" placeholder="없음">
   <datalist id="projectList"></datalist>
   <label>마감일</label>
@@ -1336,17 +1362,18 @@ async function addTask(title) {
 /* ---------- 4트랙 사업 일정 불러오기 (2026-08-24 확정 스케줄, KST) ---------- */
 const SCHEDULE_TASKS = [
   { title: "찬작 콘텐츠 발행 (릴스+블로그 동시 19:00)", project: "찬작스튜디오", repeat_days: [1,3,5] },
-  { title: "찬작 DM 응대", project: "찬작스튜디오", repeat_days: [0,1,2,3,4,5,6] },
   { title: "우주사전 월요일 배치 제작 (쇼츠 12편)", project: "우주사전2", repeat_days: [1] },
   { title: "우주사전 롱폼 제작+발행 (19:00)", project: "우주사전2", repeat_days: [6] },
   { title: "화잠 월요일 배치 제작 (릴스 7편)", project: "화잠", repeat_days: [1] },
   { title: "건강친구 산이 월요일 배치 제작 (예약 발행)", project: "건강친구 산이", repeat_days: [1] },
 ];
-/* 예약 발행으로 자동 게시되어 더 이상 매일 확인이 필요 없는, 예전에 씨딩됐던 일정 제목들 */
+/* 당연히 매번 하는 일이라 일정에 넣을 필요 없거나, 예약 발행으로 자동 게시돼서
+   더 이상 매일 확인이 필요 없는, 예전에 씨딩됐던 일정 제목들 */
 const RETIRED_SCHEDULE_TITLES = [
   "우주사전 쇼츠 발행 확인 (11:30·19:00)",
   "화잠 릴스 발행 확인 (19:30)",
   "건강친구 산이 쇼츠 발행 (08:30)",
+  "찬작 DM 응대",
 ];
 /* 중복 씨딩 및 은퇴된 일정 정리 — 앱 실행 시 한 번 조용히 실행 */
 async function cleanupSchedule() {
@@ -1475,24 +1502,6 @@ function section(title) {
   return el;
 }
 
-function projectSectionHeader(key, count) {
-  const el = document.createElement("div");
-  el.className = "section-title project-head";
-  const label = document.createElement("span");
-  label.textContent = `${key} (${count})`;
-  el.appendChild(label);
-  if (key !== "미분류") {
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "project-del";
-    del.title = "프로젝트 삭제";
-    del.textContent = "×";
-    del.addEventListener("click", (e) => { e.stopPropagation(); deleteProject(key); });
-    el.appendChild(del);
-  }
-  return el;
-}
-
 async function deleteProject(name) {
   if (!confirm(`"${name}" 프로젝트를 삭제할까요? 안에 있는 일들은 미분류로 이동해요.`)) return;
   tasks.forEach(t => { if (t.project === name) t.project = null; });
@@ -1522,20 +1531,19 @@ function render() {
     return;
   }
 
-  /* view === "today" — 할 일 탭 (서브탭: 오늘/메모함/프로젝트) */
-  const taskTitles = { today: "오늘", inbox: "메모함", project: "프로젝트" };
+  /* view === "today" — 할 일 탭 (서브탭: 오늘/메모함) */
+  const taskTitles = { today: "오늘", inbox: "메모함" };
   $("viewTitle").textContent = taskTitles[taskTab];
   $("quickInput").placeholder = taskTab === "today" ? "오늘 할 일 추가" : "생각나는 건 뭐든 적어두기";
   $("quickHint").textContent = taskTab === "inbox" ? "여기 쌓아두고, 나중에 눌러서 프로젝트·마감일을 정하면 돼요" : "";
-  document.querySelector(".quick").style.display = taskTab === "project" ? "none" : "flex";
+  document.querySelector(".quick").style.display = "flex";
   $("quickHint").style.display = taskTab === "inbox" ? "block" : "none";
 
   const subNav = document.createElement("div");
   subNav.className = "task-subnav";
   subNav.innerHTML = `
     <button type="button" data-t="today" class="${taskTab === "today" ? "on" : ""}">오늘</button>
-    <button type="button" data-t="inbox" class="${taskTab === "inbox" ? "on" : ""}">메모함</button>
-    <button type="button" data-t="project" class="${taskTab === "project" ? "on" : ""}">프로젝트</button>`;
+    <button type="button" data-t="inbox" class="${taskTab === "inbox" ? "on" : ""}">메모함</button>`;
   subNav.querySelectorAll("button").forEach(b => {
     b.addEventListener("click", () => { taskTab = b.dataset.t; render(); });
   });
@@ -1561,9 +1569,13 @@ function render() {
       taskList.appendChild(banner);
     }
 
-    const week = weekDates();
+    const week = weekDates(); // index 0=일 ... 6=토
+    const MON_FIRST = [1,2,3,4,5,6,0]; // 월~일 순서로 표시
+    const board = document.createElement("div");
+    board.className = "week-board";
     let any = false;
-    week.forEach((d, i) => {
+    MON_FIRST.forEach(i => {
+      const d = week[i];
       const dTasks = tasks.filter(t => {
         const isRepeat = t.repeat_days && t.repeat_days.length;
         if (isRepeat) return t.repeat_days.includes(i);
@@ -1572,59 +1584,56 @@ function render() {
         if (!t.done_at && t.due <= today) return d === today;
         return t.due === d;
       });
-      if (!dTasks.length) return;
-      any = true;
+      const isToday = d === today;
+      const col = document.createElement("div");
+      col.className = "week-col" + (isToday ? " is-today" : "");
+      if (isToday) col.id = "weekColToday";
       const head = document.createElement("div");
-      head.className = "section-title week-day-head";
-      head.textContent = `${DAY_NAMES[i]}요일 ${Number(d.slice(5,7))}/${Number(d.slice(8,10))}` + (d === today ? " · 오늘" : "");
-      if (d === today) head.classList.add("is-today");
-      taskList.appendChild(head);
-      dTasks.forEach(t => {
-        const isRepeat = t.repeat_days && t.repeat_days.length;
-        taskList.appendChild(taskRow(t, isRepeat ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === d) : undefined, d));
-      });
+      head.className = "week-col-head";
+      head.innerHTML = `<span>${DAY_NAMES[i]}요일</span><span class="week-col-date">${Number(d.slice(5,7))}/${Number(d.slice(8,10))}</span>`;
+      col.appendChild(head);
+      if (dTasks.length) {
+        any = true;
+        dTasks.forEach(t => {
+          const isRepeat = t.repeat_days && t.repeat_days.length;
+          col.appendChild(taskRow(t, isRepeat ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === d) : undefined, d));
+        });
+      } else {
+        col.insertAdjacentHTML("beforeend", `<div class="week-col-empty">${isToday ? "오늘은 여유롭네요" : "-"}</div>`);
+      }
+      board.appendChild(col);
     });
+    taskList.appendChild(board);
     if (!any)
       taskList.insertAdjacentHTML("beforeend", emptyDoodle("이번 주 예정된 일이 없어요", "위에서 바로 추가하거나, 메모함을 정리해보세요"));
+    setTimeout(() => {
+      const col = $("weekColToday");
+      if (col) col.scrollIntoView({ inline: "center", block: "nearest" });
+    }, 0);
+
+    const done = tasks.filter(t => t.done_at).sort((a,b) => b.done_at.localeCompare(a.done_at)).slice(0, 50);
+    if (done.length) {
+      const details = document.createElement("details");
+      details.className = "month-group";
+      details.style.marginTop = "18px";
+      const summary = document.createElement("summary");
+      summary.className = "month-head";
+      summary.textContent = `완료 (${done.length})`;
+      details.appendChild(summary);
+      let lastDate = "";
+      done.forEach(t => {
+        const d = t.done_at.slice(0,10);
+        if (d !== lastDate) { details.appendChild(section(d.slice(5).replace("-","/"))); lastDate = d; }
+        details.appendChild(taskRow(t));
+      });
+      taskList.appendChild(details);
+    }
   }
 
   if (taskTab === "inbox") {
     const inbox = tasks.filter(t => !t.done_at && !t.due && !(t.repeat_days && t.repeat_days.length));
     if (!inbox.length) taskList.innerHTML = emptyDoodle("메모함이 비어있어요", "머릿속에 떠도는 건 뭐든 던져놓으세요");
     inbox.forEach(t => taskList.appendChild(taskRow(t)));
-  }
-
-  if (taskTab === "project") {
-    const open = tasks.filter(t => !t.done_at);
-    const groups = {};
-    open.forEach(t => {
-      const key = t.project || "미분류";
-      (groups[key] = groups[key] || []).push(t);
-    });
-    const keys = Object.keys(groups).sort();
-    if (!keys.length) taskList.insertAdjacentHTML("beforeend", emptyDoodle("진행 중인 일이 없어요", ""));
-    keys.forEach(k => {
-      taskList.appendChild(projectSectionHeader(k, groups[k].length));
-      groups[k].forEach(t => {
-        const isRepeat = t.repeat_days && t.repeat_days.length;
-        taskList.appendChild(taskRow(t, isRepeat ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === today) : undefined));
-      });
-    });
-
-    const done = tasks.filter(t => t.done_at).sort((a,b) => b.done_at.localeCompare(a.done_at)).slice(0, 50);
-    if (done.length) {
-      const logHead = document.createElement("div");
-      logHead.className = "section-title";
-      logHead.style.marginTop = "18px";
-      logHead.textContent = "완료";
-      taskList.appendChild(logHead);
-      let lastDate = "";
-      done.forEach(t => {
-        const d = t.done_at.slice(0,10);
-        if (d !== lastDate) { taskList.appendChild(section(d.slice(5).replace("-","/"))); lastDate = d; }
-        taskList.appendChild(taskRow(t));
-      });
-    }
   }
 }
 
@@ -1638,6 +1647,7 @@ function openSheet(task) {
   $("editDue").value = task.due || "";
   const projectNames = [...new Set(tasks.map(t => t.project).filter(Boolean))].sort();
   $("projectList").innerHTML = projectNames.map(p => `<option value="${p}">`).join("");
+  $("btnDeleteProject").style.display = task.project ? "inline" : "none";
   updateDayRow();
   $("sheetBack").classList.add("show");
   $("sheet").classList.add("show");
@@ -1740,6 +1750,12 @@ $("btnDelete").addEventListener("click", async () => {
   const task = editing;
   closeSheet();
   await deleteTask(task);
+});
+$("btnDeleteProject").addEventListener("click", async () => {
+  if (!editing || !editing.project) return;
+  const name = editing.project;
+  closeSheet();
+  await deleteProject(name);
 });
 
 async function deleteTask(task) {
