@@ -369,6 +369,20 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .past-photos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .past-photos img { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--line); cursor: zoom-in; }
+
+  /* ---------- 할 일 우클릭 메뉴 ---------- */
+  .ctx-menu {
+    position: fixed; z-index: 1000; background: var(--paper-card); border: 1.5px solid var(--line);
+    border-radius: 12px; box-shadow: 0 8px 24px rgba(43,36,30,0.18); padding: 6px;
+    display: none; flex-direction: column; min-width: 120px;
+  }
+  .ctx-menu.open { display: flex; }
+  .ctx-menu button {
+    border: none; background: none; text-align: left; padding: 9px 10px; border-radius: 8px;
+    font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 14px; color: var(--ink); cursor: pointer;
+  }
+  .ctx-menu button:hover { background: var(--paper); }
+  .ctx-menu button[data-a="delete"] { color: var(--coral); }
   .photo-lightbox {
     position: fixed; inset: 0; background: rgba(20,16,12,0.86); z-index: 999;
     display: flex; align-items: center; justify-content: center; padding: 24px;
@@ -1219,6 +1233,66 @@ async function loadAll() {
   repeatLog = r.data || [];
 }
 
+/* ---------- 실행취소 / 다시실행 ---------- */
+let undoStack = [];
+let redoStack = [];
+function pushHistory(undoFn, redoFn) {
+  undoStack.push({ undo: undoFn, redo: redoFn });
+  redoStack = [];
+}
+async function undoLast() {
+  const action = undoStack.pop();
+  if (!action) { toast("되돌릴 게 없어요"); return; }
+  await action.undo();
+  redoStack.push(action);
+  toast("실행취소했어요");
+}
+async function redoLast() {
+  const action = redoStack.pop();
+  if (!action) { toast("다시 실행할 게 없어요"); return; }
+  await action.redo();
+  undoStack.push(action);
+  toast("다시 실행했어요");
+}
+document.addEventListener("keydown", (e) => {
+  const mod = e.ctrlKey || e.metaKey;
+  if (!mod) return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA") return; // 입력창에서는 브라우저 기본 실행취소 사용
+  const key = e.key.toLowerCase();
+  if (key === "z") { e.preventDefault(); e.shiftKey ? redoLast() : undoLast(); }
+  else if (key === "y") { e.preventDefault(); redoLast(); }
+});
+
+/* state === null이면 삭제, 아니면 해당 상태로 upsert. 로컬 반영 후 DB에 동기화한다. */
+async function applyTaskState(id, state, { silent } = {}) {
+  if (state === null) {
+    tasks = tasks.filter(t => t.id !== id);
+    if (!silent) render();
+    const { error } = await sb.from("tasks").delete().eq("id", id);
+    if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
+  } else {
+    const idx = tasks.findIndex(t => t.id === id);
+    if (idx === -1) tasks.push(state); else tasks[idx] = state;
+    if (!silent) render();
+    const { error } = await sb.from("tasks").upsert(state);
+    if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
+  }
+}
+async function applyRepeatLogState(taskId, exists, { silent } = {}) {
+  if (exists) {
+    if (!repeatLog.find(r => r.task_id === taskId)) repeatLog.push({ task_id: taskId, done_on: todayStr() });
+    if (!silent) render();
+    const { error } = await sb.from("repeat_log").insert({ task_id: taskId, done_on: todayStr() });
+    if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
+  } else {
+    repeatLog = repeatLog.filter(r => r.task_id !== taskId);
+    if (!silent) render();
+    const { error } = await sb.from("repeat_log").delete().eq("task_id", taskId).eq("done_on", todayStr());
+    if (error) { toast("동기화 실패: " + error.message); await loadAll(); render(); }
+  }
+}
+
 async function addTask(title) {
   const row = { title };
   if (taskTab === "today") row.due = todayStr();
@@ -1233,6 +1307,10 @@ async function addTask(title) {
   const idx = tasks.findIndex(t => t.id === tempId);
   if (idx !== -1) tasks[idx] = data;
   render();
+  pushHistory(
+    () => applyTaskState(data.id, null),
+    () => applyTaskState(data.id, data)
+  );
 }
 
 /* ---------- 4트랙 사업 일정 불러오기 (2026-08-24 확정 스케줄, KST) ---------- */
@@ -1255,9 +1333,14 @@ async function seedSchedule() {
   if (!rows.length) { toast("이미 다 불러왔어요"); return; }
   const { data, error } = await sb.from("tasks").insert(rows).select();
   if (error) { toast("불러오기 실패: " + error.message); return; }
-  tasks.push(...(data || rows));
+  const inserted = data || rows;
+  tasks.push(...inserted);
   render();
   toast(`사업 일정 ${rows.length}개를 불러왔어요`);
+  pushHistory(
+    async () => { for (const r of inserted) await applyTaskState(r.id, null, { silent: true }); render(); },
+    async () => { for (const r of inserted) await applyTaskState(r.id, r, { silent: true }); render(); }
+  );
 }
 
 async function toggleTask(task, rowEl, chkEl) {
@@ -1271,24 +1354,23 @@ async function toggleTask(task, rowEl, chkEl) {
     if (!turningOn) rowEl.classList.remove("done", "checking");
     if (turningOn) spawnConfetti(chkEl);
   }
+  await sleep(turningOn ? 320 : 0);
 
   if (isRepeat) {
-    if (wasDone) repeatLog = repeatLog.filter(r => r.task_id !== task.id);
-    else repeatLog.push({ task_id: task.id, done_on: todayStr() });
+    await applyRepeatLogState(task.id, turningOn);
+    pushHistory(
+      () => applyRepeatLogState(task.id, wasDone),
+      () => applyRepeatLogState(task.id, turningOn)
+    );
   } else {
-    task.done_at = task.done_at ? null : new Date().toISOString();
+    const before = { ...task };
+    const after = { ...task, done_at: turningOn ? new Date().toISOString() : null };
+    await applyTaskState(task.id, after);
+    pushHistory(
+      () => applyTaskState(task.id, before),
+      () => applyTaskState(task.id, after)
+    );
   }
-
-  const dbCall = isRepeat
-    ? (wasDone
-        ? sb.from("repeat_log").delete().eq("task_id", task.id).eq("done_on", todayStr())
-        : sb.from("repeat_log").insert({ task_id: task.id, done_on: todayStr() }))
-    : sb.from("tasks").update({ done_at: task.done_at }).eq("id", task.id);
-
-  await sleep(turningOn ? 320 : 0);
-  render();
-  const { error } = await dbCall;
-  if (error) { toast("저장 실패: " + error.message); await loadAll(); render(); }
 }
 
 /* ---------- 렌더 ---------- */
@@ -1320,6 +1402,10 @@ function taskRow(task, doneOverride) {
   const chkEl = div.querySelector(".chk");
   chkEl.addEventListener("click", (e) => { e.stopPropagation(); toggleTask(task, div, chkEl); });
   div.addEventListener("click", () => openSheet(task));
+  div.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    openTaskCtxMenu(e.clientX, e.clientY, task);
+  });
   return div;
 }
 
@@ -1500,6 +1586,39 @@ function updateDayRow() {
   });
 }
 
+/* ---------- 할 일 우클릭 메뉴 ---------- */
+const taskCtxMenu = document.createElement("div");
+taskCtxMenu.className = "ctx-menu";
+taskCtxMenu.innerHTML = `
+  <button type="button" data-a="edit">✏️ 수정</button>
+  <button type="button" data-a="delete">🗑️ 삭제</button>`;
+document.body.appendChild(taskCtxMenu);
+let ctxTask = null;
+function openTaskCtxMenu(x, y, task) {
+  ctxTask = task;
+  taskCtxMenu.style.left = Math.min(x, window.innerWidth - 140) + "px";
+  taskCtxMenu.style.top = Math.min(y, window.innerHeight - 90) + "px";
+  taskCtxMenu.classList.add("open");
+}
+function closeTaskCtxMenu() {
+  taskCtxMenu.classList.remove("open");
+  ctxTask = null;
+}
+document.addEventListener("click", (e) => {
+  if (!taskCtxMenu.contains(e.target)) closeTaskCtxMenu();
+});
+document.addEventListener("scroll", closeTaskCtxMenu, true);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeTaskCtxMenu(); });
+taskCtxMenu.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-a]");
+  if (!btn || !ctxTask) return;
+  const task = ctxTask;
+  const action = btn.dataset.a;
+  closeTaskCtxMenu();
+  if (action === "edit") openSheet(task);
+  else if (action === "delete") await deleteTask(task);
+});
+
 /* ---------- 이벤트 ---------- */
 document.querySelectorAll("nav button").forEach(b => {
   b.addEventListener("click", () => {
@@ -1531,30 +1650,43 @@ document.querySelectorAll("#dayRow button").forEach(b => {
 $("btnSave").addEventListener("click", async () => {
   if (!editing) return;
   const id = editing.id;
+  const before = tasks.find(t => t.id === id);
+  if (!before) return;
+  const beforeSnap = { ...before };
   const upd = {
     title: $("editTitle").value.trim() || editing.title,
     project: $("editProject").value.trim() || null,
     due: $("editDue").value || null,
     repeat_days: editDays.length ? editDays : null,
   };
-  const t = tasks.find(t => t.id === id);
-  if (t) Object.assign(t, upd);
-  closeSheet(); render();
+  const afterSnap = { ...beforeSnap, ...upd };
+  closeSheet();
+  await applyTaskState(id, afterSnap);
   toast("저장했어요");
-  const { error } = await sb.from("tasks").update(upd).eq("id", id);
-  if (error) { toast("저장 실패: " + error.message); await loadAll(); render(); }
+  pushHistory(
+    () => applyTaskState(id, beforeSnap),
+    () => applyTaskState(id, afterSnap)
+  );
 });
 $("btnDelete").addEventListener("click", async () => {
   if (!editing) return;
-  const id = editing.id;
-  tasks = tasks.filter(t => t.id !== id);
-  repeatLog = repeatLog.filter(r => r.task_id !== id);
-  closeSheet(); render();
-  toast("삭제했어요");
-  await sb.from("repeat_log").delete().eq("task_id", id);
-  const { error } = await sb.from("tasks").delete().eq("id", id);
-  if (error) { toast("삭제 실패: " + error.message); await loadAll(); render(); }
+  const task = editing;
+  closeSheet();
+  await deleteTask(task);
 });
+
+async function deleteTask(task) {
+  const id = task.id;
+  const snapshot = { ...task };
+  const hadLogToday = !!repeatLog.find(r => r.task_id === id);
+  await applyRepeatLogState(id, false, { silent: true });
+  await applyTaskState(id, null);
+  toast("삭제했어요");
+  pushHistory(
+    async () => { await applyTaskState(id, snapshot); if (hadLogToday) await applyRepeatLogState(id, true); },
+    async () => { await applyRepeatLogState(id, false, { silent: true }); await applyTaskState(id, null); }
+  );
+}
 
 $("authForm").addEventListener("submit", async (e) => {
   e.preventDefault();
