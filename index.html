@@ -1385,15 +1385,26 @@ const SCHEDULE_TASKS = [
   { title: "찬작 수요일 배치 제작 (릴스+블로그 1주일치, 예약 발행)", project: "찬작스튜디오", repeat_days: [3] },
   // sub_start는 폴더/렌더 결과물 기준으로 확인한 "현재 배치분" 시작 호수 — 한 번만 채워주고,
   // 이후엔 편집 시트에서 직접 다음 배치 호수로 바꿔가며 쓴다 (매주 자동으로 갱신되지 않음)
-  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 12, sub_start: 20 },
+  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 14, sub_start: 20 },
   { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7, sub_start: 18 },
 ];
-/* 편수 체크리스트의 각 칸이 실제로 예약 발행되는 요일 (0=일 ... 6=토), 칸 순서대로.
+/* 편수 체크리스트의 각 칸이 실제로 예약 발행되는 요일(0=일...6=토)과 메모, 칸 순서대로.
    화잠: 화요일(제작일)부터 월요일까지 7일 연속 하루 1편.
-   우주사전2: 월요일부터 매일 2편씩, 토요일만 쉬고 일요일까지 (예전 반복 일정과 동일한 패턴). */
+   우주사전2: 아침잠이 많아서 월요일 "밤"부터 시작 — 월요일 밤 1편, 화~일 매일 2편씩(토요일도 포함),
+   다음주 월요일 "아침" 1편으로 마무리. 하루 2편 × 6일(화~일) + 시작/끝 1편씩 = 14편. */
+function normSubDays(arr) { return arr.map(x => typeof x === "number" ? { dow: x } : x); }
 const SUB_DAY_PATTERNS = {
-  "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)": [2,3,4,5,6,0,1],
-  "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)": [1,1,2,2,3,3,4,4,5,5,0,0],
+  "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)": normSubDays([2,3,4,5,6,0,1]),
+  "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)": [
+    { dow: 1, note: "월요일 밤 · 이번 배치 첫 발행" },
+    { dow: 2 }, { dow: 2 },
+    { dow: 3 }, { dow: 3 },
+    { dow: 4 }, { dow: 4 },
+    { dow: 5 }, { dow: 5 },
+    { dow: 6 }, { dow: 6 },
+    { dow: 0 }, { dow: 0 },
+    { dow: 1, note: "다음주 월요일 아침 · 이번 배치 마지막 발행" },
+  ],
 };
 /* 당연히 매번 하는 일이라 일정에 넣을 필요 없거나, 예약 발행으로 자동 게시돼서
    더 이상 매일 확인이 필요 없거나, 주 1회 배치 제작 방식으로 재편되며 이름이 바뀐,
@@ -1556,14 +1567,14 @@ function subChecklist(task, onDate) {
   grid.className = "sub-grid";
   for (let i = 0; i < task.sub_total; i++) {
     const n = start + i;
-    const dow = dayPattern ? dayPattern[i] : undefined;
+    const slot = dayPattern ? dayPattern[i] : undefined;
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "sub-chip" + (done.includes(n) ? " on" : "");
-    chip.innerHTML = dow !== undefined
-      ? `<span class="sub-day">${DAY_NAMES[dow]}</span><span class="sub-num">${n}</span>`
+    chip.innerHTML = slot
+      ? `<span class="sub-day">${DAY_NAMES[slot.dow]}</span><span class="sub-num">${n}</span>`
       : `<span class="sub-num">${n}</span>`;
-    chip.title = dow !== undefined ? `${n}호 · ${DAY_NAMES[dow]}요일 예약` : `${n}호`;
+    chip.title = slot ? `${n}호 · ${DAY_NAMES[slot.dow]}요일 예약${slot.note ? " (" + slot.note + ")" : ""}` : `${n}호`;
     chip.addEventListener("click", (e) => { e.stopPropagation(); toggleSubItem(task, n, onDate); });
     grid.appendChild(chip);
   }
