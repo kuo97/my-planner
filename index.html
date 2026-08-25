@@ -511,7 +511,9 @@
   <select id="editProject">
     <option value="">없음</option>
     <option>찬작스튜디오</option>
-    <option>캐치톡</option>
+    <option>우주사전2</option>
+    <option>화잠</option>
+    <option>건강친구 산이</option>
     <option>개인</option>
   </select>
   <label>마감일</label>
@@ -1190,6 +1192,31 @@ async function addTask(title) {
   await loadAll(); render();
 }
 
+/* ---------- 4트랙 사업 일정 불러오기 (2026-08-24 확정 스케줄, KST) ---------- */
+const SCHEDULE_TASKS = [
+  { title: "찬작 콘텐츠 발행 (릴스+블로그 동시 19:00)", project: "찬작스튜디오", repeat_days: [1,3,5] },
+  { title: "찬작 DM 응대", project: "찬작스튜디오", repeat_days: [0,1,2,3,4,5,6] },
+  { title: "우주사전 쇼츠 발행 확인 (11:30·19:00)", project: "우주사전2", repeat_days: [0,1,2,3,4,5] },
+  { title: "우주사전 월요일 배치 제작 (쇼츠 12편)", project: "우주사전2", repeat_days: [1] },
+  { title: "우주사전 롱폼 제작+발행 (19:00)", project: "우주사전2", repeat_days: [6] },
+  { title: "화잠 릴스 발행 확인 (19:30)", project: "화잠", repeat_days: [0,1,2,3,4,5,6] },
+  { title: "화잠 월요일 배치 제작 (릴스 7편)", project: "화잠", repeat_days: [1] },
+  { title: "건강친구 산이 쇼츠 발행 (08:30)", project: "건강친구 산이", repeat_days: [0,1,2,3,4,5,6] },
+  { title: "다음 주 소재 큐 채우기 + 주간 리뷰", project: null, repeat_days: [0] },
+];
+function scheduleSeeded() {
+  return tasks.some(t => ["우주사전2","화잠","건강친구 산이"].includes(t.project));
+}
+async function seedSchedule() {
+  const existingTitles = new Set(tasks.map(t => t.title));
+  const rows = SCHEDULE_TASKS.filter(s => !existingTitles.has(s.title));
+  if (!rows.length) { toast("이미 다 불러왔어요"); return; }
+  const { error } = await sb.from("tasks").insert(rows);
+  if (error) { toast("불러오기 실패: " + error.message); return; }
+  await loadAll(); render();
+  toast(`사업 일정 ${rows.length}개를 불러왔어요`);
+}
+
 async function toggleTask(task, rowEl, chkEl) {
   const isRepeat = task.repeat_days && task.repeat_days.length;
   const wasDone = isRepeat ? !!repeatLog.find(r => r.task_id === task.id) : !!task.done_at;
@@ -1296,6 +1323,21 @@ function render() {
   list.appendChild(taskList);
 
   if (taskTab === "today") {
+    if (!scheduleSeeded()) {
+      const banner = document.createElement("div");
+      banner.className = "task";
+      banner.style.borderStyle = "dashed";
+      banner.innerHTML = `
+        <div class="body">
+          <div class="title" style="color:var(--coral)">＋ 4트랙 사업 일정 불러오기</div>
+          <div class="meta"><span class="badge plain">탭해서 반복 일정 9개 한번에 추가</span></div>
+        </div>`;
+      banner.addEventListener("click", async () => {
+        banner.querySelector(".title").textContent = "불러오는 중...";
+        await seedSchedule();
+      });
+      taskList.appendChild(banner);
+    }
     const repeats = tasks.filter(t => t.repeat_days && t.repeat_days.includes(dow));
     const dueTasks = tasks.filter(t => !t.done_at && !(t.repeat_days && t.repeat_days.length) && t.due && t.due <= today);
     const doneToday = tasks.filter(t => t.done_at && t.done_at.slice(0,10) === today);
@@ -1312,7 +1354,7 @@ function render() {
       doneToday.forEach(t => taskList.appendChild(taskRow(t)));
     }
     if (!repeats.length && !dueTasks.length && !doneToday.length)
-      taskList.innerHTML = emptyDoodle("오늘 예정된 일이 없어요", "위에서 바로 추가하거나, 인박스를 정리해보세요");
+      taskList.insertAdjacentHTML("beforeend", emptyDoodle("오늘 예정된 일이 없어요", "위에서 바로 추가하거나, 인박스를 정리해보세요"));
   }
 
   if (taskTab === "inbox") {
