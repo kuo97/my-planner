@@ -595,6 +595,8 @@
   </div>
   <label>한 번에 올리는 편수 (여러 개를 하나씩 체크하려면 입력, 비우면 일반 할 일)</label>
   <input type="number" id="editSubTotal" min="1" step="1" placeholder="예: 12">
+  <label>시작 호수 (예: 20을 넣으면 20~31호로 표시됨, 다음 배치 시작할 때 직접 갱신)</label>
+  <input type="number" id="editSubStart" min="1" step="1" placeholder="예: 20">
   <div class="sheet-actions">
     <button class="btn-del" id="btnDelete">삭제</button>
     <button class="btn-save" id="btnSave">저장</button>
@@ -1377,13 +1379,14 @@ async function addTask(title) {
 /* ---------- 4트랙 사업 일정 불러오기 (2026-08-25 재편성: 계정별 주 1회 배치 제작 + 예약 발행, KST) ---------- */
 const SCHEDULE_TASKS = [
   { title: "찬작 수요일 배치 제작 (릴스+블로그 1주일치, 예약 발행)", project: "찬작스튜디오", repeat_days: [3] },
-  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 12 },
-  { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7 },
-  { title: "건강친구 산이 월요일 배치 제작 (예약 발행)", project: "건강친구 산이", repeat_days: [1] },
+  // sub_start는 폴더/렌더 결과물 기준으로 확인한 "현재 배치분" 시작 호수 — 한 번만 채워주고,
+  // 이후엔 편집 시트에서 직접 다음 배치 호수로 바꿔가며 쓴다 (매주 자동으로 갱신되지 않음)
+  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 12, sub_start: 20 },
+  { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7, sub_start: 18 },
 ];
 /* 당연히 매번 하는 일이라 일정에 넣을 필요 없거나, 예약 발행으로 자동 게시돼서
    더 이상 매일 확인이 필요 없거나, 주 1회 배치 제작 방식으로 재편되며 이름이 바뀐,
-   예전에 씨딩됐던 일정 제목들 */
+   아직 배치일을 정하지 못한(추후 결정) 일정 등, 예전에 씨딩됐던 일정 제목들 */
 const RETIRED_SCHEDULE_TITLES = [
   "우주사전 쇼츠 발행 확인 (11:30·19:00)",
   "화잠 릴스 발행 확인 (19:30)",
@@ -1393,6 +1396,7 @@ const RETIRED_SCHEDULE_TITLES = [
   "우주사전 월요일 배치 제작 (쇼츠 12편)",
   "우주사전 롱폼 제작+발행 (19:00)",
   "화잠 월요일 배치 제작 (릴스 7편)",
+  "건강친구 산이 월요일 배치 제작 (예약 발행)",
 ];
 /* 중복 씨딩 및 은퇴된 일정 정리 — 앱 실행 시 한 번 조용히 실행 */
 async function cleanupSchedule() {
@@ -1436,6 +1440,12 @@ async function cleanupSchedule() {
     if (t && t.sub_total !== s.sub_total) {
       t.sub_total = s.sub_total;
       await sb.from("tasks").update({ sub_total: s.sub_total }).eq("id", t.id);
+      subSynced = true;
+    }
+    // sub_start는 최초 한 번만 채워주고, 그 뒤로는 편집 시트에서 직접 다음 배치 호수로 바꿔가며 쓰도록 둔다
+    if (t && s.sub_start && t.sub_start == null) {
+      t.sub_start = s.sub_start;
+      await sb.from("tasks").update({ sub_start: s.sub_start }).eq("id", t.id);
       subSynced = true;
     }
   }
@@ -1529,9 +1539,10 @@ async function toggleSubItem(task, n, onDate) {
 
 function subChecklist(task, onDate) {
   const done = getSubDone(task, onDate);
+  const start = task.sub_start || 1;
   const grid = document.createElement("div");
   grid.className = "sub-grid";
-  for (let n = 1; n <= task.sub_total; n++) {
+  for (let n = start; n < start + task.sub_total; n++) {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "sub-chip" + (done.includes(n) ? " on" : "");
@@ -1558,7 +1569,10 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
     const overdue = task.due < todayStr() && !done;
     badges.push(`<span class="badge ${overdue ? "overdue" : "plain"}">${overdue ? "지남 " : ""}${task.due.slice(5).replace("-","/")}</span>`);
   }
-  if (hasSub) badges.push(`<span class="badge plain">${subDone.length}/${task.sub_total}편 · 1~${task.sub_total}호</span>`);
+  if (hasSub) {
+    const s = task.sub_start || 1;
+    badges.push(`<span class="badge plain">${subDone.length}/${task.sub_total}편 · ${s}~${s + task.sub_total - 1}호</span>`);
+  }
   div.innerHTML = `
     <div class="chk">
       <svg viewBox="0 0 27 27">
@@ -1738,6 +1752,7 @@ function openSheet(task) {
   $("editProject").value = task.project || "";
   $("editDue").value = task.due || "";
   $("editSubTotal").value = task.sub_total || "";
+  $("editSubStart").value = task.sub_start || "";
   const projectNames = [...new Set(tasks.map(t => t.project).filter(Boolean))].sort();
   $("projectList").innerHTML = projectNames.map(p => `<option value="${p}">`).join("");
   $("btnDeleteProject").style.display = task.project ? "inline" : "none";
@@ -1824,12 +1839,14 @@ $("btnSave").addEventListener("click", async () => {
   if (!before) return;
   const beforeSnap = { ...before };
   const subTotalVal = $("editSubTotal").value.trim();
+  const subStartVal = $("editSubStart").value.trim();
   const upd = {
     title: $("editTitle").value.trim() || editing.title,
     project: $("editProject").value.trim() || null,
     due: $("editDue").value || null,
     repeat_days: editDays.length ? editDays : null,
     sub_total: subTotalVal ? Math.max(1, parseInt(subTotalVal, 10)) : null,
+    sub_start: subStartVal ? Math.max(1, parseInt(subStartVal, 10)) : null,
   };
   const afterSnap = { ...beforeSnap, ...upd };
   closeSheet();
