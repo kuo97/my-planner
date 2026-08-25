@@ -318,12 +318,22 @@
     padding: 8px 14px; font-size: 13.5px; color: var(--muted); cursor: pointer;
     font-family: 'Gaegu', sans-serif; font-weight: 700;
   }
-  .past-entry { padding: 12px 4px; border-bottom: 1.5px dashed var(--line); }
+  .past-entry { padding: 12px 4px; }
   .past-entry .pe-head { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
   .past-entry .pe-head .pe-date { font-family: 'Gaegu', sans-serif; font-weight: 700; color: var(--ink); font-size: 14px; }
   .past-entry .pe-body { font-size: 14px; line-height: 1.65; white-space: pre-wrap; word-break: break-all; }
   .past-entry .pe-feel { font-size: 12.5px; color: var(--coral); margin-top: 3px; }
   .wx-loading { color: var(--muted); font-size: 13.5px; padding: 4px 0; }
+
+  /* ---------- 지난 일기: 날짜 그리드 ---------- */
+  .pe-daygrid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pe-daychip {
+    width: 34px; height: 34px; border-radius: 10px; border: 1.5px solid var(--line);
+    background: var(--paper); color: var(--ink); font-family: 'Gaegu', sans-serif; font-weight: 700;
+    font-size: 13px; cursor: pointer;
+  }
+  .pe-daychip.on { background: var(--coral); border-color: var(--coral); color: white; }
+  .pe-detailwrap:not(:empty) { margin-top: 10px; border-top: 1.5px dashed var(--line); }
 
   /* ---------- 사진 ---------- */
   .photo-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 14px 0 8px; }
@@ -600,6 +610,22 @@ const cityChipsHtml = (notes) => notes && notes.length
   ? `<div class="past-cities">${notes.map(n => `<span class="pc-chip">${wmoEmoji(n.code)} ${n.city} ${Math.round(n.temp)}° <b>↑${n.tmax}°</b> <i>↓${n.tmin}°</i></span>`).join("")}</div>`
   : "";
 
+function pastEntryDetail(e) {
+  const el = document.createElement("div");
+  el.className = "past-entry";
+  const w = e.weather;
+  el.innerHTML = `
+    <div class="pe-head"><span class="pe-date">${e.on_date.slice(5).replace("-","/")}</span>
+    ${w ? `<span>${wmoEmoji(w.code)} ${w.tmax}°/${w.tmin}°</span>` : ""}</div>
+    <div class="pe-body"></div>
+    ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
+    ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
+    ${cityChipsHtml(e.city_notes)}
+    ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
+  el.querySelector(".pe-body").textContent = e.content || "";
+  return el;
+}
+
 async function fetchTodayWx(lat, lon) {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=1`;
   const r = await fetch(url); const j = await r.json();
@@ -686,8 +712,8 @@ async function loadDiary() {
 
 async function saveDiary() {
   const content = $("diaryContent") ? $("diaryContent").value.trim() : "";
-  const exercised = $("exerciseCheck") ? $("exerciseCheck").checked : false;
   const exerciseNote = $("exerciseNote") ? $("exerciseNote").value.trim() : "";
+  const exercised = !!exerciseNote;
   const primary = cities[0];
   let wx = todayEntry && todayEntry.weather ? todayEntry.weather : null;
   if (editDate === todayStr() && primary && wxCache[primary.id]) {
@@ -776,11 +802,7 @@ async function renderDiary() {
       </div>
     </div>
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
-    <label class="exercise-row">
-      <input type="checkbox" id="exerciseCheck">
-      <span>${dayWord} 운동했어요</span>
-    </label>
-    <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 30분)" disabled>
+    <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 30분)">
     <div class="exercise-presets" id="exercisePresets">
       ${EXERCISE_PRESETS.map(p => `<button type="button" class="ex-chip" data-k="${p.key}">${p.label}</button>`).join("")}
     </div>
@@ -791,24 +813,13 @@ async function renderDiary() {
   list.appendChild(dCard);
   if (todayEntry) {
     dCard.querySelector("#diaryContent").value = todayEntry.content || "";
-    dCard.querySelector("#exerciseCheck").checked = !!todayEntry.exercised;
     dCard.querySelector("#exerciseNote").value = todayEntry.exercise_note || "";
-    dCard.querySelector("#exerciseNote").disabled = !todayEntry.exercised;
   }
-  dCard.querySelector("#exerciseCheck").addEventListener("change", (e) => {
-    const noteInput = dCard.querySelector("#exerciseNote");
-    noteInput.disabled = !e.target.checked;
-    if (!e.target.checked) noteInput.value = "";
-  });
   dCard.querySelectorAll(".ex-chip").forEach(chip => {
     chip.addEventListener("click", () => {
       const preset = EXERCISE_PRESETS.find(p => p.key === chip.dataset.k);
       if (!preset) return;
-      const check = dCard.querySelector("#exerciseCheck");
-      const noteInput = dCard.querySelector("#exerciseNote");
-      check.checked = true;
-      noteInput.disabled = false;
-      noteInput.value = preset.note;
+      dCard.querySelector("#exerciseNote").value = preset.note;
       dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", c === chip));
     });
   });
@@ -903,27 +914,36 @@ async function renderDiary() {
     });
     months.forEach(g => {
       const [yy, mm] = g.month.split("-");
+      g.entries.sort((a, b) => a.on_date.localeCompare(b.on_date));
       const details = document.createElement("details");
       details.className = "month-group";
       const summary = document.createElement("summary");
       summary.className = "month-head";
       summary.textContent = `${yy}년 ${Number(mm)}월 (${g.entries.length})`;
       details.appendChild(summary);
+
+      const dayGrid = document.createElement("div");
+      dayGrid.className = "pe-daygrid";
       g.entries.forEach(e => {
-        const el = document.createElement("div");
-        el.className = "past-entry";
-        const w = e.weather;
-        el.innerHTML = `
-          <div class="pe-head"><span class="pe-date">${e.on_date.slice(5).replace("-","/")}</span>
-          ${w ? `<span>${wmoEmoji(w.code)} ${w.tmax}°/${w.tmin}°</span>` : ""}</div>
-          <div class="pe-body"></div>
-          ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
-          ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
-          ${cityChipsHtml(e.city_notes)}
-          ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
-        el.querySelector(".pe-body").textContent = e.content || "";
-        details.appendChild(el);
+        const day = Number(e.on_date.slice(8, 10));
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "pe-daychip";
+        chip.textContent = day;
+        chip.addEventListener("click", () => {
+          const isOn = chip.classList.contains("on");
+          dayGrid.querySelectorAll(".pe-daychip").forEach(c => c.classList.remove("on"));
+          detailWrap.innerHTML = "";
+          if (!isOn) { chip.classList.add("on"); detailWrap.appendChild(pastEntryDetail(e)); }
+        });
+        dayGrid.appendChild(chip);
       });
+      details.appendChild(dayGrid);
+
+      const detailWrap = document.createElement("div");
+      detailWrap.className = "pe-detailwrap";
+      details.appendChild(detailWrap);
+
       pCard.appendChild(details);
     });
     list.appendChild(pCard);
