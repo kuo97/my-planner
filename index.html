@@ -1229,8 +1229,12 @@ async function loadAll() {
     sb.from("tasks").select("*").order("created_at", { ascending: true }),
     sb.from("repeat_log").select("*").eq("done_on", todayStr()),
   ]);
-  tasks = t.data || [];
-  repeatLog = r.data || [];
+  // 네트워크/세션 오류로 조회가 실패하면 기존 화면을 비우지 않고 그대로 둔다
+  // (실패했다고 tasks를 []로 덮어쓰면 프로젝트/할 일이 전부 사라진 것처럼 보임)
+  if (t.error) { toast("할 일을 불러오지 못했어요: " + t.error.message); }
+  else { tasks = t.data || []; }
+  if (r.error) { toast("반복 기록을 불러오지 못했어요: " + r.error.message); }
+  else { repeatLog = r.data || []; }
 }
 
 /* ---------- 실행취소 / 다시실행 ---------- */
