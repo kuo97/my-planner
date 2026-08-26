@@ -798,6 +798,7 @@ async function saveDiary() {
   const row = {
     on_date: editDate,
     content, weather: wx,
+    weather_note: todayEntry ? (todayEntry.weather_note || "") : "",
     city_notes: todayEntry ? todayEntry.city_notes : null,
     exercised, exercise_note: exercised ? (exerciseNote || null) : null,
   };
@@ -1380,20 +1381,25 @@ async function addTask(title) {
   );
 }
 
-/* ---------- 4트랙 사업 일정 불러오기 (2026-08-25 재편성: 계정별 주 1회 배치 제작 + 예약 발행, KST) ---------- */
+/* ---------- 4트랙 사업 일정 불러오기 (2026-08-26 갱신: 계정별 주 1회 배치 제작 + 예약 발행, 찬작은 주 2회 발행(수·토), KST) ---------- */
 const SCHEDULE_TASKS = [
-  { title: "찬작 수요일 배치 제작 (릴스+블로그 1주일치, 예약 발행)", project: "찬작스튜디오", repeat_days: [3] },
+  { title: "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)", project: "찬작스튜디오", repeat_days: [3], sub_total: 2 },
   // sub_start는 폴더/렌더 결과물 기준으로 확인한 "현재 배치분" 시작 호수 — 한 번만 채워주고,
   // 이후엔 편집 시트에서 직접 다음 배치 호수로 바꿔가며 쓴다 (매주 자동으로 갱신되지 않음)
   { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 14, sub_start: 20 },
   { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7, sub_start: 18 },
 ];
 /* 편수 체크리스트의 각 칸이 실제로 예약 발행되는 요일(0=일...6=토)과 메모, 칸 순서대로.
+   찬작: 수요일 제작일에 2편 — 수요일치는 당일 19:00 발행, 토요일치는 19:00 예약.
    화잠: 화요일(제작일)부터 월요일까지 7일 연속 하루 1편.
    우주사전2: 아침잠이 많아서 월요일 "밤"부터 시작 — 월요일 밤 1편, 화~일 매일 2편씩(토요일도 포함),
    다음주 월요일 "아침" 1편으로 마무리. 하루 2편 × 6일(화~일) + 시작/끝 1편씩 = 14편. */
 function normSubDays(arr) { return arr.map(x => typeof x === "number" ? { dow: x } : x); }
 const SUB_DAY_PATTERNS = {
+  "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)": [
+    { dow: 3, note: "수요일 19:00 · 당일 발행" },
+    { dow: 6, note: "토요일 19:00 · 예약 발행" },
+  ],
   "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)": normSubDays([2,3,4,5,6,0,1]),
   "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)": [
     { dow: 1, note: "월요일 밤 · 이번 배치 첫 발행" },
@@ -1415,6 +1421,7 @@ const RETIRED_SCHEDULE_TITLES = [
   "건강친구 산이 쇼츠 발행 (08:30)",
   "찬작 DM 응대",
   "찬작 콘텐츠 발행 (릴스+블로그 동시 19:00)",
+  "찬작 수요일 배치 제작 (릴스+블로그 1주일치, 예약 발행)",
   "우주사전 월요일 배치 제작 (쇼츠 12편)",
   "우주사전 롱폼 제작+발행 (19:00)",
   "화잠 월요일 배치 제작 (릴스 7편)",
