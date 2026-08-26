@@ -1429,23 +1429,26 @@ const RETIRED_SCHEDULE_TITLES = [
 ];
 /* 중복 씨딩 및 은퇴된 일정 정리 — 앱 실행 시 한 번 조용히 실행 */
 async function cleanupSchedule() {
-  // 아래 정리는 4트랙 사업 일정(SCHEDULE_TASKS/RETIRED_SCHEDULE_TITLES)에 등록된
-  // 반복 일정 제목에만 적용한다 — 사용자가 직접 만든 일반 할 일은 절대 건드리지 않는다.
-  const knownTitles = new Set([...SCHEDULE_TASKS.map(s => s.title), ...RETIRED_SCHEDULE_TITLES]);
-  const byTitle = {};
-  tasks.forEach(t => {
-    if (t.repeat_days && t.repeat_days.length && knownTitles.has(t.title)) {
-      (byTitle[t.title] = byTitle[t.title] || []).push(t);
-    }
-  });
   const removeIds = [];
-  Object.values(byTitle).forEach(list => {
+
+  // 1) 은퇴된(더 이상 안 쓰는) 4트랙 사업 일정 제목은 통째로 정리한다
+  tasks.forEach(t => { if (RETIRED_SCHEDULE_TITLES.includes(t.title)) removeIds.push(t.id); });
+
+  // 2) 제목·프로젝트·반복 요일이 완전히 똑같은 반복 일정이 여러 개면 중복 씨딩/중복 입력으로 보고
+  //    가장 오래된 것만 남긴다 (사용자가 서로 다른 반복 일정을 우연히 같은 제목으로 만드는 일은 거의 없음)
+  const byKey = {};
+  tasks.forEach(t => {
+    if (removeIds.includes(t.id)) return;
+    if (!(t.repeat_days && t.repeat_days.length)) return;
+    const key = `${t.title}|${t.project || ""}|${t.repeat_days.slice().sort().join(",")}`;
+    (byKey[key] = byKey[key] || []).push(t);
+  });
+  Object.values(byKey).forEach(list => {
     if (list.length > 1) {
       list.sort((a, b) => (a.created_at || "").localeCompare(b.created_at || ""));
       removeIds.push(...list.slice(1).map(t => t.id));
     }
   });
-  tasks.forEach(t => { if (RETIRED_SCHEDULE_TITLES.includes(t.title) && !removeIds.includes(t.id)) removeIds.push(t.id); });
 
   if (removeIds.length) {
     tasks = tasks.filter(t => !removeIds.includes(t.id));
