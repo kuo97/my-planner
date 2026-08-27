@@ -127,6 +127,13 @@
     border: none; background: var(--gcal); color: white; font-family: 'Gaegu', sans-serif;
     font-weight: 700; font-size: 12.5px; padding: 7px 14px; border-radius: 999px; cursor: pointer; flex-shrink: 0;
   }
+  .gcal-bar-mini {
+    background: none; border: none; padding: 0 2px; margin: -2px 0 10px; font-size: 11px; color: var(--muted);
+  }
+  .gcal-bar-mini button {
+    background: none; color: var(--muted); font-size: 11px; font-weight: 400; padding: 0;
+    text-decoration: underline; font-family: inherit;
+  }
   .gcal-events { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
   .gcal-event {
     display: flex; align-items: baseline; gap: 6px; padding: 7px 9px; border-radius: 10px;
@@ -1788,11 +1795,11 @@ function render() {
   list.appendChild(subNav);
 
   if (taskTab === "today") {
-    const gcalBar = document.createElement("div");
-    gcalBar.className = "gcal-bar";
     const connected = !!gcalToken;
+    const gcalBar = document.createElement("div");
+    gcalBar.className = "gcal-bar" + (connected ? " gcal-bar-mini" : "");
     gcalBar.innerHTML = connected
-      ? `<span>📅 구글 캘린더 연동됨</span><button type="button" id="gcalToggle">연동 해제</button>`
+      ? `<span>📅 구글 캘린더 연동됨</span><button type="button" id="gcalToggle">해제</button>`
       : `<span>구글 캘린더에 있는 일정도 같이 볼까요?</span><button type="button" id="gcalToggle">연동하기</button>`;
     gcalBar.querySelector("#gcalToggle").addEventListener("click", () => {
       connected ? disconnectGoogleCalendar() : connectGoogleCalendar();
