@@ -535,6 +535,10 @@
   .cal-day.today { border-color: var(--coral); font-weight: 700; }
   .cal-day.selected { background: var(--sage-soft); border-color: var(--sage); font-weight: 700; }
   .cal-day .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--coral); position: relative; z-index: 1; }
+  .cal-day .gcal-dot {
+    width: 5px; height: 5px; border-radius: 999px; background: var(--gcal);
+    position: absolute; top: 5px; right: 5px; z-index: 1;
+  }
   .cal-day .cal-thumb { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; border-radius: 9px; z-index: 0; }
   .cal-day .cal-thumb + .daynum { color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
   .cal-day .daynum { position: relative; z-index: 1; }
@@ -1163,6 +1167,7 @@ async function loadCalendarData() {
 }
 
 function renderCalendarView() {
+  if (gcalToken) ensureGCalMonth(calY, calM);
   const list = $("list");
   list.innerHTML = "";
   const card = document.createElement("div");
@@ -1203,7 +1208,8 @@ function renderCalendarView() {
     const entry = c.dateStr && calMap[c.dateStr];
     const hasText = entry && (entry.content || entry.exercised || (entry.city_notes && entry.city_notes.length));
     const thumb = entry && entry.photos && entry.photos[0];
-    cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}`;
+    const hasGCal = c.dateStr && gcalEvents.some(e => e.date === c.dateStr);
+    cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${hasGCal ? '<span class="gcal-dot"></span>' : ""}`;
     if (c.dateStr) cell.addEventListener("click", () => { calSel = c.dateStr; renderCalendarView(); });
     grid.appendChild(cell);
   });
@@ -1221,6 +1227,7 @@ function renderCalendarView() {
   const entry = calMap[calSel];
   const [, dm, dd] = calSel.split("-").map(Number);
   const dateLabel = `${dm}월 ${dd}일 (${DAY_NAMES[new Date(calSel + "T00:00:00").getDay()]})`;
+  const selEvents = gcalEvents.filter(e => e.date === calSel).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
   if (!entry || (!entry.content && !entry.weather_note && !entry.exercised && !(entry.city_notes && entry.city_notes.length) && !(entry.photos && entry.photos.length))) {
     detail.innerHTML = `<div class="cd-date hand">${dateLabel}</div><div class="cd-empty">이 날짜엔 기록이 없어요.</div>`;
   } else {
@@ -1234,6 +1241,28 @@ function renderCalendarView() {
       ${cityChipsHtml(entry.city_notes)}
       ${entry.photos && entry.photos.length ? `<div class="cd-photos">${entry.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
     detail.querySelector(".cd-body").textContent = entry.content || "";
+  }
+  if (selEvents.length) {
+    const evWrap = document.createElement("div");
+    evWrap.className = "gcal-events";
+    evWrap.style.marginTop = "10px";
+    selEvents.forEach(e => {
+      const item = document.createElement("a");
+      item.className = "gcal-event";
+      item.href = e.htmlLink || "#";
+      item.target = "_blank";
+      item.rel = "noopener noreferrer";
+      const timeEl = document.createElement("span");
+      timeEl.className = "gcal-time";
+      timeEl.textContent = e.time || "종일";
+      const titleEl = document.createElement("span");
+      titleEl.className = "gcal-title";
+      titleEl.textContent = e.title;
+      item.appendChild(timeEl);
+      item.appendChild(titleEl);
+      evWrap.appendChild(item);
+    });
+    detail.appendChild(evWrap);
   }
   if (calSel === today) {
     const jump = document.createElement("button");
@@ -1333,7 +1362,8 @@ const GOOGLE_CLIENT_ID = "603542528567-cmma9t897a1uchcgov1uv0ab7qu75pje.apps.goo
 const GCAL_CONNECTED_KEY = "gcal_connected";
 let gcalTokenClient = null;
 let gcalToken = null;
-let gcalEvents = []; // [{date: "YYYY-MM-DD", time: "14:00" | null, title, htmlLink}]
+let gcalEvents = []; // [{id, date: "YYYY-MM-DD", time: "14:00" | null, title, htmlLink}]
+let gcalLoadedMonths = new Set(); // "YYYY-MM" 단위로 이미 불러온 달 캐시
 
 function gcalInit() {
   if (gcalTokenClient || !window.google || !google.accounts) return;
@@ -1344,7 +1374,11 @@ function gcalInit() {
       if (resp.error) { toast("구글 캘린더 연동 실패: " + resp.error); return; }
       gcalToken = resp.access_token;
       localStorage.setItem(GCAL_CONNECTED_KEY, "1");
-      fetchGCalEvents();
+      gcalLoadedMonths = new Set();
+      gcalEvents = [];
+      const week = weekDates();
+      ensureGCalMonth(Number(week[0].slice(0,4)), Number(week[0].slice(5,7)) - 1);
+      ensureGCalMonth(Number(week[6].slice(0,4)), Number(week[6].slice(5,7)) - 1);
     },
   });
 }
@@ -1359,16 +1393,20 @@ function disconnectGoogleCalendar() {
   if (gcalToken && window.google) google.accounts.oauth2.revoke(gcalToken, () => {});
   gcalToken = null;
   gcalEvents = [];
+  gcalLoadedMonths = new Set();
   localStorage.removeItem(GCAL_CONNECTED_KEY);
   render();
   toast("구글 캘린더 연동을 해제했어요");
 }
 
-async function fetchGCalEvents() {
+/* y=연도, m=0-based 월. 이미 불러온 달이면 캐시된 gcalEvents를 그대로 쓰고 아무것도 안 함 */
+async function ensureGCalMonth(y, m) {
   if (!gcalToken) return;
-  const week = weekDates();
-  const timeMin = new Date(week[0] + "T00:00:00").toISOString();
-  const timeMax = new Date(new Date(week[6] + "T00:00:00").getTime() + 86400000).toISOString();
+  const key = `${y}-${String(m + 1).padStart(2, "0")}`;
+  if (gcalLoadedMonths.has(key)) return;
+  gcalLoadedMonths.add(key);
+  const timeMin = new Date(y, m, 1).toISOString();
+  const timeMax = new Date(y, m + 1, 1).toISOString();
   const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
     `timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime`;
   try {
@@ -1376,21 +1414,24 @@ async function fetchGCalEvents() {
     if (res.status === 401) {
       // 토큰 만료 — 이미 동의했으면 화면 없이 새 토큰 요청
       gcalToken = null;
+      gcalLoadedMonths.delete(key);
       gcalInit();
       if (gcalTokenClient) gcalTokenClient.requestAccessToken({ prompt: "" });
       return;
     }
     const data = await res.json();
     if (!res.ok) { toast("구글 캘린더 불러오기 실패: " + (data.error?.message || res.status)); return; }
-    gcalEvents = (data.items || []).map(ev => {
+    const parsed = (data.items || []).map(ev => {
       const startStr = ev.start?.dateTime || ev.start?.date;
       if (!startStr) return null;
       const isAllDay = !ev.start.dateTime;
       const date = startStr.slice(0, 10);
       const time = isAllDay ? null : startStr.slice(11, 16);
-      return { date, time, title: ev.summary || "(제목 없음)", htmlLink: ev.htmlLink };
+      return { id: ev.id, date, time, title: ev.summary || "(제목 없음)", htmlLink: ev.htmlLink };
     }).filter(Boolean);
-    render();
+    const seen = new Set(gcalEvents.map(e => e.id));
+    gcalEvents.push(...parsed.filter(e => !seen.has(e.id)));
+    if (view === "calendar") renderCalendarView(); else render();
   } catch (e) {
     toast("구글 캘린더 불러오기 실패: " + e.message);
   }
