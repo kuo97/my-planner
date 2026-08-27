@@ -10,7 +10,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root {
     --paper: #FAF6EE;
@@ -1167,7 +1166,7 @@ async function loadCalendarData() {
 }
 
 function renderCalendarView() {
-  if (gcalToken) ensureGCalMonth(calY, calM);
+  if (gcalIsConnected()) ensureGCalMonth(calY, calM);
   const list = $("list");
   list.innerHTML = "";
   const card = document.createElement("div");
@@ -1339,7 +1338,7 @@ async function showApp() {
   await loadAll();
   render();
   await cleanupSchedule();
-  gcalTrySilentReconnect();
+  gcalInitOnLoad();
 }
 
 /* ---------- 데이터 ---------- */
@@ -1357,53 +1356,122 @@ async function loadAll() {
   else { repeatLog = r.data || []; }
 }
 
-/* ---------- 구글 캘린더 연동 (읽기 전용) ---------- */
+/* ---------- 구글 캘린더 연동 (읽기 전용, 리프레시 토큰 방식) ----------
+   앱이 서버 없는 정적 페이지라, 액세스 토큰만 쓰는 방식은 브라우저가
+   구글 로그인 세션을 못 읽으면(서드파티 쿠키 차단 등) 조용히 재연결이
+   실패해서 앱을 껐다 켤 때마다 연동이 풀린 것처럼 보였다. 이제는
+   승인 코드 흐름(redirect)으로 리프레시 토큰을 직접 받아 localStorage에
+   저장해두고, 필요할 때마다 그 토큰으로 새 액세스 토큰을 발급받는다 —
+   브라우저 쿠키 상태와 무관하게 항상 동작한다. */
 const GOOGLE_CLIENT_ID = "603542528567-cmma9t897a1uchcgov1uv0ab7qu75pje.apps.googleusercontent.com";
-const GCAL_CONNECTED_KEY = "gcal_connected";
-let gcalTokenClient = null;
-let gcalToken = null;
+const GOOGLE_CLIENT_SECRET = "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";
+const GCAL_REDIRECT_URI = "https://kuo97.github.io/my-planner/";
+const GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
+const GCAL_REFRESH_KEY = "gcal_refresh_token";
+const GCAL_ACCESS_KEY = "gcal_access_token";
+const GCAL_ACCESS_EXP_KEY = "gcal_access_expiry";
+
+let gcalToken = null; // 현재 메모리상의 액세스 토큰
 let gcalEvents = []; // [{id, date: "YYYY-MM-DD", time: "14:00" | null, title, htmlLink}]
 let gcalLoadedMonths = new Set(); // "YYYY-MM" 단위로 이미 불러온 달 캐시
 
-function gcalInit() {
-  if (gcalTokenClient || !window.google || !google.accounts) return;
-  gcalTokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: "https://www.googleapis.com/auth/calendar.readonly",
-    callback: (resp) => {
-      if (resp.error) { toast("구글 캘린더 연동 실패: " + resp.error); return; }
-      gcalToken = resp.access_token;
-      localStorage.setItem(GCAL_CONNECTED_KEY, "1");
-      gcalLoadedMonths = new Set();
-      gcalEvents = [];
-      const week = weekDates();
-      ensureGCalMonth(Number(week[0].slice(0,4)), Number(week[0].slice(5,7)) - 1);
-      ensureGCalMonth(Number(week[6].slice(0,4)), Number(week[6].slice(5,7)) - 1);
-    },
-  });
+function gcalIsConnected() {
+  return !!gcalToken || !!localStorage.getItem(GCAL_REFRESH_KEY);
 }
 
 function connectGoogleCalendar() {
-  gcalInit();
-  if (!gcalTokenClient) { toast("구글 로그인 스크립트를 아직 불러오는 중이에요, 잠시 후 다시 눌러주세요"); return; }
-  gcalTokenClient.requestAccessToken({ prompt: "consent" });
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: GCAL_REDIRECT_URI,
+    response_type: "code",
+    scope: GCAL_SCOPE,
+    access_type: "offline",
+    prompt: "consent",
+  });
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
 function disconnectGoogleCalendar() {
-  if (gcalToken && window.google) google.accounts.oauth2.revoke(gcalToken, () => {});
+  const token = gcalToken || localStorage.getItem(GCAL_ACCESS_KEY);
+  if (token) fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, { method: "POST" }).catch(() => {});
   gcalToken = null;
   gcalEvents = [];
   gcalLoadedMonths = new Set();
-  localStorage.removeItem(GCAL_CONNECTED_KEY);
+  localStorage.removeItem(GCAL_REFRESH_KEY);
+  localStorage.removeItem(GCAL_ACCESS_KEY);
+  localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
   render();
   toast("구글 캘린더 연동을 해제했어요");
 }
 
+async function gcalExchangeCode(code) {
+  const body = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    client_secret: GOOGLE_CLIENT_SECRET,
+    code,
+    grant_type: "authorization_code",
+    redirect_uri: GCAL_REDIRECT_URI,
+  });
+  try {
+    const res = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body,
+    });
+    const data = await res.json();
+    if (!res.ok) { toast("구글 캘린더 연동 실패: " + (data.error_description || data.error)); return; }
+    gcalToken = data.access_token;
+    localStorage.setItem(GCAL_ACCESS_KEY, data.access_token);
+    localStorage.setItem(GCAL_ACCESS_EXP_KEY, String(Date.now() + data.expires_in * 1000));
+    if (data.refresh_token) localStorage.setItem(GCAL_REFRESH_KEY, data.refresh_token);
+    toast("구글 캘린더 연동됐어요");
+  } catch (e) {
+    toast("구글 캘린더 연동 실패: " + e.message);
+  }
+}
+
+async function gcalRefreshAccessToken() {
+  const refresh = localStorage.getItem(GCAL_REFRESH_KEY);
+  if (!refresh) return false;
+  const body = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    client_secret: GOOGLE_CLIENT_SECRET,
+    refresh_token: refresh,
+    grant_type: "refresh_token",
+  });
+  try {
+    const res = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body,
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      // 리프레시 토큰 자체가 무효화(수동 revoke 등)된 경우 — 완전히 재연동 필요
+      localStorage.removeItem(GCAL_REFRESH_KEY);
+      localStorage.removeItem(GCAL_ACCESS_KEY);
+      localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
+      gcalToken = null;
+      return false;
+    }
+    gcalToken = data.access_token;
+    localStorage.setItem(GCAL_ACCESS_KEY, data.access_token);
+    localStorage.setItem(GCAL_ACCESS_EXP_KEY, String(Date.now() + data.expires_in * 1000));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* 액세스 토큰이 유효(1분 이상 여유)하면 그대로 쓰고, 아니면 리프레시 토큰으로 새로 발급 */
+async function gcalEnsureToken() {
+  const exp = Number(localStorage.getItem(GCAL_ACCESS_EXP_KEY) || 0);
+  if (gcalToken && Date.now() < exp - 60000) return true;
+  return await gcalRefreshAccessToken();
+}
+
 /* y=연도, m=0-based 월. 이미 불러온 달이면 캐시된 gcalEvents를 그대로 쓰고 아무것도 안 함 */
 async function ensureGCalMonth(y, m) {
-  if (!gcalToken) return;
   const key = `${y}-${String(m + 1).padStart(2, "0")}`;
   if (gcalLoadedMonths.has(key)) return;
+  const ok = await gcalEnsureToken();
+  if (!ok) return;
   gcalLoadedMonths.add(key);
   const timeMin = new Date(y, m, 1).toISOString();
   const timeMax = new Date(y, m + 1, 1).toISOString();
@@ -1411,16 +1479,8 @@ async function ensureGCalMonth(y, m) {
     `timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime`;
   try {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${gcalToken}` } });
-    if (res.status === 401) {
-      // 토큰 만료 — 이미 동의했으면 화면 없이 새 토큰 요청
-      gcalToken = null;
-      gcalLoadedMonths.delete(key);
-      gcalInit();
-      if (gcalTokenClient) gcalTokenClient.requestAccessToken({ prompt: "" });
-      return;
-    }
     const data = await res.json();
-    if (!res.ok) { toast("구글 캘린더 불러오기 실패: " + (data.error?.message || res.status)); return; }
+    if (!res.ok) { gcalLoadedMonths.delete(key); toast("구글 캘린더 불러오기 실패: " + (data.error?.message || res.status)); return; }
     const parsed = (data.items || []).map(ev => {
       const startStr = ev.start?.dateTime || ev.start?.date;
       if (!startStr) return null;
@@ -1433,15 +1493,25 @@ async function ensureGCalMonth(y, m) {
     gcalEvents.push(...parsed.filter(e => !seen.has(e.id)));
     if (view === "calendar") renderCalendarView(); else render();
   } catch (e) {
+    gcalLoadedMonths.delete(key);
     toast("구글 캘린더 불러오기 실패: " + e.message);
   }
 }
 
-function gcalTrySilentReconnect() {
-  if (localStorage.getItem(GCAL_CONNECTED_KEY) !== "1") return;
-  gcalInit();
-  if (!gcalTokenClient) { setTimeout(gcalTrySilentReconnect, 500); return; }
-  gcalTokenClient.requestAccessToken({ prompt: "" });
+/* 앱 시작 시 호출: 리디렉션으로 돌아온 code를 교환하거나, 저장된 리프레시 토큰으로 조용히 재연결 */
+async function gcalInitOnLoad() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  if (code) {
+    history.replaceState({}, "", window.location.pathname);
+    await gcalExchangeCode(code);
+  } else if (!localStorage.getItem(GCAL_REFRESH_KEY)) {
+    return;
+  }
+  const week = weekDates();
+  await ensureGCalMonth(Number(week[0].slice(0, 4)), Number(week[0].slice(5, 7)) - 1);
+  await ensureGCalMonth(Number(week[6].slice(0, 4)), Number(week[6].slice(5, 7)) - 1);
+  render();
 }
 
 /* ---------- 실행취소 / 다시실행 ---------- */
@@ -1836,7 +1906,7 @@ function render() {
   list.appendChild(subNav);
 
   if (taskTab === "today") {
-    const connected = !!gcalToken;
+    const connected = gcalIsConnected();
     const gcalBar = document.createElement("div");
     gcalBar.className = "gcal-bar" + (connected ? " gcal-bar-mini" : "");
     gcalBar.innerHTML = connected
