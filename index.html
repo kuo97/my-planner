@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root {
     --paper: #FAF6EE;
@@ -23,6 +24,8 @@
     --sage-soft: #E3F0E8;
     --danger: #E15B4F;
     --danger-soft: #FBE4E0;
+    --gcal: #4285F4;
+    --gcal-soft: #E8F0FE;
     --content-max: 560px;
   }
   @media (min-width: 900px) { :root { --content-max: 920px; } }
@@ -115,6 +118,22 @@
   }
   .week-col-date { font-size: 11.5px; }
   .week-col-empty { color: var(--muted); font-size: 12.5px; padding: 6px 2px; }
+  .gcal-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--gcal-soft); border: 1.5px solid var(--gcal); border-radius: 14px;
+    padding: 10px 14px; margin: 4px 0 14px; font-size: 13px; color: var(--ink);
+  }
+  .gcal-bar button {
+    border: none; background: var(--gcal); color: white; font-family: 'Gaegu', sans-serif;
+    font-weight: 700; font-size: 12.5px; padding: 7px 14px; border-radius: 999px; cursor: pointer; flex-shrink: 0;
+  }
+  .gcal-events { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .gcal-event {
+    display: flex; align-items: baseline; gap: 6px; padding: 7px 9px; border-radius: 10px;
+    background: var(--gcal-soft); text-decoration: none; color: var(--ink);
+  }
+  .gcal-time { font-size: 10.5px; font-weight: 700; color: var(--gcal); flex-shrink: 0; }
+  .gcal-title { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .week-col.is-today {
     background: var(--coral-soft); border-color: var(--coral); border-width: 2px;
     box-shadow: 0 4px 14px rgba(255,107,74,0.16);
@@ -1284,6 +1303,7 @@ async function showApp() {
   await loadAll();
   render();
   await cleanupSchedule();
+  gcalTrySilentReconnect();
 }
 
 /* ---------- 데이터 ---------- */
@@ -1299,6 +1319,81 @@ async function loadAll() {
   else { tasks = t.data || []; }
   if (r.error) { toast("반복 기록을 불러오지 못했어요: " + r.error.message); }
   else { repeatLog = r.data || []; }
+}
+
+/* ---------- 구글 캘린더 연동 (읽기 전용) ---------- */
+const GOOGLE_CLIENT_ID = "603542528567-cmma9t897a1uchcgov1uv0ab7qu75pje.apps.googleusercontent.com";
+const GCAL_CONNECTED_KEY = "gcal_connected";
+let gcalTokenClient = null;
+let gcalToken = null;
+let gcalEvents = []; // [{date: "YYYY-MM-DD", time: "14:00" | null, title, htmlLink}]
+
+function gcalInit() {
+  if (gcalTokenClient || !window.google || !google.accounts) return;
+  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: "https://www.googleapis.com/auth/calendar.readonly",
+    callback: (resp) => {
+      if (resp.error) { toast("구글 캘린더 연동 실패: " + resp.error); return; }
+      gcalToken = resp.access_token;
+      localStorage.setItem(GCAL_CONNECTED_KEY, "1");
+      fetchGCalEvents();
+    },
+  });
+}
+
+function connectGoogleCalendar() {
+  gcalInit();
+  if (!gcalTokenClient) { toast("구글 로그인 스크립트를 아직 불러오는 중이에요, 잠시 후 다시 눌러주세요"); return; }
+  gcalTokenClient.requestAccessToken({ prompt: "consent" });
+}
+
+function disconnectGoogleCalendar() {
+  if (gcalToken && window.google) google.accounts.oauth2.revoke(gcalToken, () => {});
+  gcalToken = null;
+  gcalEvents = [];
+  localStorage.removeItem(GCAL_CONNECTED_KEY);
+  render();
+  toast("구글 캘린더 연동을 해제했어요");
+}
+
+async function fetchGCalEvents() {
+  if (!gcalToken) return;
+  const week = weekDates();
+  const timeMin = new Date(week[0] + "T00:00:00").toISOString();
+  const timeMax = new Date(new Date(week[6] + "T00:00:00").getTime() + 86400000).toISOString();
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
+    `timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime`;
+  try {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${gcalToken}` } });
+    if (res.status === 401) {
+      // 토큰 만료 — 이미 동의했으면 화면 없이 새 토큰 요청
+      gcalToken = null;
+      gcalInit();
+      if (gcalTokenClient) gcalTokenClient.requestAccessToken({ prompt: "" });
+      return;
+    }
+    const data = await res.json();
+    if (!res.ok) { toast("구글 캘린더 불러오기 실패: " + (data.error?.message || res.status)); return; }
+    gcalEvents = (data.items || []).map(ev => {
+      const startStr = ev.start?.dateTime || ev.start?.date;
+      if (!startStr) return null;
+      const isAllDay = !ev.start.dateTime;
+      const date = startStr.slice(0, 10);
+      const time = isAllDay ? null : startStr.slice(11, 16);
+      return { date, time, title: ev.summary || "(제목 없음)", htmlLink: ev.htmlLink };
+    }).filter(Boolean);
+    render();
+  } catch (e) {
+    toast("구글 캘린더 불러오기 실패: " + e.message);
+  }
+}
+
+function gcalTrySilentReconnect() {
+  if (localStorage.getItem(GCAL_CONNECTED_KEY) !== "1") return;
+  gcalInit();
+  if (!gcalTokenClient) { setTimeout(gcalTrySilentReconnect, 500); return; }
+  gcalTokenClient.requestAccessToken({ prompt: "" });
 }
 
 /* ---------- 실행취소 / 다시실행 ---------- */
@@ -1692,6 +1787,19 @@ function render() {
   });
   list.appendChild(subNav);
 
+  if (taskTab === "today") {
+    const gcalBar = document.createElement("div");
+    gcalBar.className = "gcal-bar";
+    const connected = !!gcalToken;
+    gcalBar.innerHTML = connected
+      ? `<span>📅 구글 캘린더 연동됨</span><button type="button" id="gcalToggle">연동 해제</button>`
+      : `<span>구글 캘린더에 있는 일정도 같이 볼까요?</span><button type="button" id="gcalToggle">연동하기</button>`;
+    gcalBar.querySelector("#gcalToggle").addEventListener("click", () => {
+      connected ? disconnectGoogleCalendar() : connectGoogleCalendar();
+    });
+    list.appendChild(gcalBar);
+  }
+
   const taskList = document.createElement("div");
   list.appendChild(taskList);
 
@@ -1735,13 +1843,36 @@ function render() {
       head.className = "week-col-head";
       head.innerHTML = `<span>${DAY_NAMES[i]}요일</span><span class="week-col-date">${Number(d.slice(5,7))}/${Number(d.slice(8,10))}</span>`;
       col.appendChild(head);
+      const dEvents = gcalEvents.filter(e => e.date === d).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+      if (dEvents.length) {
+        any = true;
+        const evWrap = document.createElement("div");
+        evWrap.className = "gcal-events";
+        dEvents.forEach(e => {
+          const item = document.createElement("a");
+          item.className = "gcal-event";
+          item.href = e.htmlLink || "#";
+          item.target = "_blank";
+          item.rel = "noopener noreferrer";
+          const timeEl = document.createElement("span");
+          timeEl.className = "gcal-time";
+          timeEl.textContent = e.time || "종일";
+          const titleEl = document.createElement("span");
+          titleEl.className = "gcal-title";
+          titleEl.textContent = e.title;
+          item.appendChild(timeEl);
+          item.appendChild(titleEl);
+          evWrap.appendChild(item);
+        });
+        col.appendChild(evWrap);
+      }
       if (dTasks.length) {
         any = true;
         dTasks.forEach(t => {
           const isRepeat = t.repeat_days && t.repeat_days.length;
           col.appendChild(taskRow(t, isRepeat ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === d) : undefined, d));
         });
-      } else {
+      } else if (!dEvents.length) {
         col.insertAdjacentHTML("beforeend", `<div class="week-col-empty">${isToday ? "오늘은 여유롭네요" : "-"}</div>`);
       }
       board.appendChild(col);
