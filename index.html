@@ -357,6 +357,7 @@
   .city-chip.dragging { opacity: 0.4; transform: scale(0.96); }
   .city-chip.drag-over { box-shadow: 0 0 0 2.5px var(--coral); }
   .city-chip.primary { border-color: var(--coral); background: var(--coral-soft); }
+  .city-chip.recorded { border-color: var(--sage); background: var(--sage-soft); box-shadow: 0 1px 4px rgba(111,168,138,0.25); }
   .city-chip .cw { color: var(--muted); font-weight: 500; }
   .city-chip .cw-hilo { font-size: 12px; color: var(--muted); font-weight: 600; }
   .city-chip .cw-hilo b { color: var(--danger); font-weight: 700; }
@@ -958,11 +959,11 @@ async function renderDiary() {
   const notes = (todayEntry && todayEntry.city_notes) || [];
   let dragSrc = null;
   cities.forEach((city, idx) => {
+    const noted = notes.find(n => n.city === city.name);
     const chip = document.createElement("div");
-    chip.className = "city-chip" + (idx === 0 ? " primary" : "");
+    chip.className = "city-chip" + (idx === 0 ? " primary" : "") + (noted ? " recorded" : "");
     chip.draggable = true;
     chip.dataset.cityId = city.id;
-    const noted = notes.find(n => n.city === city.name);
     chip.innerHTML = `<span>${city.name}</span><span class="cw" data-cw>...</span><span class="cw-hilo" data-hilo></span>
       <span class="rec-btn ${noted ? "on" : ""}">${noted ? "기록됨" : "기록"}</span>
       <button class="del-btn" title="삭제">×</button>`;
