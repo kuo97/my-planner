@@ -531,6 +531,22 @@
   .rt-w { min-width: 52px; text-align: center; font-size: 14.5px; font-weight: 700; color: var(--ink); }
   .rt-w small { font-size: 10.5px; font-weight: 600; color: var(--muted); margin-left: 1px; }
   .rt-reps { font-size: 12px; color: var(--muted); font-weight: 600; min-width: 46px; text-align: right; }
+  .rt-del {
+    width: 24px; height: 24px; border-radius: 999px; border: none; background: none;
+    color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; margin-left: 2px;
+  }
+  .rt-del:hover { color: var(--danger); }
+  .routine-add { display: flex; gap: 7px; padding: 10px 0 6px; }
+  .rt-add-input {
+    flex: 1; padding: 8px 12px; border: 1.5px solid rgba(111,168,138,0.5); border-radius: 10px;
+    font-size: 13px; font-family: inherit; outline: none; background: white;
+  }
+  .rt-add-input:focus { border-color: var(--sage); }
+  .rt-add-btn {
+    border: none; background: var(--sage); color: white; font-family: 'Gaegu', sans-serif;
+    font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 10px; cursor: pointer;
+  }
   .date-toggle { display: flex; gap: 4px; }
   .date-toggle button {
     padding: 5px 12px; border: 1.5px solid var(--line); border-radius: 999px;
@@ -971,6 +987,8 @@ async function renderDiary() {
     noteInput.value = `${activeRoutine.label} — ` +
       activeRoutine.items.map(i => `${i.name} ${i.w}kg ${i.reps}`).join(", ");
   }
+  // 모든 루틴의 운동을 모은 카탈로그 — 다른 루틴의 운동을 끌어다 넣을 때 기본 무게/단위를 그대로 쓴다
+  const EXERCISE_CATALOG = EXERCISE_ROUTINES.flatMap(r => r.items);
   function renderRoutineEditor() {
     if (!activeRoutine) { editorEl.style.display = "none"; editorEl.innerHTML = ""; return; }
     editorEl.style.display = "block";
@@ -985,6 +1003,7 @@ async function renderDiary() {
           <span class="rt-w">${item.w}<small>kg</small></span>
           <button type="button" class="rt-btn" data-d="1">＋</button>
           <span class="rt-reps">${item.reps}</span>
+          <button type="button" class="rt-del" title="이 운동 빼기">×</button>
         </div>`;
       row.querySelectorAll(".rt-btn").forEach(b => {
         b.addEventListener("click", () => {
@@ -995,8 +1014,36 @@ async function renderDiary() {
           syncRoutineNote();
         });
       });
+      row.querySelector(".rt-del").addEventListener("click", () => {
+        activeRoutine.items.splice(idx, 1);
+        renderRoutineEditor();
+        syncRoutineNote();
+      });
       editorEl.appendChild(row);
     });
+
+    /* 운동 추가 — 카탈로그에서 고르거나 직접 입력 */
+    const addRow = document.createElement("div");
+    addRow.className = "routine-add";
+    const inList = new Set(activeRoutine.items.map(i => i.name));
+    const candidates = EXERCISE_CATALOG.filter(c => !inList.has(c.name));
+    addRow.innerHTML = `
+      <input type="text" class="rt-add-input" list="exCatalog" placeholder="운동 추가 (선택하거나 직접 입력)">
+      <datalist id="exCatalog">${candidates.map(c => `<option value="${c.name}">`).join("")}</datalist>
+      <button type="button" class="rt-add-btn">추가</button>`;
+    const addInput = addRow.querySelector(".rt-add-input");
+    function addExercise() {
+      const name = addInput.value.trim();
+      if (!name) return;
+      if (activeRoutine.items.some(i => i.name === name)) { toast("이미 목록에 있어요"); return; }
+      const known = EXERCISE_CATALOG.find(c => c.name === name);
+      activeRoutine.items.push(known ? { ...known } : { name, w: 20, reps: "12×5" });
+      renderRoutineEditor();
+      syncRoutineNote();
+    }
+    addRow.querySelector(".rt-add-btn").addEventListener("click", addExercise);
+    addInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addExercise(); } });
+    editorEl.appendChild(addRow);
   }
   dCard.querySelectorAll(".ex-chip").forEach(chip => {
     chip.addEventListener("click", () => {
