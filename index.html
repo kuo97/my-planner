@@ -508,6 +508,29 @@
   }
   .ex-chip:active { transform: scale(0.94); }
   .ex-chip.on { background: var(--sage); border-color: var(--sage); color: white; }
+
+  /* ---------- 루틴 에디터 (운동별 무게 조절) ---------- */
+  .routine-editor {
+    margin-top: 10px; border: 1.5px solid var(--sage); border-radius: 14px;
+    background: var(--sage-soft); padding: 6px 12px;
+  }
+  .routine-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 0; border-bottom: 1.5px dashed rgba(111,168,138,0.35);
+  }
+  .routine-row:last-child { border-bottom: none; }
+  .rt-name { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .rt-memo { display: block; font-size: 11px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+  .rt-ctrl { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .rt-btn {
+    width: 28px; height: 28px; border-radius: 999px; border: 1.5px solid var(--sage);
+    background: white; color: var(--sage); font-size: 15px; font-weight: 700; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .rt-btn:active { transform: scale(0.9); }
+  .rt-w { min-width: 52px; text-align: center; font-size: 14.5px; font-weight: 700; color: var(--ink); }
+  .rt-w small { font-size: 10.5px; font-weight: 600; color: var(--muted); margin-left: 1px; }
+  .rt-reps { font-size: 12px; color: var(--muted); font-weight: 600; min-width: 46px; text-align: right; }
   .date-toggle { display: flex; gap: 4px; }
   .date-toggle button {
     padding: 5px 12px; border: 1.5px solid var(--line); border-radius: 999px;
@@ -648,13 +671,29 @@ const SUPABASE_ANON_KEY = "sb_publishable_XhakCx4w4s7KRczs1kOcJQ_J8Qq11hK";
 
 const DAY_NAMES = ["일","월","화","수","목","금","토"];
 const MAX_PHOTOS = 6;
-const EXERCISE_PRESETS = [
-  { key: "push", label: "Push", note: "Push — 벤치프레스, 오버헤드프레스, 케이블푸쉬다운" },
-  { key: "legsA", label: "Legs A", note: "Legs A — V스쿼트, 레그컬, 사이드레터럴레이즈" },
-  { key: "pull", label: "Pull", note: "Pull — 렛풀다운, 티바로우, 리버스펙덱플라이, 케이블이두컬" },
-  { key: "legsB", label: "Legs B", note: "Legs B — 카프레이즈, 펙덱플라이, 라잉트라이셉스" },
-  { key: "core", label: "코어", note: "코어 — 플랭크 40초×3, 데드버그 10회×3" },
-  { key: "run", label: "런닝", note: "런닝" },
+/* 루틴별 운동 구성 (2026-08-29 개편). w = 기본 무게(kg), 무게는 5kg 단위로 조절 */
+const EXERCISE_ROUTINES = [
+  { key: "chestTri", label: "가슴·삼두", items: [
+    { name: "벤치프레스", w: 50, reps: "6×5", memo: "바20+원판30" },
+    { name: "펙덱플라이", w: 32, reps: "12×5" },
+    { name: "케이블푸쉬다운", w: 20, reps: "12×5" },
+  ]},
+  { key: "legsA", label: "Legs A", items: [
+    { name: "V스쿼트 머신", w: 45, reps: "12×5" },
+    { name: "레그컬", w: 25, reps: "12×3~4" },
+    { name: "라잉트라이셉스", w: 15, reps: "12×5" },
+  ]},
+  { key: "pull", label: "Pull", items: [
+    { name: "렛풀다운", w: 32, reps: "12×5", memo: "힘 딸리면 25kg" },
+    { name: "티바로우", w: 17.5, reps: "12×5" },
+    { name: "리버스펙덱플라이", w: 10, reps: "12×5" },
+    { name: "케이블이두컬", w: 25, reps: "12×5" },
+  ]},
+  { key: "shoulderLegsB", label: "어깨·Legs B", items: [
+    { name: "오버헤드프레스", w: 20, reps: "12×5", memo: "자세교정중" },
+    { name: "사이드레터럴레이즈", w: 5, reps: "12×5", memo: "자극 재점검" },
+    { name: "카프레이즈", w: 20, reps: "15×3~4" },
+  ]},
 ];
 let sb = null, user = null, tasks = [], repeatLog = [], view = "today", editing = null;
 let taskTab = "today";
@@ -910,8 +949,9 @@ async function renderDiary() {
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 30분)">
     <div class="exercise-presets" id="exercisePresets">
-      ${EXERCISE_PRESETS.map(p => `<button type="button" class="ex-chip" data-k="${p.key}">${p.label}</button>`).join("")}
+      ${EXERCISE_ROUTINES.map(p => `<button type="button" class="ex-chip" data-k="${p.key}">${p.label}</button>`).join("")}
     </div>
+    <div class="routine-editor" id="routineEditor" style="display:none;"></div>
     <div class="photo-label">사진</div>
     <div class="photo-grid" id="photoGrid"></div>
     <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
@@ -921,17 +961,55 @@ async function renderDiary() {
     dCard.querySelector("#diaryContent").value = todayEntry.content || "";
     dCard.querySelector("#exerciseNote").value = todayEntry.exercise_note || "";
   }
+
+  /* 루틴 칩 → 무게 조절 가능한 운동 목록 에디터 */
+  let activeRoutine = null; // { key, label, items: [{name, w, reps, memo}] } 의 사본
+  const editorEl = dCard.querySelector("#routineEditor");
+  const noteInput = dCard.querySelector("#exerciseNote");
+  function syncRoutineNote() {
+    if (!activeRoutine) return;
+    noteInput.value = `${activeRoutine.label} — ` +
+      activeRoutine.items.map(i => `${i.name} ${i.w}kg ${i.reps}`).join(", ");
+  }
+  function renderRoutineEditor() {
+    if (!activeRoutine) { editorEl.style.display = "none"; editorEl.innerHTML = ""; return; }
+    editorEl.style.display = "block";
+    editorEl.innerHTML = "";
+    activeRoutine.items.forEach((item, idx) => {
+      const row = document.createElement("div");
+      row.className = "routine-row";
+      row.innerHTML = `
+        <div class="rt-name">${item.name}${item.memo ? `<span class="rt-memo">${item.memo}</span>` : ""}</div>
+        <div class="rt-ctrl">
+          <button type="button" class="rt-btn" data-d="-1">−</button>
+          <span class="rt-w">${item.w}<small>kg</small></span>
+          <button type="button" class="rt-btn" data-d="1">＋</button>
+          <span class="rt-reps">${item.reps}</span>
+        </div>`;
+      row.querySelectorAll(".rt-btn").forEach(b => {
+        b.addEventListener("click", () => {
+          item.w = Math.max(0, item.w + Number(b.dataset.d) * 5);
+          row.querySelector(".rt-w").innerHTML = `${item.w}<small>kg</small>`;
+          syncRoutineNote();
+        });
+      });
+      editorEl.appendChild(row);
+    });
+  }
   dCard.querySelectorAll(".ex-chip").forEach(chip => {
     chip.addEventListener("click", () => {
-      const preset = EXERCISE_PRESETS.find(p => p.key === chip.dataset.k);
-      if (!preset) return;
-      const noteInput = dCard.querySelector("#exerciseNote");
+      const routine = EXERCISE_ROUTINES.find(p => p.key === chip.dataset.k);
+      if (!routine) return;
       if (chip.classList.contains("on")) {
         chip.classList.remove("on");
-        if (noteInput.value === preset.note) noteInput.value = "";
+        activeRoutine = null;
+        noteInput.value = "";
+        renderRoutineEditor();
       } else {
-        noteInput.value = preset.note;
         dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", c === chip));
+        activeRoutine = { key: routine.key, label: routine.label, items: routine.items.map(i => ({ ...i })) };
+        renderRoutineEditor();
+        syncRoutineNote();
       }
     });
   });
