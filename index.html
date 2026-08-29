@@ -671,11 +671,11 @@ const SUPABASE_ANON_KEY = "sb_publishable_XhakCx4w4s7KRczs1kOcJQ_J8Qq11hK";
 
 const DAY_NAMES = ["일","월","화","수","목","금","토"];
 const MAX_PHOTOS = 6;
-/* 루틴별 운동 구성 (2026-08-29 개편). w = 기본 무게(kg), 무게는 5kg 단위로 조절 */
+/* 루틴별 운동 구성 (2026-08-29 개편). w = 기본 무게(kg), step = 무게 조절 단위(kg, 생략 시 5) */
 const EXERCISE_ROUTINES = [
   { key: "chestTri", label: "가슴·삼두", items: [
     { name: "벤치프레스", w: 50, reps: "6×5", memo: "바20+원판30" },
-    { name: "펙덱플라이", w: 32, reps: "12×5" },
+    { name: "펙덱플라이", w: 32, reps: "12×5", step: 2.5 },
     { name: "케이블푸쉬다운", w: 20, reps: "12×5" },
   ]},
   { key: "legsA", label: "Legs A", items: [
@@ -685,13 +685,13 @@ const EXERCISE_ROUTINES = [
   ]},
   { key: "pull", label: "Pull", items: [
     { name: "렛풀다운", w: 32, reps: "12×5", memo: "힘 딸리면 25kg" },
-    { name: "티바로우", w: 17.5, reps: "12×5" },
-    { name: "리버스펙덱플라이", w: 10, reps: "12×5" },
+    { name: "티바로우", w: 17.5, reps: "12×5", step: 2.5 },
+    { name: "리버스펙덱플라이", w: 10, reps: "12×5", step: 2.5 },
     { name: "케이블이두컬", w: 25, reps: "12×5" },
   ]},
   { key: "shoulderLegsB", label: "어깨·Legs B", items: [
     { name: "오버헤드프레스", w: 20, reps: "12×5", memo: "자세교정중" },
-    { name: "사이드레터럴레이즈", w: 5, reps: "12×5", memo: "자극 재점검" },
+    { name: "사이드레터럴레이즈", w: 5, reps: "12×5", memo: "자극 재점검", step: 1 },
     { name: "카프레이즈", w: 20, reps: "15×3~4" },
   ]},
 ];
@@ -988,7 +988,9 @@ async function renderDiary() {
         </div>`;
       row.querySelectorAll(".rt-btn").forEach(b => {
         b.addEventListener("click", () => {
-          item.w = Math.max(0, item.w + Number(b.dataset.d) * 5);
+          const step = item.step || 5;
+          // 0.5 단위 부동소수점 오차 방지 (예: 17.5 + 2.5)
+          item.w = Math.max(0, Math.round((item.w + Number(b.dataset.d) * step) * 2) / 2);
           row.querySelector(".rt-w").innerHTML = `${item.w}<small>kg</small>`;
           syncRoutineNote();
         });
