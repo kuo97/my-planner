@@ -1823,6 +1823,18 @@ async function cleanupSchedule() {
     }
   }
 
+  // [1회성 마이그레이션 · 2026-08-29] 우주사전2 배치 전환: 20~31호(12편, 구방식) → 32~45호(14편, 신방식).
+  // 32~38호 제작이 끝나 다음 업로드가 32호부터 시작되므로, 옛 배치 값(sub_start=20)으로 남아있는
+  // 실제 일정 행을 로그인된 본인 권한으로 딱 한 번 갱신한다. 이미 전환됐으면(=20이 아니면) 아무것도 안 함.
+  {
+    const t = tasks.find(x => x.title === "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)");
+    if (t && t.sub_start === 20) {
+      t.sub_start = 32; t.sub_total = 14;
+      await sb.from("tasks").update({ sub_start: 32, sub_total: 14 }).eq("id", t.id);
+      subSynced = true;
+    }
+  }
+
   if (removeIds.length || missing.length || subSynced) render();
 }
 function scheduleSeeded() {
