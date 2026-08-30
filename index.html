@@ -1748,14 +1748,15 @@ const SCHEDULE_TASKS = [
   // sub_start = "기준 주"의 시작 호수, sub_anchor = 그 기준 주의 발생일(그날 sub_start가 그대로 적용됨).
   // 이후 주는 sub_total씩 자동으로 늘어나므로 매주 수동 갱신이 필요 없다.
   { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 14, sub_start: 32, sub_anchor: "2026-08-31" },
-  { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7, sub_start: 18, sub_anchor: "2026-08-25" },
+  // 화잠도 2026-08-30부터 월요일 배치로 통합 (제작+예약을 월요일에 한 번에)
+  { title: "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [1], sub_total: 7, sub_start: 25, sub_anchor: "2026-08-31" },
   // 찬로로(일본 여행 쇼츠, 2026-08-28 개국): 우주사전2와 같은 월요일 배치·하루 2편(11:30/19:00) 체제.
   // 첫 배치 8~21호(14편)는 이미 제작 완료 상태로 시작.
   { title: "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)", project: "찬로로", repeat_days: [1], sub_total: 14, sub_start: 8, sub_anchor: "2026-08-31" },
 ];
 /* 편수 체크리스트의 각 칸이 실제로 예약 발행되는 요일(0=일...6=토)과 메모, 칸 순서대로.
    찬작: 수요일 제작일에 2편 — 수요일치는 당일 19:00 발행, 토요일치는 19:00 예약.
-   화잠: 월~일 하루 1편 (제작은 화요일에 하고 다음 주 월요일부터 1주일치 예약 발행).
+   화잠: 월~일 하루 1편 (월요일에 제작해서 1주일치 예약 발행).
    우주사전2·찬로로: 월~일 매일 2편(11:30/19:00), 호수가 요일 순서대로 이어지게(월 n,n+1 → 화 n+2,n+3 ...)
    — 업로드할 때 헷갈리지 않도록 시간순·번호순이 완전히 일치하는 단순 배열. */
 function normSubDays(arr) { return arr.map(x => typeof x === "number" ? { dow: x } : x); }
@@ -1772,9 +1773,16 @@ const SUB_DAY_PATTERNS = {
     { dow: 3, note: "수요일 19:00 · 당일 발행" },
     { dow: 6, note: "토요일 19:00 · 예약 발행" },
   ],
-  "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)": normSubDays([1,2,3,4,5,6,0]),
+  "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)": normSubDays([1,2,3,4,5,6,0]),
   "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)": twoPerDayWeek(),
   "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)": twoPerDayWeek(),
+};
+/* 주간보드에서 배치 카드에 표시할 짧은 이름 — 긴 제목·배지 대신 이거 하나만 보여줘서 공간 절약 */
+const BATCH_DISPLAY_NAMES = {
+  "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)": "찬작",
+  "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)": "화잠",
+  "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)": "우주사전",
+  "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)": "찬로로",
 };
 /* 당연히 매번 하는 일이라 일정에 넣을 필요 없거나, 예약 발행으로 자동 게시돼서
    더 이상 매일 확인이 필요 없거나, 주 1회 배치 제작 방식으로 재편되며 이름이 바뀐,
@@ -1819,6 +1827,21 @@ async function cleanupSchedule() {
     repeatLog = repeatLog.filter(r => !removeIds.includes(r.task_id));
     await sb.from("repeat_log").delete().in("task_id", removeIds);
     await sb.from("tasks").delete().in("id", removeIds);
+  }
+
+  // [1회성 마이그레이션 · 2026-08-30] 화잠 배치일 화→월 통합. 기존 화요일 행을 새 제목/요일로
+  // 그 자리에서 바꾸고(삭제 아님 — 체크 기록 유지), 지난주 체크 기록(화 8/25)도 월 8/24로 옮겨
+  // 보드의 지난주 칸에서 계속 보이게 한다. 반드시 missing 삽입보다 먼저 실행되어야
+  // 새 제목이 "없는 항목"으로 중복 생성되지 않는다.
+  {
+    const t = tasks.find(x => x.title === "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)");
+    if (t) {
+      const upd = { title: "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)", repeat_days: [1], sub_start: 25, sub_anchor: "2026-08-31" };
+      Object.assign(t, upd);
+      await sb.from("tasks").update(upd).eq("id", t.id);
+      await sb.from("repeat_log").update({ done_on: "2026-08-24" }).eq("task_id", t.id).eq("done_on", "2026-08-25");
+      repeatLog.forEach(r => { if (r.task_id === t.id && r.done_on === "2026-08-25") r.done_on = "2026-08-24"; });
+    }
   }
 
   // 이미 "4트랙 사업 일정"을 불러온 적 있는 사용자에 한해서만 새로 추가된 항목(건강친구 산이 배치일 등)을 채워준다
@@ -2022,9 +2045,14 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
     : (doneOverride !== undefined ? doneOverride : !!task.done_at);
   const div = document.createElement("div");
   div.className = "task" + (done ? " done" : "");
+  // 배치 카드는 짧은 이름 하나만 표시하고 배지(프로젝트/요일/편수)는 전부 생략 — 공간 절약.
+  // 편수·번호는 어차피 칩에 다 보인다.
+  const displayName = BATCH_DISPLAY_NAMES[task.title];
   const badges = [];
-  if (task.project) badges.push(`<span class="badge">${task.project}</span>`);
-  if (isRepeat) badges.push(`<span class="badge repeat">매주 ${task.repeat_days.map(d=>DAY_NAMES[d]).join("·")}</span>`);
+  if (!displayName) {
+    if (task.project) badges.push(`<span class="badge">${task.project}</span>`);
+    if (isRepeat) badges.push(`<span class="badge repeat">매주 ${task.repeat_days.map(d=>DAY_NAMES[d]).join("·")}</span>`);
+  }
   if (task.due && !isRepeat) {
     const overdue = task.due < todayStr() && !done;
     badges.push(`<span class="badge ${overdue ? "overdue" : "plain"}">${overdue ? "지남 " : ""}${task.due.slice(5).replace("-","/")}</span>`);
@@ -2035,7 +2063,7 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
       badges.push(`<span class="badge plain">${nums.length}편 완료 · ${nums[0]}~${nums[nums.length - 1]}호</span>`);
     } else if (subRange.mode === "none") {
       badges.push(`<span class="badge plain">기록 없음</span>`);
-    } else {
+    } else if (!displayName) {
       const s = subRange.start;
       badges.push(`<span class="badge plain">${subDone.length}/${task.sub_total}편 · ${s}~${s + task.sub_total - 1}호</span>`);
     }
@@ -2052,7 +2080,7 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
       <div class="title"></div>
       ${badges.length ? `<div class="meta">${badges.join("")}</div>` : ""}
     </div>`;
-  div.querySelector(".title").textContent = task.title;
+  div.querySelector(".title").textContent = displayName || task.title;
   if (hasSub) {
     div.querySelector(".body").appendChild(subChecklist(task, onDate));
     div.querySelector(".chk").style.visibility = "hidden"; // 완료 여부는 편수 체크로만 결정
