@@ -398,6 +398,10 @@
 
   /* ---------- 편수 체크리스트 ---------- */
   .sub-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  /* 발행 요일 패턴이 있는 배치는 요일별 세로 열로 — 1주일(7일)이 한 줄에 다 보이게 */
+  .sub-grid.byday { display: grid; grid-template-columns: repeat(var(--sub-days, 7), minmax(0, 1fr)); }
+  .sub-col { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .sub-grid.byday .sub-chip { width: 100%; min-width: 0; padding: 3px 2px; }
   .sub-chip {
     min-width: 30px; height: 38px; padding: 3px 4px; border-radius: 8px; border: 1.5px solid var(--line);
     background: var(--paper); color: var(--ink); font-family: 'Gaegu', sans-serif; font-weight: 700;
@@ -1957,9 +1961,8 @@ function subChecklist(task, onDate) {
   const dayPattern = SUB_DAY_PATTERNS[task.title];
   const grid = document.createElement("div");
   grid.className = "sub-grid";
-  for (let i = 0; i < task.sub_total; i++) {
-    const n = start + i;
-    const slot = dayPattern ? dayPattern[i] : undefined;
+
+  const makeChip = (n, slot) => {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "sub-chip" + (done.includes(n) ? " on" : "");
@@ -1968,7 +1971,30 @@ function subChecklist(task, onDate) {
       : `<span class="sub-num">${n}</span>`;
     chip.title = slot ? `${n}호 · ${DAY_NAMES[slot.dow]}요일 예약${slot.note ? " (" + slot.note + ")" : ""}` : `${n}호`;
     chip.addEventListener("click", (e) => { e.stopPropagation(); toggleSubItem(task, n, onDate); });
-    grid.appendChild(chip);
+    return chip;
+  };
+
+  // 발행 요일 패턴이 있으면 요일별 세로 열로 배치 — 한 줄에 1주일이 다 보임
+  // (열 순서는 패턴에 처음 등장한 요일 순서. 다음주로 넘어가는 편은 같은 요일 열 아래에 쌓임)
+  if (dayPattern && dayPattern.length === task.sub_total) {
+    grid.classList.add("byday");
+    const colOrder = [], cols = {};
+    dayPattern.forEach((slot, i) => {
+      if (!(slot.dow in cols)) { cols[slot.dow] = []; colOrder.push(slot.dow); }
+      cols[slot.dow].push(makeChip(start + i, slot));
+    });
+    grid.style.setProperty("--sub-days", colOrder.length);
+    colOrder.forEach(dow => {
+      const col = document.createElement("div");
+      col.className = "sub-col";
+      cols[dow].forEach(c => col.appendChild(c));
+      grid.appendChild(col);
+    });
+    return grid;
+  }
+
+  for (let i = 0; i < task.sub_total; i++) {
+    grid.appendChild(makeChip(start + i, dayPattern ? dayPattern[i] : undefined));
   }
   return grid;
 }
