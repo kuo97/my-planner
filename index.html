@@ -413,6 +413,9 @@
   .sub-chip.on { background: var(--sage); border-color: var(--sage); color: white; }
   .sub-chip.on .sub-day { color: rgba(255,255,255,0.85); }
   .sub-chip:active { transform: scale(0.9); }
+  .sub-chip.readonly { cursor: default; opacity: 0.75; display: inline-flex; }
+  .sub-chip.readonly:active { transform: none; }
+  .sub-empty-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
 
   /* ---------- 사진 ---------- */
   .photo-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 14px 0 8px; }
@@ -1489,10 +1492,13 @@ async function showApp() {
 
 /* ---------- 데이터 ---------- */
 async function loadAll() {
-  const week = weekDates();
+  // 주간보드가 보여주는 2주(월요일 시작) 전체 범위의 반복 기록을 불러온다.
+  // 예전엔 일요일 시작 1주치만 불러와서, 보드에 보이는 지난주 월~토의 체크가
+  // DB엔 있는데도 화면에선 전부 풀린 것처럼 보이는 버그가 있었다.
+  const board = twoWeekDates();
   const [t, r] = await Promise.all([
     sb.from("tasks").select("*").order("created_at", { ascending: true }),
-    sb.from("repeat_log").select("*").gte("done_on", week[0]).lte("done_on", week[6]),
+    sb.from("repeat_log").select("*").gte("done_on", board[0]).lte("done_on", board[13]),
   ]);
   // 네트워크/세션 오류로 조회가 실패하면 기존 화면을 비우지 않고 그대로 둔다
   // (실패했다고 tasks를 []로 덮어쓰면 프로젝트/할 일이 전부 사라진 것처럼 보임)
@@ -1742,14 +1748,14 @@ async function addTask(title) {
 
 /* ---------- 4트랙 사업 일정 불러오기 (2026-08-26 갱신: 계정별 주 1회 배치 제작 + 예약 발행, 찬작은 주 2회 발행(수·토), KST) ---------- */
 const SCHEDULE_TASKS = [
-  { title: "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)", project: "찬작스튜디오", repeat_days: [3], sub_total: 2 },
-  // sub_start는 폴더/렌더 결과물 기준으로 확인한 "현재 배치분" 시작 호수 — 한 번만 채워주고,
-  // 이후엔 편집 시트에서 직접 다음 배치 호수로 바꿔가며 쓴다 (매주 자동으로 갱신되지 않음)
-  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 14, sub_start: 20 },
-  { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7, sub_start: 18 },
+  { title: "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)", project: "찬작스튜디오", repeat_days: [3], sub_total: 2, sub_start: 1, sub_anchor: "2026-08-26" },
+  // sub_start = "기준 주"의 시작 호수, sub_anchor = 그 기준 주의 발생일(그날 sub_start가 그대로 적용됨).
+  // 이후 주는 sub_total씩 자동으로 늘어나므로 매주 수동 갱신이 필요 없다.
+  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 14, sub_start: 32, sub_anchor: "2026-08-31" },
+  { title: "화잠 화요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [2], sub_total: 7, sub_start: 18, sub_anchor: "2026-08-25" },
   // 찬로로(일본 여행 쇼츠, 2026-08-28 개국): 우주사전2와 같은 월요일 배치·하루 2편(11:30/19:00) 체제.
   // 첫 배치 8~21호(14편)는 이미 제작 완료 상태로 시작.
-  { title: "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)", project: "찬로로", repeat_days: [1], sub_total: 14, sub_start: 8 },
+  { title: "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)", project: "찬로로", repeat_days: [1], sub_total: 14, sub_start: 8, sub_anchor: "2026-08-31" },
 ];
 /* 편수 체크리스트의 각 칸이 실제로 예약 발행되는 요일(0=일...6=토)과 메모, 칸 순서대로.
    찬작: 수요일 제작일에 2편 — 수요일치는 당일 19:00 발행, 토요일치는 19:00 예약.
@@ -1842,6 +1848,11 @@ async function cleanupSchedule() {
       await sb.from("tasks").update({ sub_start: s.sub_start }).eq("id", t.id);
       subSynced = true;
     }
+    if (t && s.sub_anchor && t.sub_anchor == null) {
+      t.sub_anchor = s.sub_anchor;
+      await sb.from("tasks").update({ sub_anchor: s.sub_anchor }).eq("id", t.id);
+      subSynced = true;
+    }
   }
 
   // [1회성 마이그레이션 · 2026-08-29] 우주사전2 배치 전환: 20~31호(12편, 구방식) → 32~45호(14편, 신방식).
@@ -1908,6 +1919,21 @@ async function toggleTask(task, rowEl, chkEl, onDate = todayStr()) {
 }
 
 /* ---------- 편수 체크리스트 (한 번에 여러 개 올리는 배치 콘텐츠용) ---------- */
+/* 이 주(onDate = 그 주의 발생일)의 배치 시작 호수를 계산한다.
+   sub_anchor = "sub_start가 그대로 적용되는 기준 발생일". 기준에서 몇 주 지났는지(k)에 따라
+   시작 호수가 sub_total씩 자동으로 늘어나서, 매주 수동으로 갱신할 필요가 없다.
+   기준보다 과거 주(k<0)는 편수 체계가 달랐을 수 있으므로 계산하지 않고,
+   그 주에 실제로 체크된 번호(repeat_log.sub_done)를 그대로 기록으로 보여준다. */
+function subRangeFor(task, onDate) {
+  const start = task.sub_start || 1;
+  if (!task.sub_anchor) return { mode: "formula", start };
+  const k = Math.round((new Date(onDate + "T00:00:00") - new Date(task.sub_anchor + "T00:00:00")) / 604800000);
+  if (k >= 0) return { mode: "formula", start: start + k * task.sub_total };
+  const stored = getSubDone(task, onDate);
+  if (stored.length) return { mode: "stored", nums: [...stored].sort((a, b) => a - b) };
+  return { mode: "none" };
+}
+
 function getSubDone(task, onDate) {
   const isRepeat = task.repeat_days && task.repeat_days.length;
   if (isRepeat) {
@@ -1945,7 +1971,7 @@ async function toggleSubItem(task, n, onDate) {
 
 function subChecklist(task, onDate) {
   const done = getSubDone(task, onDate);
-  const start = task.sub_start || 1;
+  const range = subRangeFor(task, onDate);
   const dayPattern = SUB_DAY_PATTERNS[task.title];
   const grid = document.createElement("div");
   grid.className = "sub-grid";
@@ -1961,6 +1987,25 @@ function subChecklist(task, onDate) {
     chip.addEventListener("click", (e) => { e.stopPropagation(); toggleSubItem(task, n, onDate); });
     return chip;
   };
+
+  // 지난 주(기준 이전) — 그때 실제 체크했던 번호들을 읽기 전용 기록으로 표시
+  if (range.mode === "stored") {
+    range.nums.forEach(n => {
+      const chip = document.createElement("span");
+      chip.className = "sub-chip on readonly";
+      chip.innerHTML = `<span class="sub-num">${n}</span>`;
+      chip.title = `${n}호 · 업로드 완료 기록`;
+      grid.appendChild(chip);
+    });
+    return grid;
+  }
+  if (range.mode === "none") {
+    const note = document.createElement("div");
+    note.className = "sub-empty-note";
+    note.textContent = "이 주엔 기록이 없어요";
+    return note;
+  }
+  const start = range.start;
 
   // 발행 요일 패턴이 있으면 요일별 세로 열로 배치 — 한 줄에 1주일이 다 보임
   // (열 순서는 패턴에 처음 등장한 요일 순서. 다음주로 넘어가는 편은 같은 요일 열 아래에 쌓임)
@@ -1992,7 +2037,10 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
   const isRepeat = task.repeat_days && task.repeat_days.length;
   const hasSub = task.sub_total > 0;
   const subDone = hasSub ? getSubDone(task, onDate) : [];
-  const done = hasSub ? subDone.length >= task.sub_total : (doneOverride !== undefined ? doneOverride : !!task.done_at);
+  const subRange = hasSub ? subRangeFor(task, onDate) : null;
+  const done = hasSub
+    ? (subRange.mode === "stored" ? true : subDone.length >= task.sub_total)
+    : (doneOverride !== undefined ? doneOverride : !!task.done_at);
   const div = document.createElement("div");
   div.className = "task" + (done ? " done" : "");
   const badges = [];
@@ -2003,8 +2051,15 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
     badges.push(`<span class="badge ${overdue ? "overdue" : "plain"}">${overdue ? "지남 " : ""}${task.due.slice(5).replace("-","/")}</span>`);
   }
   if (hasSub) {
-    const s = task.sub_start || 1;
-    badges.push(`<span class="badge plain">${subDone.length}/${task.sub_total}편 · ${s}~${s + task.sub_total - 1}호</span>`);
+    if (subRange.mode === "stored") {
+      const nums = subRange.nums;
+      badges.push(`<span class="badge plain">${nums.length}편 완료 · ${nums[0]}~${nums[nums.length - 1]}호</span>`);
+    } else if (subRange.mode === "none") {
+      badges.push(`<span class="badge plain">기록 없음</span>`);
+    } else {
+      const s = subRange.start;
+      badges.push(`<span class="badge plain">${subDone.length}/${task.sub_total}편 · ${s}~${s + task.sub_total - 1}호</span>`);
+    }
   }
   div.innerHTML = `
     <div class="chk">
@@ -2320,6 +2375,12 @@ $("btnSave").addEventListener("click", async () => {
     sub_total: subTotalVal ? Math.max(1, parseInt(subTotalVal, 10)) : null,
     sub_start: subStartVal ? Math.max(1, parseInt(subStartVal, 10)) : null,
   };
+  // 시작 호수를 직접 바꾸면 "이번 주 배치가 이 번호부터"라는 뜻이므로,
+  // 기준일(sub_anchor)을 이번 주의 해당 반복 요일로 다시 잡는다 (이후 주는 자동 증가)
+  if (upd.sub_start && upd.sub_start !== beforeSnap.sub_start && upd.repeat_days) {
+    const thisWeek = twoWeekDates().slice(0, 7);
+    upd.sub_anchor = thisWeek.find(d => upd.repeat_days.includes(new Date(d + "T00:00:00").getDay())) || thisWeek[0];
+  }
   const afterSnap = { ...beforeSnap, ...upd };
   closeSheet();
   await applyTaskState(id, afterSnap);
