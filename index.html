@@ -398,10 +398,6 @@
 
   /* ---------- 편수 체크리스트 ---------- */
   .sub-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-  /* 발행 요일 패턴이 있는 배치는 요일별 세로 열로 — 1주일(7일)이 한 줄에 다 보이게 */
-  .sub-grid.byday { display: grid; grid-template-columns: repeat(var(--sub-days, 7), minmax(0, 1fr)); }
-  .sub-col { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-  .sub-grid.byday .sub-chip { width: 100%; min-width: 0; padding: 3px 2px; }
   .sub-chip {
     min-width: 30px; height: 38px; padding: 3px 4px; border-radius: 8px; border: 1.5px solid var(--line);
     background: var(--paper); color: var(--ink); font-family: 'Gaegu', sans-serif; font-weight: 700;
@@ -2007,25 +2003,8 @@ function subChecklist(task, onDate) {
   }
   const start = range.start;
 
-  // 발행 요일 패턴이 있으면 요일별 세로 열로 배치 — 한 줄에 1주일이 다 보임
-  // (열 순서는 패턴에 처음 등장한 요일 순서. 다음주로 넘어가는 편은 같은 요일 열 아래에 쌓임)
-  if (dayPattern && dayPattern.length === task.sub_total) {
-    grid.classList.add("byday");
-    const colOrder = [], cols = {};
-    dayPattern.forEach((slot, i) => {
-      if (!(slot.dow in cols)) { cols[slot.dow] = []; colOrder.push(slot.dow); }
-      cols[slot.dow].push(makeChip(start + i, slot));
-    });
-    grid.style.setProperty("--sub-days", colOrder.length);
-    colOrder.forEach(dow => {
-      const col = document.createElement("div");
-      col.className = "sub-col";
-      cols[dow].forEach(c => col.appendChild(c));
-      grid.appendChild(col);
-    });
-    return grid;
-  }
-
+  // 번호 순서 그대로 가로로 흐르게 배치 — 읽는 순서 = 업로드 순서.
+  // (요일별 세로 열 배치는 가로로 읽으면 32 34 36...처럼 번호가 건너뛰어 보여서 폐기)
   for (let i = 0; i < task.sub_total; i++) {
     grid.appendChild(makeChip(start + i, dayPattern ? dayPattern[i] : undefined));
   }
