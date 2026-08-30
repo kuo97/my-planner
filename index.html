@@ -1799,6 +1799,12 @@ const RETIRED_SCHEDULE_TITLES = [
   "화잠 월요일 배치 제작 (릴스 7편)",
   "건강친구 산이 월요일 배치 제작 (예약 발행)",
 ];
+/* 찬로로 특별편성(정규 호수 없는 속보·시즌성 업로드) 기록용 — 회차 체크리스트에 안 들어가서
+   완료 이력이 안 남으니, 업로드될 때마다 여기에 한 줄 추가하고 git push하면 다음 앱 실행 시
+   자동으로 "완료" 상태 1회성 일정으로 삽입됨(제목 중복이면 다시 안 넣음). */
+const SPECIAL_UPLOAD_LOG = [
+  { title: "찬로로 특별편성 업로드 — 규슈 부흥 응원할인(후쿠오카 숙박비 절반)", project: "찬로로" },
+];
 /* 중복 씨딩 및 은퇴된 일정 정리 — 앱 실행 시 한 번 조용히 실행 */
 async function cleanupSchedule() {
   const removeIds = [];
@@ -1886,7 +1892,20 @@ async function cleanupSchedule() {
     }
   }
 
-  if (removeIds.length || missing.length || subSynced) render();
+  // 특별편성 업로드 기록 삽입 (1회성, 제목 중복 체크 — 이미 있으면 다시 안 넣음)
+  let specialLogged = false;
+  {
+    const existingTitles = new Set(tasks.map(t => t.title));
+    const newLogs = SPECIAL_UPLOAD_LOG
+      .filter(s => !existingTitles.has(s.title))
+      .map(s => ({ ...s, due: todayStr(), done_at: new Date().toISOString() }));
+    if (newLogs.length) {
+      const { data } = await sb.from("tasks").insert(newLogs).select();
+      if (data) { tasks.push(...data); specialLogged = true; }
+    }
+  }
+
+  if (removeIds.length || missing.length || subSynced || specialLogged) render();
 }
 function scheduleSeeded() {
   return tasks.some(t => ["우주사전2","화잠","건강친구 산이"].includes(t.project));
