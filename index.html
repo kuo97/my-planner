@@ -733,6 +733,17 @@ function weekDates() {
   }
   return out;
 }
+/* 이번 주+다음 주, 일~토×2 (14일) — "오늘" 탭 주간보드를 2주치로 보여주는 용도 */
+function twoWeekDates() {
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay());
+  const out = [];
+  for (let i = 0; i < 14; i++) {
+    out.push(dateStr(d));
+    d.setDate(d.getDate() + 1);
+  }
+  return out;
+}
 
 function toast(msg) {
   const t = $("toast");
@@ -2078,13 +2089,15 @@ function render() {
       taskList.appendChild(banner);
     }
 
-    const week = weekDates(); // index 0=일 ... 6=토
-    const MON_FIRST = [1,2,3,4,5,6,0]; // 월~일 순서로 표시
+    const week2 = twoWeekDates(); // index 0=이번주 일 ... 6=이번주 토, 7=다음주 일 ... 13=다음주 토
+    // 월~일 순서로, 이번 주 다음에 다음 주가 이어지도록 (14일치)
+    const ORDER14 = [1,2,3,4,5,6,0, 8,9,10,11,12,13,7];
     const board = document.createElement("div");
     board.className = "week-board";
     let any = false;
-    MON_FIRST.forEach(i => {
-      const d = week[i];
+    ORDER14.forEach(idx => {
+      const i = idx % 7; // 요일(0=일...6=토) — repeat_days 매칭용
+      const d = week2[idx];
       const dTasks = tasks.filter(t => {
         const isRepeat = t.repeat_days && t.repeat_days.length;
         if (isRepeat) return t.repeat_days.includes(i);
