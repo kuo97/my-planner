@@ -415,7 +415,8 @@
 
   /* ---------- 사진 ---------- */
   .photo-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 14px 0 8px; }
-  .photo-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px; margin: -4px; border-radius: 16px; transition: background 0.15s, box-shadow 0.15s; }
+  .photo-grid.drag-over-grid { background: var(--coral-soft); box-shadow: 0 0 0 2px var(--coral) inset; }
   .photo-thumb {
     position: relative; width: 76px; height: 76px; border-radius: 14px; overflow: hidden;
     border: 1.5px solid var(--line); flex-shrink: 0; background: var(--paper);
@@ -1264,6 +1265,27 @@ function renderPhotoGrid() {
     add.addEventListener("click", () => { const inp = $("photoInput"); if (inp) inp.click(); });
     grid.appendChild(add);
   }
+
+  // 드래그 앤 드롭으로도 사진 추가
+  let dragDepth = 0;
+  grid.addEventListener("dragover", (e) => { e.preventDefault(); });
+  grid.addEventListener("dragenter", (e) => {
+    e.preventDefault();
+    dragDepth++;
+    grid.classList.add("drag-over-grid");
+  });
+  grid.addEventListener("dragleave", () => {
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) grid.classList.remove("drag-over-grid");
+  });
+  grid.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dragDepth = 0;
+    grid.classList.remove("drag-over-grid");
+    const files = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith("image/"));
+    if (!files.length) { toast("이미지 파일만 넣을 수 있어요"); return; }
+    uploadPhotos(files);
+  });
 }
 
 async function uploadPhotos(fileList) {
