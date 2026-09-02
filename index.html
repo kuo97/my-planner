@@ -569,21 +569,33 @@
     color: var(--ink); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
   .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  /* 주 단위 그리드: 1행 = 날짜 칸, 2행부터 = 여러 날에 걸치는 일정 막대 */
+  .cal-grid { display: flex; flex-direction: column; gap: 3px; }
+  .cal-week {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: auto; grid-auto-rows: 17px; gap: 2px;
+  }
   .cal-day {
-    aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    grid-row: 1; min-height: 44px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     border-radius: 12px; border: 1.5px solid transparent; cursor: pointer; position: relative; gap: 2px;
     font-size: 13px; color: var(--ink); background: none; overflow: hidden;
   }
-  .cal-day.other { color: var(--line); cursor: default; }
+  .cal-day.other { color: var(--line); }
   .cal-day.today { border-color: var(--coral); font-weight: 700; }
   .cal-day.selected { background: var(--sage-soft); border-color: var(--sage); font-weight: 700; }
   .cal-day .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--coral); position: relative; z-index: 1; }
-  .cal-day .gcal-dot {
-    width: 5px; height: 5px; border-radius: 999px; background: var(--gcal);
-    position: absolute; top: 5px; right: 5px; z-index: 1;
-  }
   .cal-day .cal-thumb { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: cover; border-radius: 9px; z-index: 0; }
+  /* 일정 막대 — 여러 날 일정은 날짜 칸들을 가로질러 이어진다 */
+  .cal-bar {
+    height: 15px; line-height: 15px; padding: 0 5px; margin: 0 1px; border-radius: 4px;
+    background: var(--gcal); color: white; font-size: 10px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-decoration: none; cursor: pointer; align-self: center;
+  }
+  .cal-bar.timed { background: var(--gcal-soft); color: var(--gcal); }
+  .cal-bar.cont-l { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+  .cal-bar.cont-r { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
   .cal-day .cal-thumb + .daynum { color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
   .cal-day .daynum { position: relative; z-index: 1; }
   .cal-detail { margin-top: 14px; padding-top: 14px; border-top: 1.5px dashed var(--line); }
@@ -696,7 +708,7 @@ const MAX_PHOTOS = 6;
 const EXERCISE_ROUTINES = [
   { key: "chestTri", label: "가슴·삼두", items: [
     { name: "벤치프레스", w: 50, reps: "6×5", memo: "바20+원판30" },
-    { name: "펙덱플라이", w: 32, reps: "12×5", step: 2.5 },
+    { name: "펙덱플라이", w: 35, reps: "12×5", step: 2.5 },
     { name: "케이블푸쉬다운", w: 20, reps: "12×5" },
   ]},
   { key: "legsA", label: "Legs A", items: [
@@ -1333,7 +1345,12 @@ async function loadCalendarData() {
 }
 
 function renderCalendarView() {
-  if (gcalIsConnected()) ensureGCalMonth(calY, calM);
+  if (gcalIsConnected()) {
+    // 앞뒤 달까지 불러와야 달 경계에 걸친 여행 일정이 빈칸 없이 이어진다
+    ensureGCalMonth(calY, calM);
+    ensureGCalMonth(calM === 0 ? calY - 1 : calY, calM === 0 ? 11 : calM - 1);
+    ensureGCalMonth(calM === 11 ? calY + 1 : calY, calM === 11 ? 0 : calM + 1);
+  }
   const list = $("list");
   list.innerHTML = "";
   const card = document.createElement("div");
@@ -1345,15 +1362,20 @@ function renderCalendarView() {
   const daysInPrevMonth = new Date(calY, calM, 0).getDate();
   const monthLabel = `${calY}년 ${calM + 1}월`;
 
+  // 앞뒤 달에서 넘어온 칸에도 실제 날짜를 넣는다 — 그래야 달 경계를 넘는 일정 막대가 이어진다
   const cellInfo = [];
   for (let i = 0; i < startDow; i++) {
-    cellInfo.push({ d: daysInPrevMonth - startDow + 1 + i, other: true, dateStr: null });
+    const dt = new Date(calY, calM, 1 - startDow + i);
+    cellInfo.push({ d: dt.getDate(), other: true, dateStr: dateStr(dt) });
   }
   for (let d = 1; d <= daysInMonth; d++) {
     cellInfo.push({ d, other: false, dateStr: `${calY}-${String(calM + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}` });
   }
   let trail = 1;
-  while (cellInfo.length % 7 !== 0) { cellInfo.push({ d: trail++, other: true, dateStr: null }); }
+  while (cellInfo.length % 7 !== 0) {
+    const dt = new Date(calY, calM + 1, trail++);
+    cellInfo.push({ d: dt.getDate(), other: true, dateStr: dateStr(dt) });
+  }
 
   card.innerHTML = `
     <div class="cal-head">
@@ -1368,17 +1390,47 @@ function renderCalendarView() {
 
   const grid = card.querySelector("#calGrid");
   const today = todayStr();
-  cellInfo.forEach(c => {
-    const cell = document.createElement("div");
-    cell.className = "cal-day" + (c.other ? " other" : "") + (c.dateStr === today ? " today" : "") + (c.dateStr === calSel ? " selected" : "");
-    const entry = c.dateStr && calMap[c.dateStr];
-    const hasText = entry && (entry.content || entry.exercised || (entry.city_notes && entry.city_notes.length));
-    const thumb = entry && entry.photos && entry.photos[0];
-    const hasGCal = c.dateStr && gcalEvents.some(e => e.date === c.dateStr);
-    cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${hasGCal ? '<span class="gcal-dot"></span>' : ""}`;
-    if (c.dateStr) cell.addEventListener("click", () => { calSel = c.dateStr; renderCalendarView(); });
-    grid.appendChild(cell);
-  });
+  // 주 단위로 그린다: 1줄 = [요일 칸 7개] + 그 아래로 일정 막대 줄들
+  for (let w = 0; w < cellInfo.length; w += 7) {
+    const weekCells = cellInfo.slice(w, w + 7);
+    const weekEl = document.createElement("div");
+    weekEl.className = "cal-week";
+    grid.appendChild(weekEl);
+
+    weekCells.forEach((c, i) => {
+      const cell = document.createElement("div");
+      cell.className = "cal-day" + (c.other ? " other" : "") + (c.dateStr === today ? " today" : "") + (c.dateStr === calSel ? " selected" : "");
+      cell.style.gridColumn = String(i + 1);
+      const entry = calMap[c.dateStr];
+      const hasText = entry && (entry.content || entry.exercised || (entry.city_notes && entry.city_notes.length));
+      const thumb = entry && entry.photos && entry.photos[0];
+      cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}`;
+      cell.addEventListener("click", () => {
+        calSel = c.dateStr;
+        if (c.other) { const dt = new Date(c.dateStr + "T00:00:00"); calY = dt.getFullYear(); calM = dt.getMonth(); }
+        renderCalendarView();
+      });
+      weekEl.appendChild(cell);
+    });
+
+    const { segs } = calWeekBars(weekCells.map(c => c.dateStr));
+    segs.forEach(s => {
+      const bar = document.createElement("a");
+      const timed = !s.multi && !s.ev.allDay && s.ev.time;
+      bar.className = "cal-bar" + (timed ? " timed" : "") + (s.contL ? " cont-l" : "") + (s.contR ? " cont-r" : "");
+      bar.style.gridColumn = `${s.startIdx + 1} / span ${s.span}`;
+      bar.style.gridRow = String(s.lane + 2);
+      bar.textContent = timed ? `${s.ev.time} ${s.ev.title}` : s.ev.title;
+      bar.title = s.ev.title;
+      if (s.ev.htmlLink) {
+        bar.href = s.ev.htmlLink;
+        bar.target = "_blank";
+        bar.rel = "noopener noreferrer";
+      }
+      bar.addEventListener("click", (e) => e.stopPropagation());
+      weekEl.appendChild(bar);
+    });
+  }
 
   card.querySelector("#calPrev").addEventListener("click", () => {
     calM--; if (calM < 0) { calM = 11; calY--; }
@@ -1393,7 +1445,7 @@ function renderCalendarView() {
   const entry = calMap[calSel];
   const [, dm, dd] = calSel.split("-").map(Number);
   const dateLabel = `${dm}월 ${dd}일 (${DAY_NAMES[new Date(calSel + "T00:00:00").getDay()]})`;
-  const selEvents = gcalEvents.filter(e => e.date === calSel).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+  const selEvents = gcalEventsOn(calSel);
   if (!entry || (!entry.content && !entry.weather_note && !entry.exercised && !(entry.city_notes && entry.city_notes.length) && !(entry.photos && entry.photos.length))) {
     detail.innerHTML = `<div class="cd-date hand">${dateLabel}</div><div class="cd-empty">이 날짜엔 기록이 없어요.</div>`;
   } else {
@@ -1636,6 +1688,47 @@ async function gcalEnsureToken() {
   return await gcalRefreshAccessToken();
 }
 
+/* 그 날짜에 걸쳐 있는 일정 전부 (여러 날짜에 걸친 일정은 중간 날짜에도 잡힌다) */
+function gcalEventsOn(d) {
+  return gcalEvents
+    .filter(e => e.date <= d && (e.endDate || e.date) >= d)
+    .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+}
+
+/* 한 주(weekDatesArr = 그 주의 7개 날짜)에 그릴 일정 막대들을 계산한다.
+   여러 날 걸친 일정은 주 경계에서 잘라 이어지는 막대로 만들고, 서로 안 겹치게 레인(줄)을 배정한다. */
+function calWeekBars(weekDatesArr) {
+  const weekStart = weekDatesArr[0], weekEnd = weekDatesArr[6];
+  const segs = [];
+  gcalEvents.forEach(ev => {
+    const s = ev.date, e = ev.endDate || ev.date;
+    if (e < weekStart || s > weekEnd) return;
+    segs.push({
+      ev,
+      from: s < weekStart ? weekStart : s,
+      to: e > weekEnd ? weekEnd : e,
+      contL: s < weekStart,   // 지난 주에서 이어짐
+      contR: e > weekEnd,     // 다음 주로 이어짐
+      multi: e > s,
+    });
+  });
+  // 여러 날짜 일정을 위쪽 줄에 먼저 놓고, 그 다음 시작일·시각 순
+  segs.sort((a, b) =>
+    (b.multi - a.multi) ||
+    a.from.localeCompare(b.from) ||
+    (a.ev.time || "").localeCompare(b.ev.time || ""));
+  const lanes = [];
+  segs.forEach(s => {
+    let i = 0;
+    while (lanes[i] && lanes[i].some(x => !(s.to < x.from || s.from > x.to))) i++;
+    (lanes[i] = lanes[i] || []).push({ from: s.from, to: s.to });
+    s.lane = i;
+    s.startIdx = weekDatesArr.indexOf(s.from);
+    s.span = weekDatesArr.indexOf(s.to) - s.startIdx + 1;
+  });
+  return { segs, laneCount: lanes.length };
+}
+
 /* y=연도, m=0-based 월. 이미 불러온 달이면 캐시된 gcalEvents를 그대로 쓰고 아무것도 안 함 */
 async function ensureGCalMonth(y, m) {
   const key = `${y}-${String(m + 1).padStart(2, "0")}`;
@@ -1657,7 +1750,21 @@ async function ensureGCalMonth(y, m) {
       const isAllDay = !ev.start.dateTime;
       const date = startStr.slice(0, 10);
       const time = isAllDay ? null : startStr.slice(11, 16);
-      return { id: ev.id, date, time, title: ev.summary || "(제목 없음)", htmlLink: ev.htmlLink };
+      // 여행처럼 여러 날 걸치는 일정의 마지막 날(포함) 계산.
+      // 종일 일정의 end.date는 '끝난 다음 날'(배타적)이라 하루를 빼야 실제 마지막 날이 된다.
+      const endStr = ev.end?.dateTime || ev.end?.date;
+      let endDate = date;
+      if (endStr) {
+        if (isAllDay) {
+          const d = new Date(endStr + "T00:00:00");
+          d.setDate(d.getDate() - 1);
+          endDate = dateStr(d);
+        } else {
+          endDate = endStr.slice(0, 10);
+        }
+        if (endDate < date) endDate = date;
+      }
+      return { id: ev.id, date, endDate, allDay: isAllDay, time, title: ev.summary || "(제목 없음)", htmlLink: ev.htmlLink };
     }).filter(Boolean);
     const seen = new Set(gcalEvents.map(e => e.id));
     gcalEvents.push(...parsed.filter(e => !seen.has(e.id)));
@@ -2252,7 +2359,7 @@ function render() {
       head.className = "week-col-head";
       head.innerHTML = `<span>${DAY_NAMES[i]}요일</span><span class="week-col-date">${Number(d.slice(5,7))}/${Number(d.slice(8,10))}</span>`;
       col.appendChild(head);
-      const dEvents = gcalEvents.filter(e => e.date === d).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+      const dEvents = gcalEventsOn(d);
       if (dEvents.length) {
         any = true;
         const evWrap = document.createElement("div");
