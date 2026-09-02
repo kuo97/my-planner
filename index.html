@@ -1019,6 +1019,26 @@ async function renderDiary() {
   }
   // 모든 루틴의 운동을 모은 카탈로그 — 다른 루틴의 운동을 끌어다 넣을 때 기본 무게/단위를 그대로 쓴다
   const EXERCISE_CATALOG = EXERCISE_ROUTINES.flatMap(r => r.items);
+  /* 저장해둔 운동 메모("가슴·삼두 — 벤치프레스 50kg 6×5, ...")를 다시 편집 가능한 상태로 되돌린다.
+     저장 후 앱을 다시 열어도 칩·무게 조절 UI로 이어서 고칠 수 있게 하기 위한 것.
+     형식이 안 맞으면(직접 쓴 자유 메모 등) null을 돌려주고 편집기를 띄우지 않는다. */
+  function parseRoutineNote(note) {
+    const m = (note || "").split(" — ");
+    if (m.length < 2) return null;
+    const label = m[0].trim();
+    const routine = EXERCISE_ROUTINES.find(r => r.label === label);
+    if (!routine) return null;
+    const items = [];
+    for (const part of m.slice(1).join(" — ").split(",")) {
+      // "벤치프레스 50kg 6×5" — 이름은 공백을 포함할 수 있다
+      const mm = part.trim().match(/^(.+?)\s+([\d.]+)kg\s+(\S+)$/);
+      if (!mm) return null;
+      const name = mm[1].trim();
+      const known = EXERCISE_CATALOG.find(c => c.name === name);
+      items.push({ ...(known || {}), name, w: Number(mm[2]), reps: mm[3] });
+    }
+    return items.length ? { key: routine.key, label, items } : null;
+  }
   function renderRoutineEditor() {
     if (!activeRoutine) { editorEl.style.display = "none"; editorEl.innerHTML = ""; return; }
     editorEl.style.display = "block";
@@ -1092,6 +1112,17 @@ async function renderDiary() {
       }
     });
   });
+  // 이미 저장돼 있는 운동 기록이 있으면 편집기를 복원해서 바로 고칠 수 있게 한다
+  function restoreRoutineFromNote() {
+    const restored = parseRoutineNote(noteInput.value);
+    activeRoutine = restored;
+    dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", !!restored && c.dataset.k === restored.key));
+    renderRoutineEditor();
+  }
+  restoreRoutineFromNote();
+  // 텍스트를 직접 고쳤을 때도(입력 끝난 시점) 편집기를 다시 맞춰준다
+  noteInput.addEventListener("change", restoreRoutineFromNote);
+
   dCard.querySelector("#diarySave").addEventListener("click", saveDiary);
   dCard.querySelectorAll("#dateToggle button").forEach(b => {
     b.addEventListener("click", () => {
