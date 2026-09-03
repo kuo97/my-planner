@@ -482,6 +482,21 @@
     color: rgba(255,255,255,0.85); font-size: 13px; font-family: 'Gaegu', sans-serif; font-weight: 700;
   }
   .pe-exercise { color: var(--sage) !important; }
+  .pe-steps { color: var(--sage) !important; }
+  /* 걸음수 입력 — 단축어 자동 기록 값이 들어오는 칸 */
+  .steps-row {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+    border: 1.5px solid var(--line); border-radius: 14px; padding: 4px 14px; background: var(--paper-card);
+  }
+  .steps-row:focus-within { border-color: var(--sage); }
+  .steps-ico { font-size: 15px; }
+  .steps-input {
+    flex: 1; border: none; outline: none; background: none; padding: 10px 0;
+    font-size: 15px; font-family: inherit; color: var(--ink); min-width: 0;
+  }
+  .steps-input::-webkit-outer-spin-button, .steps-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .steps-input[type=number] { -moz-appearance: textfield; }
+  .steps-unit { font-size: 12.5px; color: var(--muted); font-weight: 600; }
   .past-cities { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .pc-chip {
     font-size: 12px; font-weight: 600; background: var(--paper); border: 1.5px solid var(--line);
@@ -810,6 +825,7 @@ function pastEntryDetail(e) {
     <div class="pe-body"></div>
     ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
     ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
+    ${e.steps ? `<div class="pe-feel pe-steps">👟 ${Number(e.steps).toLocaleString()}걸음</div>` : ""}
     ${cityChipsHtml(e.city_notes)}
     ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
   el.querySelector(".pe-body").textContent = e.content || "";
@@ -904,6 +920,10 @@ async function saveDiary() {
   const content = $("diaryContent") ? $("diaryContent").value.trim() : "";
   const exerciseNote = $("exerciseNote") ? $("exerciseNote").value.trim() : "";
   const exercised = !!exerciseNote;
+  const stepsVal = $("stepsInput") ? $("stepsInput").value.trim() : "";
+  // 단축어가 자동으로 채워 넣은 값이 있는데 칸이 비어 있으면(=아직 안 불러온 경우) 덮어쓰지 않는다
+  const steps = stepsVal ? Math.max(0, parseInt(stepsVal.replace(/[^\d]/g, ""), 10) || 0)
+                         : (todayEntry ? todayEntry.steps ?? null : null);
   const primary = cities[0];
   let wx = todayEntry && todayEntry.weather ? todayEntry.weather : null;
   if (editDate === todayStr() && primary && wxCache[primary.id]) {
@@ -916,6 +936,7 @@ async function saveDiary() {
     weather_note: todayEntry ? (todayEntry.weather_note || "") : "",
     city_notes: todayEntry ? todayEntry.city_notes : null,
     exercised, exercise_note: exercised ? (exerciseNote || null) : null,
+    steps,
   };
   const { error } = await sb.from("diary").upsert(row, { onConflict: "user_id,on_date" });
   if (error) { toast("저장 실패: " + error.message); return; }
@@ -998,6 +1019,11 @@ async function renderDiary() {
       ${EXERCISE_ROUTINES.map(p => `<button type="button" class="ex-chip" data-k="${p.key}">${p.label}</button>`).join("")}
     </div>
     <div class="routine-editor" id="routineEditor" style="display:none;"></div>
+    <div class="steps-row">
+      <span class="steps-ico">👟</span>
+      <input class="steps-input" id="stepsInput" type="number" inputmode="numeric" min="0" placeholder="걸음수 (단축어가 자동으로 채워줘요)">
+      <span class="steps-unit">걸음</span>
+    </div>
     <div class="photo-label">사진</div>
     <div class="photo-grid" id="photoGrid"></div>
     <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
@@ -1006,6 +1032,7 @@ async function renderDiary() {
   if (todayEntry) {
     dCard.querySelector("#diaryContent").value = todayEntry.content || "";
     dCard.querySelector("#exerciseNote").value = todayEntry.exercise_note || "";
+    dCard.querySelector("#stepsInput").value = todayEntry.steps ?? "";
   }
 
   /* 루틴 칩 → 무게 조절 가능한 운동 목록 에디터 */
@@ -1369,7 +1396,7 @@ async function removePhoto(photo) {
 /* ---------- 달력 ---------- */
 async function loadCalendarData() {
   if (!calSel) calSel = todayStr();
-  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note,city_notes");
+  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note,city_notes,steps");
   if (error) { toast("달력 로드 실패: " + error.message); calMap = {}; return; }
   calMap = {};
   (data || []).forEach(e => { calMap[e.on_date] = e; });
@@ -1487,6 +1514,7 @@ function renderCalendarView() {
       <div class="cd-body"></div>
       ${entry.weather_note ? `<div class="cd-feel">☁ ${entry.weather_note}</div>` : ""}
       ${entry.exercised ? `<div class="cd-feel" style="color:var(--sage)">🏃 ${entry.exercise_note || "운동함"}</div>` : ""}
+      ${entry.steps ? `<div class="cd-feel" style="color:var(--sage)">👟 ${Number(entry.steps).toLocaleString()}걸음</div>` : ""}
       ${cityChipsHtml(entry.city_notes)}
       ${entry.photos && entry.photos.length ? `<div class="cd-photos">${entry.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
     detail.querySelector(".cd-body").textContent = entry.content || "";
