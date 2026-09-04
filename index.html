@@ -1478,7 +1478,7 @@ function renderCalendarView() {
       bar.className = "cal-bar" + (timed ? " timed" : "") + (s.contL ? " cont-l" : "") + (s.contR ? " cont-r" : "");
       bar.style.gridColumn = `${s.startIdx + 1} / span ${s.span}`;
       bar.style.gridRow = String(s.lane + 2);
-      bar.textContent = timed ? `${s.ev.time} ${s.ev.title}` : s.ev.title;
+      bar.textContent = s.ev.title;
       bar.title = s.ev.title;
       if (s.ev.htmlLink) {
         bar.href = s.ev.htmlLink;
@@ -1529,13 +1529,9 @@ function renderCalendarView() {
       item.href = e.htmlLink || "#";
       item.target = "_blank";
       item.rel = "noopener noreferrer";
-      const timeEl = document.createElement("span");
-      timeEl.className = "gcal-time";
-      timeEl.textContent = e.time || "종일";
       const titleEl = document.createElement("span");
       titleEl.className = "gcal-title";
       titleEl.textContent = e.title;
-      item.appendChild(timeEl);
       item.appendChild(titleEl);
       evWrap.appendChild(item);
     });
@@ -2441,13 +2437,9 @@ function render() {
           item.href = e.htmlLink || "#";
           item.target = "_blank";
           item.rel = "noopener noreferrer";
-          const timeEl = document.createElement("span");
-          timeEl.className = "gcal-time";
-          timeEl.textContent = e.time || "종일";
           const titleEl = document.createElement("span");
           titleEl.className = "gcal-title";
           titleEl.textContent = e.title;
-          item.appendChild(timeEl);
           item.appendChild(titleEl);
           evWrap.appendChild(item);
         });
