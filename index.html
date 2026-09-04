@@ -1824,6 +1824,12 @@ async function ensureGCalMonth(y, m) {
           const d = new Date(endStr + "T00:00:00");
           d.setDate(d.getDate() - 1);
           endDate = dateStr(d);
+        } else if (endStr.slice(11, 16) === "00:00") {
+          // 밤 23:00~자정처럼 정각 0시에 끝나는 일정은 실제로는 전날 안에서 끝난 것이다.
+          // 그대로 두면 다음 날까지 걸친 이틀짜리 막대로 그려진다.
+          const d = new Date(endStr.slice(0, 10) + "T00:00:00");
+          d.setDate(d.getDate() - 1);
+          endDate = dateStr(d);
         } else {
           endDate = endStr.slice(0, 10);
         }
