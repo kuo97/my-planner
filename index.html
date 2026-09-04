@@ -1722,13 +1722,19 @@ async function gcalRefreshAccessToken() {
     const res = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body,
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      // 리프레시 토큰 자체가 무효화(수동 revoke 등)된 경우 — 완전히 재연동 필요
-      localStorage.removeItem(GCAL_REFRESH_KEY);
-      localStorage.removeItem(GCAL_ACCESS_KEY);
-      localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
-      gcalToken = null;
+      // 진짜로 재연동이 필요한 건 토큰이 만료·철회됐을 때(invalid_grant)뿐이다.
+      // 429/5xx나 일시적 네트워크 오류에 토큰을 지워버리면 멀쩡한 연동이 끊긴다
+      // (예전엔 이것 때문에 며칠에 한 번씩 연동이 풀렸다).
+      const fatal = data.error === "invalid_grant" || data.error === "invalid_client";
+      if (fatal) {
+        localStorage.removeItem(GCAL_REFRESH_KEY);
+        localStorage.removeItem(GCAL_ACCESS_KEY);
+        localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
+        gcalToken = null;
+        toast("구글 캘린더 연동이 만료됐어요. 다시 연동해주세요");
+      }
       return false;
     }
     gcalToken = data.access_token;
