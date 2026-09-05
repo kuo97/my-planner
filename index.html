@@ -722,26 +722,28 @@ const DAY_NAMES = ["일","월","화","수","목","금","토"];
 const MAX_PHOTOS = 6;
 /* 루틴별 운동 구성 (2026-08-29 개편). w = 기본 무게(kg), step = 무게 조절 단위(kg, 생략 시 5) */
 const EXERCISE_ROUTINES = [
-  { key: "chestTri", label: "가슴·삼두", items: [
+  { key: "chestLegsA", label: "가슴·하체A", items: [
     { name: "벤치프레스", w: 50, reps: "6×5", memo: "바20+원판30" },
-    { name: "펙덱플라이", w: 35, reps: "12×5" },
-    { name: "케이블푸쉬다운", w: 20, reps: "12×5" },
-  ]},
-  { key: "legsA", label: "Legs A", items: [
+    { name: "펙덱플라이", w: 32, reps: "12×5" },
     { name: "V스쿼트 머신", w: 45, reps: "12×5" },
-    { name: "레그컬", w: 25, reps: "12×3~4" },
-    { name: "라잉트라이셉스", w: 15, reps: "12×5" },
+    { name: "카프레이즈", w: 20, reps: "15×4", memo: "자체중~20kg" },
   ]},
-  { key: "pull", label: "Pull", items: [
-    { name: "렛풀다운", w: 32, reps: "12×5", memo: "힘 딸리면 25kg" },
+  { key: "backABi", label: "등A·이두", items: [
+    { name: "렛풀다운", w: 32, reps: "12×5" },
     { name: "티바로우", w: 17.5, reps: "12×5", step: 2.5 },
-    { name: "리버스펙덱플라이", w: 10, reps: "12×5", step: 2.5 },
     { name: "케이블이두컬", w: 25, reps: "12×5" },
   ]},
-  { key: "shoulderLegsB", label: "어깨·Legs B", items: [
-    { name: "오버헤드프레스", w: 20, reps: "12×5", memo: "자세교정중" },
-    { name: "사이드레터럴레이즈", w: 5, reps: "12×5", memo: "자극 재점검", step: 1 },
-    { name: "카프레이즈", w: 20, reps: "15×3~4" },
+  { key: "shoulderLegsB", label: "어깨·하체B", items: [
+    { name: "오버헤드프레스", w: 20, reps: "12×5", memo: "자세교정중 · 15~20kg" },
+    { name: "사이드레터럴레이즈", w: 5, reps: "12×5", memo: "덤벨 · 자극 재점검", step: 1 },
+    { name: "레그컬", w: 25, reps: "12×4", memo: "20~25kg" },
+    { name: "카프레이즈", w: 20, reps: "15×4", memo: "자체중~20kg" },
+  ]},
+  { key: "backBTri", label: "등B·삼두", items: [
+    { name: "시티드로우", w: 25, reps: "12×5", memo: "시작 무게" },
+    { name: "리버스펙덱플라이", w: 10, reps: "12×5", step: 2.5 },
+    { name: "케이블푸쉬다운", w: 20, reps: "12×5" },
+    { name: "라잉트라이셉스", w: 15, reps: "12×5" },
   ]},
 ];
 let sb = null, user = null, tasks = [], repeatLog = [], view = "today", editing = null;
