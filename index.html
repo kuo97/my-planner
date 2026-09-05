@@ -130,6 +130,7 @@
   .gcal-bar-mini {
     background: none; border: none; padding: 0 2px; margin: -2px 0 10px; font-size: 11px; color: var(--muted);
   }
+  .gcal-status { color: var(--muted); opacity: .75; cursor: pointer; font-size: 10.5px; }
   .gcal-bar-mini button {
     background: none; color: var(--muted); font-size: 11px; font-weight: 400; padding: 0;
     text-decoration: underline; font-family: inherit;
@@ -1656,6 +1657,67 @@ function gcalIsConnected() {
   return !!gcalToken || !!localStorage.getItem(GCAL_REFRESH_KEY);
 }
 
+/* ---- 연동 상태 로그: 연동이 풀렸을 때 "왜"를 화면에서 바로 확인하려고 남긴다 (최근 40건) ---- */
+const GCAL_LOG_KEY = "gcal_log";
+function escapeHtml(t) { return String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])); }
+function gcalLog(msg) {
+  try {
+    const log = gcalLogEntries();
+    const d = new Date(), p = n => String(n).padStart(2, "0");
+    log.push(`${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())} ${msg}`);
+    localStorage.setItem(GCAL_LOG_KEY, JSON.stringify(log.slice(-40)));
+  } catch {}
+}
+function gcalLogEntries() {
+  try { return JSON.parse(localStorage.getItem(GCAL_LOG_KEY) || "[]"); } catch { return []; }
+}
+function gcalLastStatus() {
+  const log = gcalLogEntries();
+  return log.length ? log[log.length - 1] : "";
+}
+
+/* ---- 리프레시 토큰을 DB(user_settings)에도 보관 ----
+   브라우저 localStorage는 기기·주소(vercel/github.io)마다 따로라서, 한 곳에서만 연동하면
+   다른 곳에선 "풀린 것"처럼 보이고, 어느 한 곳에서 해제하면 구글이 그 계정의 권한 전체를
+   철회해 나머지도 같이 죽는다. DB에 한 벌만 두고 모든 기기가 그걸 쓰게 한다. */
+async function gcalSaveTokenToDb(token) {
+  try {
+    const { error } = await sb.from("user_settings")
+      .upsert({ user_id: user.id, gcal_refresh_token: token, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+    if (error) gcalLog("DB 저장 실패: " + error.message);
+  } catch (e) { gcalLog("DB 저장 실패: " + e.message); }
+}
+async function gcalLoadTokenFromDb() {
+  try {
+    const { data, error } = await sb.from("user_settings").select("gcal_refresh_token").eq("user_id", user.id).maybeSingle();
+    if (error) { gcalLog("DB 조회 실패: " + error.message); return null; }
+    return data?.gcal_refresh_token || null;
+  } catch (e) { gcalLog("DB 조회 실패: " + e.message); return null; }
+}
+/* onlyIfEquals를 주면 DB에 그 토큰이 그대로 있을 때만 지운다 — 다른 기기가 방금 새로 연동한 토큰을 실수로 지우지 않기 위해 */
+async function gcalClearTokenInDb(onlyIfEquals) {
+  try {
+    let q = sb.from("user_settings").update({ gcal_refresh_token: null, updated_at: new Date().toISOString() }).eq("user_id", user.id);
+    if (onlyIfEquals) q = q.eq("gcal_refresh_token", onlyIfEquals);
+    await q;
+  } catch {}
+}
+/* 앱 시작 시: DB에 토큰이 있으면 그걸 쓰고(다른 기기에서 연동한 것 포함), 없으면 이 기기 것을 DB에 올린다 */
+async function gcalSyncTokenWithDb() {
+  const local = localStorage.getItem(GCAL_REFRESH_KEY);
+  const remote = await gcalLoadTokenFromDb();
+  if (remote && remote !== local) {
+    localStorage.setItem(GCAL_REFRESH_KEY, remote);
+    localStorage.removeItem(GCAL_ACCESS_KEY);
+    localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
+    gcalToken = null;
+    gcalLog(local ? "DB의 새 토큰으로 교체" : "DB에서 토큰 복구");
+  } else if (!remote && local) {
+    await gcalSaveTokenToDb(local);
+    gcalLog("이 기기의 토큰을 DB에 백업");
+  }
+}
+
 function connectGoogleCalendar() {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
@@ -1668,8 +1730,8 @@ function connectGoogleCalendar() {
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
-function disconnectGoogleCalendar() {
-  const token = gcalToken || localStorage.getItem(GCAL_ACCESS_KEY);
+async function disconnectGoogleCalendar() {
+  const token = localStorage.getItem(GCAL_REFRESH_KEY) || gcalToken || localStorage.getItem(GCAL_ACCESS_KEY);
   if (token) fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, { method: "POST" }).catch(() => {});
   gcalToken = null;
   gcalEvents = [];
@@ -1677,8 +1739,10 @@ function disconnectGoogleCalendar() {
   localStorage.removeItem(GCAL_REFRESH_KEY);
   localStorage.removeItem(GCAL_ACCESS_KEY);
   localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
+  gcalLog("사용자가 연동 해제");
+  await gcalClearTokenInDb(null);
   render();
-  toast("구글 캘린더 연동을 해제했어요");
+  toast("구글 캘린더 연동을 해제했어요 (모든 기기에서 해제됨)");
 }
 
 async function gcalExchangeCode(code) {
@@ -1698,7 +1762,13 @@ async function gcalExchangeCode(code) {
     gcalToken = data.access_token;
     localStorage.setItem(GCAL_ACCESS_KEY, data.access_token);
     localStorage.setItem(GCAL_ACCESS_EXP_KEY, String(Date.now() + data.expires_in * 1000));
-    if (data.refresh_token) localStorage.setItem(GCAL_REFRESH_KEY, data.refresh_token);
+    if (data.refresh_token) {
+      localStorage.setItem(GCAL_REFRESH_KEY, data.refresh_token);
+      gcalLog("새로 연동 (" + location.host + ")");
+      await gcalSaveTokenToDb(data.refresh_token);
+    } else {
+      gcalLog("주의: 구글이 리프레시 토큰 없이 발급함");
+    }
     toast("구글 캘린더 연동됐어요");
   } catch (e) {
     toast("구글 캘린더 연동 실패: " + e.message);
@@ -1724,20 +1794,31 @@ async function gcalRefreshAccessToken() {
       // 429/5xx나 일시적 네트워크 오류에 토큰을 지워버리면 멀쩡한 연동이 끊긴다
       // (예전엔 이것 때문에 며칠에 한 번씩 연동이 풀렸다).
       const fatal = data.error === "invalid_grant" || data.error === "invalid_client";
-      if (fatal) {
-        localStorage.removeItem(GCAL_REFRESH_KEY);
-        localStorage.removeItem(GCAL_ACCESS_KEY);
-        localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
-        gcalToken = null;
-        toast("구글 캘린더 연동이 만료됐어요. 다시 연동해주세요");
+      gcalLog(`갱신 실패 ${res.status} ${data.error || ""} ${data.error_description || ""}`.trim() + (fatal ? " → 토큰 폐기" : " (일시적, 유지)"));
+      if (!fatal) return false;
+      localStorage.removeItem(GCAL_REFRESH_KEY);
+      localStorage.removeItem(GCAL_ACCESS_KEY);
+      localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
+      gcalToken = null;
+      await gcalClearTokenInDb(refresh);
+      // 다른 기기에서 그 사이 새로 연동해 둔 토큰이 DB에 있으면 그걸로 이어간다
+      const remote = await gcalLoadTokenFromDb();
+      if (remote && remote !== refresh) {
+        localStorage.setItem(GCAL_REFRESH_KEY, remote);
+        gcalLog("DB의 다른 토큰으로 재시도");
+        return await gcalRefreshAccessToken();
       }
+      toast("구글 캘린더 연동이 만료됐어요. 다시 연동해주세요");
+      render();
       return false;
     }
     gcalToken = data.access_token;
     localStorage.setItem(GCAL_ACCESS_KEY, data.access_token);
     localStorage.setItem(GCAL_ACCESS_EXP_KEY, String(Date.now() + data.expires_in * 1000));
+    gcalLog("갱신 성공");
     return true;
   } catch (e) {
+    gcalLog("갱신 실패 네트워크: " + e.message + " (유지)");
     return false;
   }
 }
@@ -1746,7 +1827,17 @@ async function gcalRefreshAccessToken() {
 async function gcalEnsureToken() {
   const exp = Number(localStorage.getItem(GCAL_ACCESS_EXP_KEY) || 0);
   if (gcalToken && Date.now() < exp - 60000) return true;
-  return await gcalRefreshAccessToken();
+  // 새로고침 직후엔 아직 살아있는 액세스 토큰이 저장돼 있으니 굳이 갱신 요청을 보내지 않는다
+  const saved = localStorage.getItem(GCAL_ACCESS_KEY);
+  if (saved && Date.now() < exp - 60000) { gcalToken = saved; return true; }
+  // 일시적 오류(네트워크·5xx)는 잠깐 뒤 다시 시도. 진짜 만료면 토큰이 지워져 있으니 바로 포기.
+  const waits = [1500, 5000];
+  for (let i = 0; i <= waits.length; i++) {
+    if (await gcalRefreshAccessToken()) return true;
+    if (!localStorage.getItem(GCAL_REFRESH_KEY)) return false;
+    if (i < waits.length) await new Promise(r => setTimeout(r, waits[i]));
+  }
+  return false;
 }
 
 /* 그 날짜에 걸쳐 있는 일정 전부 (여러 날짜에 걸친 일정은 중간 날짜에도 잡힌다) */
@@ -1791,7 +1882,7 @@ function calWeekBars(weekDatesArr) {
 }
 
 /* y=연도, m=0-based 월. 이미 불러온 달이면 캐시된 gcalEvents를 그대로 쓰고 아무것도 안 함 */
-async function ensureGCalMonth(y, m) {
+async function ensureGCalMonth(y, m, retried) {
   const key = `${y}-${String(m + 1).padStart(2, "0")}`;
   if (gcalLoadedMonths.has(key)) return;
   const ok = await gcalEnsureToken();
@@ -1804,7 +1895,16 @@ async function ensureGCalMonth(y, m) {
   try {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${gcalToken}` } });
     const data = await res.json();
-    if (!res.ok) { gcalLoadedMonths.delete(key); toast("구글 캘린더 불러오기 실패: " + (data.error?.message || res.status)); return; }
+    if (res.status === 401 && !retried) {
+      // 액세스 토큰이 서버 쪽에서 먼저 죽은 경우 — 새로 받아서 딱 한 번 더
+      gcalLog("캘린더 API 401 → 토큰 재발급");
+      gcalToken = null;
+      localStorage.removeItem(GCAL_ACCESS_EXP_KEY);
+      gcalLoadedMonths.delete(key);
+      if (await gcalRefreshAccessToken()) return ensureGCalMonth(y, m, true);
+      return;
+    }
+    if (!res.ok) { gcalLoadedMonths.delete(key); gcalLog(`캘린더 불러오기 실패 ${res.status}`); toast("구글 캘린더 불러오기 실패: " + (data.error?.message || res.status)); return; }
     const parsed = (data.items || []).map(ev => {
       const startStr = ev.start?.dateTime || ev.start?.date;
       if (!startStr) return null;
@@ -1849,9 +1949,11 @@ async function gcalInitOnLoad() {
   if (code) {
     history.replaceState({}, "", window.location.pathname);
     await gcalExchangeCode(code);
-  } else if (!localStorage.getItem(GCAL_REFRESH_KEY)) {
-    return;
+  } else {
+    await gcalSyncTokenWithDb();
+    if (!localStorage.getItem(GCAL_REFRESH_KEY)) { render(); return; }
   }
+  render(); // DB에서 토큰을 복구했으면 배너를 바로 '연동됨'으로
   const week = weekDates();
   await ensureGCalMonth(Number(week[0].slice(0, 4)), Number(week[0].slice(5, 7)) - 1);
   await ensureGCalMonth(Number(week[6].slice(0, 4)), Number(week[6].slice(5, 7)) - 1);
@@ -2371,12 +2473,16 @@ function render() {
     const connected = gcalIsConnected();
     const gcalBar = document.createElement("div");
     gcalBar.className = "gcal-bar" + (connected ? " gcal-bar-mini" : "");
+    const last = gcalLastStatus();
+    const statusHtml = last ? ` <span class="gcal-status" id="gcalStatus" title="클릭하면 연동 기록 전체를 보여줘요">· ${escapeHtml(last)}</span>` : "";
     gcalBar.innerHTML = connected
-      ? `<span>📅 구글 캘린더 연동됨</span><button type="button" id="gcalToggle">해제</button>`
-      : `<span>구글 캘린더에 있는 일정도 같이 볼까요?</span><button type="button" id="gcalToggle">연동하기</button>`;
+      ? `<span>📅 구글 캘린더 연동됨${statusHtml}</span><button type="button" id="gcalToggle">해제</button>`
+      : `<span>구글 캘린더에 있는 일정도 같이 볼까요?${statusHtml}</span><button type="button" id="gcalToggle">연동하기</button>`;
     gcalBar.querySelector("#gcalToggle").addEventListener("click", () => {
       connected ? disconnectGoogleCalendar() : connectGoogleCalendar();
     });
+    const statusEl = gcalBar.querySelector("#gcalStatus");
+    if (statusEl) statusEl.addEventListener("click", () => alert("구글 캘린더 연동 기록 (최신순)\n\n" + gcalLogEntries().slice().reverse().join("\n")));
     list.appendChild(gcalBar);
   }
 
