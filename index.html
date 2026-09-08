@@ -118,6 +118,15 @@
   }
   .week-col-date { font-size: 11.5px; }
   .week-col-empty { color: var(--muted); font-size: 12.5px; padding: 6px 2px; }
+  .ex-stats {
+    display: inline-flex; align-items: center; gap: 7px; margin: 0 0 8px;
+    background: var(--sage-soft); border: 1.5px solid var(--sage); border-radius: 999px;
+    padding: 5px 13px 5px 10px; font-size: 12.5px; color: var(--ink);
+  }
+  .ex-stats b { font-family: 'Gaegu', sans-serif; font-size: 16px; color: var(--sage); margin: 0 1px; }
+  .ex-stats .ex-sep { color: var(--muted); }
+  .ex-stats.cal-ex { margin: -4px 0 10px; }
+  .cal-day .ex-mark { position: absolute; left: 5px; bottom: 3px; font-size: 10px; line-height: 1; opacity: .85; }
   .gcal-bar {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     background: var(--gcal-soft); border: 1.5px solid var(--gcal); border-radius: 14px;
@@ -944,7 +953,7 @@ async function saveDiary() {
   const { error } = await sb.from("diary").upsert(row, { onConflict: "user_id,on_date" });
   if (error) { toast("저장 실패: " + error.message); return; }
   toast(editDate === todayStr() ? "오늘 일기를 저장했어요" : "어제 일기를 저장했어요");
-  await loadDiary(); render();
+  await Promise.all([loadDiary(), loadExerciseStats()]); render();
 }
 
 async function toggleCityNote(city) {
@@ -1396,6 +1405,33 @@ async function removePhoto(photo) {
   renderPhotoGrid();
 }
 
+/* ---------- 운동 통계: 이번 주(월~일)·이번 달에 운동한 날 수 ---------- */
+let exerciseDays = new Set(); // 운동한 날짜 "YYYY-MM-DD" (이번 달 1일 또는 이번 주 월요일 중 빠른 날부터)
+async function loadExerciseStats() {
+  const wk = twoWeekDates();
+  const monthStart = todayStr().slice(0, 8) + "01";
+  const from = wk[0] < monthStart ? wk[0] : monthStart;
+  const { data, error } = await sb.from("diary").select("on_date").eq("exercised", true).gte("on_date", from);
+  if (error) return;
+  exerciseDays = new Set((data || []).map(r => r.on_date));
+}
+function exerciseCounts() {
+  const wk = twoWeekDates(), ym = todayStr().slice(0, 7);
+  let week = 0, month = 0;
+  exerciseDays.forEach(d => {
+    if (d >= wk[0] && d <= wk[6]) week++;
+    if (d.slice(0, 7) === ym) month++;
+  });
+  return { week, month };
+}
+function exerciseStatsEl() {
+  const { week, month } = exerciseCounts();
+  const el = document.createElement("div");
+  el.className = "ex-stats";
+  el.innerHTML = `<span class="ex-icon">🏃</span><span>이번 주 <b>${week}</b>일</span><span class="ex-sep">·</span><span>이번 달 <b>${month}</b>일</span>`;
+  return el;
+}
+
 /* ---------- 달력 ---------- */
 async function loadCalendarData() {
   if (!calSel) calSel = todayStr();
@@ -1438,12 +1474,16 @@ function renderCalendarView() {
     cellInfo.push({ d: dt.getDate(), other: true, dateStr: dateStr(dt) });
   }
 
+  const viewYm = `${calY}-${String(calM + 1).padStart(2, "0")}`;
+  const exMonth = Object.keys(calMap).filter(d => d.slice(0, 7) === viewYm && calMap[d].exercised).length;
+  const exWeek = viewYm === todayStr().slice(0, 7) ? `<span class="ex-sep">·</span><span>이번 주 <b>${exerciseCounts().week}</b>일</span>` : "";
   card.innerHTML = `
     <div class="cal-head">
       <button id="calPrev">‹</button>
       <div class="cal-title hand">${monthLabel}</div>
       <button id="calNext">›</button>
     </div>
+    <div class="ex-stats cal-ex"><span class="ex-icon">🏃</span><span>${calM + 1}월 운동 <b>${exMonth}</b>일</span>${exWeek}</div>
     <div class="cal-weekdays">${DAY_NAMES.map(d => `<div>${d}</div>`).join("")}</div>
     <div class="cal-grid" id="calGrid"></div>
     <div class="cal-detail" id="calDetail"></div>`;
@@ -1465,7 +1505,7 @@ function renderCalendarView() {
       const entry = calMap[c.dateStr];
       const hasText = entry && (entry.content || entry.exercised || (entry.city_notes && entry.city_notes.length));
       const thumb = entry && entry.photos && entry.photos[0];
-      cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}`;
+      cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${entry && entry.exercised ? '<span class="ex-mark" title="운동한 날">🏃</span>' : ""}`;
       cell.addEventListener("click", () => {
         calSel = c.dateStr;
         if (c.other) { const dt = new Date(c.dateStr + "T00:00:00"); calY = dt.getFullYear(); calM = dt.getMonth(); }
@@ -1627,6 +1667,7 @@ async function loadAll() {
   const [t, r] = await Promise.all([
     sb.from("tasks").select("*").order("created_at", { ascending: true }),
     sb.from("repeat_log").select("*").gte("done_on", board[0]).lte("done_on", board[13]),
+    loadExerciseStats(),
   ]);
   // 네트워크/세션 오류로 조회가 실패하면 기존 화면을 비우지 않고 그대로 둔다
   // (실패했다고 tasks를 []로 덮어쓰면 프로젝트/할 일이 전부 사라진 것처럼 보임)
@@ -2047,12 +2088,10 @@ const SCHEDULE_TASKS = [
   { title: "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)", project: "찬작스튜디오", repeat_days: [3], sub_total: 2, sub_start: 1, sub_anchor: "2026-08-26" },
   // sub_start = "기준 주"의 시작 호수, sub_anchor = 그 기준 주의 발생일(그날 sub_start가 그대로 적용됨).
   // 이후 주는 sub_total씩 자동으로 늘어나므로 매주 수동 갱신이 필요 없다.
-  { title: "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)", project: "우주사전2", repeat_days: [1], sub_total: 14, sub_start: 32, sub_anchor: "2026-08-31" },
   // 화잠도 2026-08-30부터 월요일 배치로 통합 (제작+예약을 월요일에 한 번에)
   { title: "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [1], sub_total: 7, sub_start: 25, sub_anchor: "2026-08-31" },
-  // 찬로로(일본 여행 쇼츠, 2026-08-28 개국): 우주사전2와 같은 월요일 배치·하루 2편(11:30/19:00) 체제.
-  // 첫 배치 8~21호(14편)는 이미 제작 완료 상태로 시작.
-  { title: "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)", project: "찬로로", repeat_days: [1], sub_total: 14, sub_start: 8, sub_anchor: "2026-08-31" },
+  // 우주사전2·찬로로(유튜브 쇼츠)는 2026-09-09부터 업로드가 예약 발행 API로 완전 자동화돼서
+  // 플래너에서 뺐다 (RETIRED_SCHEDULE_TITLES 참고). 14편짜리 호수 체크리스트가 주간보드를 너무 넓게 만들기도 했다.
 ];
 /* 편수 체크리스트의 각 칸이 실제로 예약 발행되는 요일(0=일...6=토)과 메모, 칸 순서대로.
    찬작: 수요일 제작일에 2편 — 수요일치는 당일 19:00 발행, 토요일치는 19:00 예약.
@@ -2074,15 +2113,11 @@ const SUB_DAY_PATTERNS = {
     { dow: 6, note: "토요일 19:00 · 예약 발행" },
   ],
   "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)": normSubDays([1,2,3,4,5,6,0]),
-  "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)": twoPerDayWeek(),
-  "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)": twoPerDayWeek(),
 };
 /* 주간보드에서 배치 카드에 표시할 짧은 이름 — 긴 제목·배지 대신 이거 하나만 보여줘서 공간 절약 */
 const BATCH_DISPLAY_NAMES = {
   "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)": "찬작",
   "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)": "화잠",
-  "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)": "우주사전",
-  "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)": "찬로로",
 };
 /* 당연히 매번 하는 일이라 일정에 넣을 필요 없거나, 예약 발행으로 자동 게시돼서
    더 이상 매일 확인이 필요 없거나, 주 1회 배치 제작 방식으로 재편되며 이름이 바뀐,
@@ -2100,6 +2135,9 @@ const RETIRED_SCHEDULE_TITLES = [
   "건강친구 산이 월요일 배치 제작 (예약 발행)",
   // 2026-09-02에 잠깐 넣었다가 뺌 — 채널 분석은 사용자 할 일이 아니라 클로드가 알아서 하는 것으로 정리
   "찬로로 채널 분석 (analyze_channel.py 실행 · 이상징후 확인)",
+  // 2026-09-09: 유튜브 업로드는 예약 발행 API로 전부 자동화 → 플래너에서 관리 안 함
+  "우주사전 월요일 배치 제작 (쇼츠+롱폼, 예약 발행)",
+  "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)",
 ];
 /* 찬로로 특별편성(정규 호수 없는 속보·시즌성 업로드) 기록용 — 회차 체크리스트에 안 들어가서
    완료 이력이 안 남으니, 업로드될 때마다 여기에 한 줄 추가하고 git push하면 다음 앱 실행 시
@@ -2485,6 +2523,7 @@ function render() {
     });
     const statusEl = gcalBar.querySelector("#gcalStatus");
     if (statusEl) statusEl.addEventListener("click", () => alert("구글 캘린더 연동 기록 (최신순)\n\n" + gcalLogEntries().slice().reverse().join("\n")));
+    list.appendChild(exerciseStatsEl());
     list.appendChild(gcalBar);
   }
 
