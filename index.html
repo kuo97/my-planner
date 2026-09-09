@@ -118,6 +118,7 @@
   }
   .week-col-date { font-size: 11.5px; }
   .week-col-empty { color: var(--muted); font-size: 12.5px; padding: 6px 2px; }
+  .draft-hint { font-size: 11.5px; color: var(--coral); margin: 6px 2px 0; }
   .ex-stats {
     display: inline-flex; align-items: center; gap: 7px; margin: 0 0 8px;
     background: var(--sage-soft); border: 1.5px solid var(--sage); border-radius: 999px;
@@ -928,6 +929,40 @@ async function loadDiary() {
   lastYearEntry = ly.data || null;
 }
 
+/* ---------- 일기 임시 저장(초안) ----------
+   저장 버튼을 누르기 전에 도시 칩을 누르거나 탭을 옮기면 화면이 다시 그려지면서
+   입력칸이 DB 값으로 되돌아가 써둔 글이 날아갔다. 입력할 때마다 브라우저에 초안을
+   남겨두고, 다시 그릴 때 초안이 있으면 그걸 먼저 채운다. 저장에 성공하면 지운다. */
+const DIARY_DRAFT_KEY = "diary_drafts";
+function diaryDrafts() {
+  try { return JSON.parse(localStorage.getItem(DIARY_DRAFT_KEY) || "{}"); } catch { return {}; }
+}
+function writeDiaryDrafts(all) {
+  try { localStorage.setItem(DIARY_DRAFT_KEY, JSON.stringify(all)); } catch {}
+}
+function saveDiaryDraft() {
+  if (!$("diaryContent")) return;
+  const draft = {
+    content: $("diaryContent").value,
+    exercise_note: $("exerciseNote").value,
+    steps: $("stepsInput").value,
+  };
+  const saved = todayEntry || {};
+  const same = draft.content === (saved.content || "")
+    && draft.exercise_note === (saved.exercise_note || "")
+    && draft.steps === String(saved.steps ?? "");
+  const all = diaryDrafts();
+  if (same) delete all[editDate]; else all[editDate] = draft;
+  writeDiaryDrafts(all);
+  const hint = $("draftHint");
+  if (hint) hint.style.display = same ? "none" : "block";
+}
+function clearDiaryDraft(date) {
+  const all = diaryDrafts();
+  delete all[date];
+  writeDiaryDrafts(all);
+}
+
 async function saveDiary() {
   const content = $("diaryContent") ? $("diaryContent").value.trim() : "";
   const exerciseNote = $("exerciseNote") ? $("exerciseNote").value.trim() : "";
@@ -952,6 +987,7 @@ async function saveDiary() {
   };
   const { error } = await sb.from("diary").upsert(row, { onConflict: "user_id,on_date" });
   if (error) { toast("저장 실패: " + error.message); return; }
+  clearDiaryDraft(editDate);
   toast(editDate === todayStr() ? "오늘 일기를 저장했어요" : "어제 일기를 저장했어요");
   await Promise.all([loadDiary(), loadExerciseStats()]); render();
 }
@@ -1036,16 +1072,25 @@ async function renderDiary() {
       <input class="steps-input" id="stepsInput" type="number" inputmode="numeric" min="0" placeholder="걸음수 (단축어가 자동으로 채워줘요)">
       <span class="steps-unit">걸음</span>
     </div>
+    <div class="draft-hint" id="draftHint" style="display:none;">✎ 아직 저장하지 않은 내용이에요</div>
     <div class="photo-label">사진</div>
     <div class="photo-grid" id="photoGrid"></div>
     <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
     <button class="diary-save" id="diarySave">${dayWord} 일기 저장</button>`;
   list.appendChild(dCard);
-  if (todayEntry) {
-    dCard.querySelector("#diaryContent").value = todayEntry.content || "";
-    dCard.querySelector("#exerciseNote").value = todayEntry.exercise_note || "";
-    dCard.querySelector("#stepsInput").value = todayEntry.steps ?? "";
-  }
+  const draft = diaryDrafts()[editDate];
+  const shown = draft || {
+    content: todayEntry ? todayEntry.content || "" : "",
+    exercise_note: todayEntry ? todayEntry.exercise_note || "" : "",
+    steps: todayEntry ? todayEntry.steps ?? "" : "",
+  };
+  dCard.querySelector("#diaryContent").value = shown.content || "";
+  dCard.querySelector("#exerciseNote").value = shown.exercise_note || "";
+  dCard.querySelector("#stepsInput").value = shown.steps ?? "";
+  if (draft) dCard.querySelector("#draftHint").style.display = "block";
+  ["diaryContent", "exerciseNote", "stepsInput"].forEach(id => {
+    dCard.querySelector("#" + id).addEventListener("input", saveDiaryDraft);
+  });
 
   /* 루틴 칩 → 무게 조절 가능한 운동 목록 에디터 */
   let activeRoutine = null; // { key, label, items: [{name, w, reps, memo}] } 의 사본
@@ -1055,6 +1100,7 @@ async function renderDiary() {
     if (!activeRoutine) return;
     noteInput.value = `${activeRoutine.label} — ` +
       activeRoutine.items.map(i => `${i.name} ${i.w}kg ${i.reps}`).join(", ");
+    saveDiaryDraft(); // 프로그램이 채운 값은 input 이벤트가 안 나므로 직접 반영
   }
   // 모든 루틴의 운동을 모은 카탈로그 — 다른 루틴의 운동을 끌어다 넣을 때 기본 무게/단위를 그대로 쓴다
   const EXERCISE_CATALOG = EXERCISE_ROUTINES.flatMap(r => r.items);
@@ -1143,6 +1189,7 @@ async function renderDiary() {
         activeRoutine = null;
         noteInput.value = "";
         renderRoutineEditor();
+        saveDiaryDraft();
       } else {
         dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", c === chip));
         activeRoutine = { key: routine.key, label: routine.label, items: routine.items.map(i => ({ ...i })) };
