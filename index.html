@@ -1082,9 +1082,10 @@ async function renderDiary() {
       </div>
     </div>
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
-    <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 30분)">
+    <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 5km)">
     <div class="exercise-presets" id="exercisePresets">
       ${EXERCISE_ROUTINES.map(p => `<button type="button" class="ex-chip" data-k="${p.key}">${p.label}</button>`).join("")}
+      <button type="button" class="ex-chip run-chip" data-k="run">🏃 러닝</button>
     </div>
     <div class="routine-editor" id="routineEditor" style="display:none;"></div>
     <div class="steps-row">
@@ -1114,12 +1115,36 @@ async function renderDiary() {
 
   /* 루틴 칩 → 무게 조절 가능한 운동 목록 에디터 */
   let activeRoutine = null; // { key, label, items: [{name, w, reps, memo}] } 의 사본
+  let runKm = null;         // 러닝 거리(km). null이면 러닝 안 함. 웨이트 루틴과 같은 날 병행 가능
   const editorEl = dCard.querySelector("#routineEditor");
   const noteInput = dCard.querySelector("#exerciseNote");
+  /* 메모 형식: "루틴 — 운동 ..." 과 "러닝 5km" 를 " + " 로 잇는다. 둘 중 하나만 있어도 된다. */
+  const RUN_RE = /^러닝\s+([\d.]+)\s*km$/;
+  function splitNote(note) {
+    let routinePart = (note || "").trim(), run = null;
+    const idx = routinePart.lastIndexOf(" + 러닝 ");
+    if (idx >= 0) {
+      const mm = routinePart.slice(idx + 3).trim().match(RUN_RE);
+      if (mm) { run = Number(mm[1]); routinePart = routinePart.slice(0, idx).trim(); }
+    } else {
+      const mm = routinePart.match(RUN_RE);
+      if (mm) { run = Number(mm[1]); routinePart = ""; }
+    }
+    return { routinePart, run };
+  }
+  function composeNote() {
+    const { routinePart } = splitNote(noteInput.value);
+    const parts = [];
+    if (activeRoutine) {
+      parts.push(`${activeRoutine.label} — ` + activeRoutine.items.map(i => `${i.name} ${i.w}kg ${i.reps}`).join(", "));
+    } else if (routinePart && !parseRoutineNote(routinePart)) {
+      parts.push(routinePart); // 직접 쓴 자유 메모(예: "수영 30분")는 러닝을 켜고 꺼도 지우지 않는다
+    }
+    if (runKm != null) parts.push(`러닝 ${runKm}km`);
+    return parts.join(" + ");
+  }
   function syncRoutineNote() {
-    if (!activeRoutine) return;
-    noteInput.value = `${activeRoutine.label} — ` +
-      activeRoutine.items.map(i => `${i.name} ${i.w}kg ${i.reps}`).join(", ");
+    noteInput.value = composeNote();
     saveDiaryDraft(); // 프로그램이 채운 값은 input 이벤트가 안 나므로 직접 반영
   }
   // 모든 루틴의 운동을 모은 카탈로그 — 다른 루틴의 운동을 끌어다 넣을 때 기본 무게/단위를 그대로 쓴다
@@ -1145,10 +1170,10 @@ async function renderDiary() {
     return items.length ? { key: routine.key, label, items } : null;
   }
   function renderRoutineEditor() {
-    if (!activeRoutine) { editorEl.style.display = "none"; editorEl.innerHTML = ""; return; }
+    if (!activeRoutine && runKm == null) { editorEl.style.display = "none"; editorEl.innerHTML = ""; return; }
     editorEl.style.display = "block";
     editorEl.innerHTML = "";
-    activeRoutine.items.forEach((item, idx) => {
+    (activeRoutine ? activeRoutine.items : []).forEach((item, idx) => {
       const row = document.createElement("div");
       row.className = "routine-row";
       row.innerHTML = `
@@ -1177,6 +1202,28 @@ async function renderDiary() {
       editorEl.appendChild(row);
     });
 
+    /* 러닝 — 분이 아니라 km로, 0.5km 단위 */
+    if (runKm != null) {
+      const row = document.createElement("div");
+      row.className = "routine-row run-row";
+      row.innerHTML = `
+        <div class="rt-name">🏃 러닝</div>
+        <div class="rt-ctrl">
+          <button type="button" class="rt-btn" data-d="-1">−</button>
+          <span class="rt-w">${runKm}<small>km</small></span>
+          <button type="button" class="rt-btn" data-d="1">＋</button>
+        </div>`;
+      row.querySelectorAll(".rt-btn").forEach(b => {
+        b.addEventListener("click", () => {
+          runKm = Math.max(0.5, Math.round((runKm + Number(b.dataset.d) * 0.5) * 2) / 2);
+          row.querySelector(".rt-w").innerHTML = `${runKm}<small>km</small>`;
+          syncRoutineNote();
+        });
+      });
+      editorEl.appendChild(row);
+    }
+    if (!activeRoutine) return;
+
     /* 운동 추가 — 카탈로그에서 고르거나 직접 입력 */
     const addRow = document.createElement("div");
     addRow.className = "routine-add";
@@ -1200,29 +1247,36 @@ async function renderDiary() {
     addInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addExercise(); } });
     editorEl.appendChild(addRow);
   }
-  dCard.querySelectorAll(".ex-chip").forEach(chip => {
+  const runChip = dCard.querySelector(".run-chip");
+  runChip.addEventListener("click", () => {
+    runKm = runKm == null ? 5 : null; // 켜면 5km부터 시작
+    runChip.classList.toggle("on", runKm != null);
+    renderRoutineEditor();
+    syncRoutineNote();
+  });
+  dCard.querySelectorAll(".ex-chip:not(.run-chip)").forEach(chip => {
     chip.addEventListener("click", () => {
       const routine = EXERCISE_ROUTINES.find(p => p.key === chip.dataset.k);
       if (!routine) return;
       if (chip.classList.contains("on")) {
         chip.classList.remove("on");
         activeRoutine = null;
-        noteInput.value = "";
-        renderRoutineEditor();
-        saveDiaryDraft();
       } else {
-        dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", c === chip));
+        dCard.querySelectorAll(".ex-chip:not(.run-chip)").forEach(c => c.classList.toggle("on", c === chip));
         activeRoutine = { key: routine.key, label: routine.label, items: routine.items.map(i => ({ ...i })) };
-        renderRoutineEditor();
-        syncRoutineNote();
       }
+      renderRoutineEditor();
+      syncRoutineNote();
     });
   });
   // 이미 저장돼 있는 운동 기록이 있으면 편집기를 복원해서 바로 고칠 수 있게 한다
   function restoreRoutineFromNote() {
-    const restored = parseRoutineNote(noteInput.value);
+    const { routinePart, run } = splitNote(noteInput.value);
+    const restored = parseRoutineNote(routinePart);
     activeRoutine = restored;
-    dCard.querySelectorAll(".ex-chip").forEach(c => c.classList.toggle("on", !!restored && c.dataset.k === restored.key));
+    runKm = run;
+    dCard.querySelectorAll(".ex-chip:not(.run-chip)").forEach(c => c.classList.toggle("on", !!restored && c.dataset.k === restored.key));
+    runChip.classList.toggle("on", runKm != null);
     renderRoutineEditor();
   }
   restoreRoutineFromNote();
