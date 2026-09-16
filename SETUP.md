@@ -104,6 +104,36 @@ alter table diary add column if not exists exercised boolean default false;
 alter table diary add column if not exists exercise_note text;
 ```
 
+
+## 1-5. 발행 탭 (찬작 발행 일정·예약 트래킹) — 추가 SQL
+
+발행 탭에서 칩을 눌러 예약됨/발행됨을 저장하려면 SQL Editor 에서 한 번 실행:
+
+```sql
+create table if not exists publish_status (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users,
+  slot_id text not null,
+  channel text not null,
+  status text not null default 'todo',
+  at timestamptz,
+  note text,
+  updated_at timestamptz default now(),
+  unique (user_id, slot_id, channel)
+);
+
+alter table publish_status enable row level security;
+
+create policy "own publish_status" on publish_status for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- 찬작 세션(Claude)이 anon 키로 상태를 읽어 발행_일정.md 에 반영한다. 값은 슬롯 id·채널·상태뿐이라 공개돼도 무방.
+create policy "anon read publish_status" on publish_status for select
+  to anon using (true);
+```
+
+발행 일정 자체(`publish.json`)는 세션이 `개인\찬작스튜디오\발행_일정.json` 에서 만들어 이 저장소에 push 한다(`실험\영상편집자동화\publish_sync.py`). 앱은 그 파일만 읽는다.
+
 ## 2. 프로젝트 키 확인
 
 대시보드 → **Settings → API** 에서 두 값을 복사:

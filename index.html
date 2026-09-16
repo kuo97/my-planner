@@ -220,6 +220,30 @@
   .badge.repeat { background: var(--sage-soft); color: var(--sage); }
   .badge.plain { background: #EFE9DA; color: var(--muted); }
 
+
+  /* ---------- 발행 탭 (찬작스튜디오 발행 일정·예약 트래킹) ---------- */
+  .pub-day { margin: 18px 0 8px; display: flex; align-items: baseline; gap: 8px; }
+  .pub-day .d { font-weight: 800; font-size: 15px; }
+  .pub-day .w { color: var(--muted); font-size: 12.5px; }
+  .pub-day.today .d { color: var(--coral); }
+  .pub-slot { background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 16px; padding: 13px 14px; margin-bottom: 9px; animation: rowIn 0.32s ease both; }
+  .pub-slot.done { background: #F5F2EA; }
+  .pub-slot .t { font-weight: 700; line-height: 1.4; }
+  .pub-slot .kind { font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #EFE9DA; color: var(--muted); margin-right: 6px; vertical-align: 1px; }
+  .pub-slot .prep { margin-top: 6px; font-size: 12.5px; color: var(--danger); }
+  .pub-slot .prep.ok { color: var(--sage); }
+  .pub-slot .memo { margin-top: 5px; font-size: 12.5px; color: var(--muted); white-space: pre-line; }
+  .pub-ch { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .pub-ch button, .pub-ch span { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1.5px solid var(--line); background: white; color: var(--muted); font-family: inherit; }
+  .pub-ch button { cursor: pointer; }
+  .pub-ch .s-scheduled { background: var(--gcal-soft); border-color: var(--gcal); color: var(--gcal); }
+  .pub-ch .s-published { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); }
+  .pub-ch .s-skip { text-decoration: line-through; opacity: .6; }
+  .pub-ch .s-session { border-style: dashed; }
+  .pub-legend { font-size: 11.5px; color: var(--muted); margin: 4px 0 2px; line-height: 1.6; }
+  .pub-updated { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: 10px; }
+  .pub-more { width: 100%; padding: 10px; border-radius: 12px; border: 1.5px dashed var(--line); background: transparent; color: var(--muted); font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 6px; }
+
   /* 체크할 때 튀는 색종이 */
   .confetti-dot {
     position: fixed; width: 6px; height: 6px; border-radius: 50%;
@@ -705,6 +729,7 @@
     <button data-view="today" class="active"><span class="ico">☀️</span>오늘</button>
     <button data-view="diary"><span class="ico">📖</span>일기</button>
     <button data-view="calendar"><span class="ico">📅</span>달력</button>
+    <button data-view="publish"><span class="ico">📤</span>발행</button>
   </nav>
 </div>
 
@@ -2650,6 +2675,13 @@ function render() {
     loadCalendarData().then(renderCalendarView);
     return;
   }
+  if (view === "publish") {
+    $("viewTitle").textContent = "발행";
+    document.querySelector(".quick").style.display = "none";
+    $("quickHint").style.display = "none";
+    loadPublish().then(renderPublish);
+    return;
+  }
 
   /* view === "today" — 할 일 탭 (서브탭: 오늘/메모함) */
   const taskTitles = { today: "오늘", inbox: "메모함" };
@@ -2857,6 +2889,115 @@ taskCtxMenu.addEventListener("click", async (e) => {
   if (action === "edit") openSheet(task);
   else if (action === "delete") await deleteTask(task);
 });
+
+
+/* ---------- 발행 탭 ----------
+   publish.json 은 찬작 세션(Claude)이 발행_일정.json 에서 만들어 이 저장소에 push 한다.
+   찬진이 직접 예약하는 채널(인스타·쓰레드·블로그·클립·카카오)은 칩을 눌러 대기→예약됨→발행됨 으로 바꾸고,
+   그 상태는 Supabase publish_status 에 저장된다(세션이 anon 키로 읽어 발행_일정.md 에 반영).
+   세션이 올리는 채널(유튜브)은 점선 칩 — publish.json 값만 보여준다. */
+const PUBLISH_URL = "./publish.json";
+const PUB_CH = { youtube: "유튜브", shorts: "쇼츠", instagram: "인스타", threads: "쓰레드", blog: "블로그", clip: "클립", kakao: "카카오" };
+const PUB_ST = { todo: "대기", scheduled: "예약됨", published: "발행됨", skip: "안 올림" };
+const PUB_CYCLE = ["todo", "scheduled", "published"];
+let publishData = null, publishStatus = {}, publishShowPast = false;
+
+async function loadPublish() {
+  try {
+    const r = await fetch(PUBLISH_URL + "?t=" + Date.now(), { cache: "no-store" });
+    publishData = r.ok ? await r.json() : null;
+  } catch { publishData = null; }
+  publishStatus = {};
+  try {
+    const { data, error } = await sb.from("publish_status").select("slot_id,channel,status,at,note");
+    if (!error && data) data.forEach(x => { publishStatus[x.slot_id + "|" + x.channel] = x; });
+  } catch {}
+}
+
+function pubFmtAt(iso) {
+  if (!iso) return "";
+  const d = new Date(iso); if (isNaN(d)) return iso;
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+
+function pubChipState(slot, ch, conf) {
+  // 세션 채널은 JSON 값, 찬진 채널은 Supabase 값이 우선
+  const own = publishStatus[slot.id + "|" + ch];
+  if (conf.who === "chanjin" && own) return { status: own.status, at: own.at, url: null };
+  return { status: conf.status || "todo", at: conf.publishAt || conf.at || null, url: conf.url || null };
+}
+
+async function pubCycle(slot, ch, conf, btn) {
+  const cur = pubChipState(slot, ch, conf).status;
+  const next = PUB_CYCLE[(PUB_CYCLE.indexOf(cur) + 1) % PUB_CYCLE.length];
+  let at = null;
+  if (next === "scheduled") at = `${slot.date}T${slot.time || "19:00"}:00+09:00`;   // 예약 시각 = 슬롯 시각
+  if (next === "published") at = new Date().toISOString();
+  const row = { slot_id: slot.id, channel: ch, status: next, at, updated_at: new Date().toISOString() };
+  const { error } = await sb.from("publish_status").upsert(row, { onConflict: "user_id,slot_id,channel" });
+  if (error) { toast("저장 실패: " + error.message + " (SETUP.md 1-5 표를 만들었는지 확인)"); return; }
+  publishStatus[slot.id + "|" + ch] = row;
+  if (next === "published") spawnConfetti(btn);
+  renderPublish();
+}
+
+function renderPublish() {
+  const list = $("list"); list.innerHTML = "";
+  if (!publishData) { list.innerHTML = '<div class="empty">publish.json 을 못 읽었어요. 세션이 아직 push 하지 않았거나 오프라인이에요.</div>'; return; }
+  const today = todayStr();
+  const legend = document.createElement("div"); legend.className = "pub-legend";
+  legend.innerHTML = "칩을 누르면 <b>대기 → 예약됨 → 발행됨</b> 순으로 바뀌어요 (인스타·쓰레드·블로그·클립·카카오는 찬진이 예약). 점선 칩 = 세션이 올리는 유튜브, 자동으로 갱신돼요.";
+  list.appendChild(legend);
+  const slots = (publishData.slots || []).slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const upcoming = slots.filter(x => x.date >= today), past = slots.filter(x => x.date < today).reverse();
+  const draw = (arr) => {
+    let lastDate = null;
+    arr.forEach(slot => {
+      if (slot.date !== lastDate) {
+        lastDate = slot.date;
+        const d = new Date(slot.date + "T00:00:00");
+        const h = document.createElement("div"); h.className = "pub-day" + (slot.date === today ? " today" : "");
+        h.innerHTML = `<span class="d">${d.getMonth()+1}월 ${d.getDate()}일 ${DAY_NAMES[d.getDay()]}</span><span class="w">${slot.date === today ? "오늘" : ""}</span>`;
+        list.appendChild(h);
+      }
+      const chs = Object.entries(slot.channels || {});
+      const states = chs.map(([ch, conf]) => pubChipState(slot, ch, conf).status);
+      const allDone = states.length && states.every(st => st === "published" || st === "skip");
+      const card = document.createElement("div"); card.className = "pub-slot" + (allDone ? " done" : "");
+      const prepLeft = (slot.prep || []).filter(p => !p.done);
+      const prepHtml = (slot.prep || []).length
+        ? `<div class="prep ${prepLeft.length ? "" : "ok"}">${prepLeft.length ? "⚠ 먼저: " + prepLeft.map(p => p.text).join(" · ") : "✓ 준비 완료 — 예약만 걸면 돼요"}</div>` : "";
+      card.innerHTML = `<div class="t"><span class="kind">${slot.kind || ""}</span>${slot.time || "19:00"} · ${slot.title}</div>${prepHtml}${slot.memo ? `<div class="memo">${slot.memo}</div>` : ""}`;
+      const row = document.createElement("div"); row.className = "pub-ch";
+      chs.forEach(([ch, conf]) => {
+        const st = pubChipState(slot, ch, conf);
+        const label = `${PUB_CH[ch] || ch} · ${PUB_ST[st.status] || st.status}${st.status === "scheduled" && st.at ? " " + pubFmtAt(st.at) : ""}`;
+        if (conf.who === "chanjin") {
+          const b = document.createElement("button"); b.className = "s-" + st.status; b.textContent = label;
+          b.addEventListener("click", () => pubCycle(slot, ch, conf, b)); row.appendChild(b);
+        } else {
+          const sp = document.createElement("span"); sp.className = "s-" + st.status + " s-session";
+          sp.textContent = label;
+          if (st.url) { const a = document.createElement("a"); a.href = st.url; a.target = "_blank"; a.textContent = " ↗"; a.style.color = "inherit"; sp.appendChild(a); }
+          row.appendChild(sp);
+        }
+      });
+      card.appendChild(row); list.appendChild(card);
+    });
+  };
+  if (!upcoming.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "예정된 발행이 없어요."; list.appendChild(e); }
+  draw(upcoming);
+  if (past.length) {
+    const b = document.createElement("button"); b.className = "pub-more";
+    b.textContent = publishShowPast ? "지난 발행 접기" : `지난 발행 ${past.length}건 보기`;
+    b.addEventListener("click", () => { publishShowPast = !publishShowPast; renderPublish(); });
+    list.appendChild(b);
+    if (publishShowPast) draw(past);
+  }
+  const u = document.createElement("div"); u.className = "pub-updated";
+  u.textContent = "세션 갱신 " + (publishData.updated || "");
+  list.appendChild(u);
+}
 
 /* ---------- 이벤트 ---------- */
 document.querySelectorAll("nav button").forEach(b => {

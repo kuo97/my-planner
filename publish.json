@@ -1,0 +1,237 @@
+{
+ "updated": "2026-09-17T00:56+09:00",
+ "slots": [
+  {
+   "id": "2026-09-17_19",
+   "date": "2026-09-17",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "19번",
+   "title": "19번(환갑 의뢰작 — 가명판) 첫 발행",
+   "memo": "원고 7채널_원고.md · 썸네일 2종 완성",
+   "prep": [
+    {
+     "text": "캡컷 `찬작_환갑19_가명판` 내보내기 → 세션에 전달",
+     "done": false
+    },
+    {
+     "text": "세션: 완성본 4종·숏폼 잘라 폴더에 넣기",
+     "done": false
+    }
+   ],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo"
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "threads": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo"
+    }
+   }
+  },
+  {
+   "id": "2026-09-18_19",
+   "date": "2026-09-18",
+   "time": "19:00",
+   "kind": "파생·정보형",
+   "work": "15번",
+   "title": "15번(돌잔치 작품)의 파생물 — 돌잔치 준비 순서 5단계 릴스 + 블로그",
+   "memo": "영상·캡션·블로그.md 완성. 블로그 제목 `돌잔치 준비 순서, 장소부터 알아보면 안 되는 이유 (AI 애니메이션 돌잔치 영상)`",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "todo"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "threads": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo"
+    }
+   }
+  },
+  {
+   "id": "2026-09-19_19",
+   "date": "2026-09-19",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "18번",
+   "title": "18번(영화관 예고편 프로포즈 — 시네마틱 대표작, 가명판) 첫 발행",
+   "memo": "훅 '영화관에서 튼 프로포즈' 계열. 카카오 소식은 여기(10일 주기 시작)",
+   "prep": [
+    {
+     "text": "세션: 숏폼 3종·썸네일·블로그 이미지·7채널 원고 제작 (09-17~18)",
+     "done": false
+    }
+   ],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo"
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "threads": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "kakao": {
+     "who": "chanjin",
+     "status": "todo"
+    }
+   }
+  },
+  {
+   "id": "2026-09-20_19",
+   "date": "2026-09-20",
+   "time": "19:00",
+   "kind": "파생·정보형",
+   "work": "11번",
+   "title": "11번(돌잔치 작품)의 파생물 — 성장영상 공통점 5가지 릴스 (서진 나레이션판)",
+   "memo": "09-18 무나레이션 편과 48h 비교용",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "todo"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo"
+    }
+   }
+  },
+  {
+   "id": "2026-09-21_19",
+   "date": "2026-09-21",
+   "time": "19:00",
+   "kind": "후기",
+   "work": "18번",
+   "title": "후기 — 영화관 프로포즈 고객 후기 분할본 (아래칸 = 18번 가명판)",
+   "memo": "",
+   "prep": [
+    {
+     "text": "세션: 월요일 배치에서 제작",
+     "done": false
+    }
+   ],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "todo"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo"
+    }
+   }
+  },
+  {
+   "id": "2026-09-22_19",
+   "date": "2026-09-22",
+   "time": "19:00",
+   "kind": "파생·정보형",
+   "work": "14번",
+   "title": "14번(프로포즈 작품)의 파생물 — 프로포즈 영상 준비 순서 5가지 릴스",
+   "memo": "영상·캡션 완성. 유튜브 meta publishAt 09-22 19:00",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "todo"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo"
+    }
+   }
+  },
+  {
+   "id": "2026-09-23_19",
+   "date": "2026-09-23",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "20번",
+   "title": "20번(시네마틱 프로포즈 「13시간」) 첫 발행 — 후보",
+   "memo": "",
+   "prep": [
+    {
+     "text": "캡컷 `찬작_시네마틱20_13시간` 확인 → 내보내기",
+     "done": false
+    },
+    {
+     "text": "세션: FHD/4K·숏폼 3종·썸네일·7채널 원고",
+     "done": false
+    }
+   ],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo"
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "threads": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "todo"
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo"
+    }
+   }
+  }
+ ]
+}
