@@ -127,7 +127,24 @@
   .ex-stats b { font-family: 'Gaegu', sans-serif; font-size: 16px; color: var(--sage); margin: 0 1px; }
   .ex-stats .ex-sep { color: var(--muted); }
   .ex-stats.cal-ex { margin: -4px 0 10px; }
-  .cal-day .ex-mark { position: absolute; left: 5px; bottom: 3px; font-size: 10px; line-height: 1; opacity: .85; }
+  /* 날짜 칸 왼쪽 위 배지 — 사진 위에서도 보이도록 흰 원 배경을 깔고 그림자를 준다 */
+  .cal-day .day-marks { position: absolute; left: 3px; top: 3px; display: flex; gap: 2px; z-index: 2; }
+  .cal-day .day-mark {
+    width: 17px; height: 17px; border-radius: 999px; background: rgba(255,255,255,.95);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  }
+  .cal-day .day-mark.ex { background: var(--sage); }
+  .cal-stats-row { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: -4px 0 10px; }
+  .cal-stats-row .ex-stats.cal-ex { margin: 0; }
+  .ex-stats.hair-stats { background: var(--paper-card); border-color: var(--line); }
+  .ex-stats.hair-stats b { color: var(--ink); }
+  .hair-toggle {
+    display: inline-block; margin-top: 10px; margin-right: 8px; padding: 7px 13px; border-radius: 999px;
+    border: 1.5px dashed var(--line); background: none; color: var(--muted); font-size: 12.5px; cursor: pointer;
+    font-family: inherit;
+  }
+  .hair-toggle.on { border-style: solid; border-color: var(--ink); color: var(--ink); background: var(--paper-card); }
   .gcal-bar {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     background: var(--gcal-soft); border: 1.5px solid var(--gcal); border-radius: 14px;
@@ -1482,10 +1499,32 @@ function exerciseStatsEl() {
   return el;
 }
 
+/* ---------- 이발 기록: 달력에서 날짜를 고르고 ✂️ 칩을 누르면 그 날 이발한 걸로 기록 ---------- */
+function lastHaircutDate() {
+  const dates = Object.keys(calMap).filter(d => calMap[d].haircut && d <= todayStr()).sort();
+  return dates.length ? dates[dates.length - 1] : null;
+}
+function daysSince(dateStr_) {
+  const a = new Date(dateStr_ + "T00:00:00"), b = new Date(todayStr() + "T00:00:00");
+  return Math.round((b - a) / 86400000);
+}
+async function toggleHaircut(date) {
+  const entry = calMap[date];
+  const next = !(entry && entry.haircut);
+  // 그 날 일기가 아직 없으면 새 행을 만들어야 해서 NOT NULL 컬럼(weather_note)을 같이 채운다
+  const row = entry ? { on_date: date, haircut: next }
+                    : { on_date: date, content: "", weather_note: "", haircut: next };
+  const { error } = await sb.from("diary").upsert(row, { onConflict: "user_id,on_date" });
+  if (error) { toast("이발 기록 실패: " + error.message); return; }
+  await loadCalendarData();
+  renderCalendarView();
+  toast(next ? "✂️ 이발한 날로 기록했어요" : "이발 기록을 지웠어요");
+}
+
 /* ---------- 달력 ---------- */
 async function loadCalendarData() {
   if (!calSel) calSel = todayStr();
-  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note,city_notes,steps");
+  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note,city_notes,steps,haircut");
   if (error) { toast("달력 로드 실패: " + error.message); calMap = {}; return; }
   calMap = {};
   (data || []).forEach(e => { calMap[e.on_date] = e; });
@@ -1533,7 +1572,11 @@ function renderCalendarView() {
       <div class="cal-title hand">${monthLabel}</div>
       <button id="calNext">›</button>
     </div>
-    <div class="ex-stats cal-ex"><span class="ex-icon">🏃</span><span>${calM + 1}월 운동 <b>${exMonth}</b>일</span>${exWeek}</div>
+    <div class="cal-stats-row">
+      <div class="ex-stats cal-ex"><span class="ex-icon">🏃</span><span>${calM + 1}월 운동 <b>${exMonth}</b>일</span>${exWeek}</div>
+      ${(() => { const h = lastHaircutDate(); if (!h) return ""; const n = daysSince(h);
+                 return `<div class="ex-stats cal-ex hair-stats"><span class="ex-icon">✂️</span><span>${n === 0 ? "오늘 이발" : `이발한 지 <b>${n}</b>일`}</span></div>`; })()}
+    </div>
     <div class="cal-weekdays">${DAY_NAMES.map(d => `<div>${d}</div>`).join("")}</div>
     <div class="cal-grid" id="calGrid"></div>
     <div class="cal-detail" id="calDetail"></div>`;
@@ -1555,7 +1598,9 @@ function renderCalendarView() {
       const entry = calMap[c.dateStr];
       const hasText = entry && (entry.content || entry.exercised || (entry.city_notes && entry.city_notes.length));
       const thumb = entry && entry.photos && entry.photos[0];
-      cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${entry && entry.exercised ? '<span class="ex-mark" title="운동한 날">🏃</span>' : ""}`;
+      const marks = (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
+                  + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "");
+      cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${marks ? `<span class="day-marks">${marks}</span>` : ""}`;
       cell.addEventListener("click", () => {
         calSel = c.dateStr;
         if (c.other) { const dt = new Date(c.dateStr + "T00:00:00"); calY = dt.getFullYear(); calM = dt.getMonth(); }
@@ -1597,7 +1642,7 @@ function renderCalendarView() {
   const [, dm, dd] = calSel.split("-").map(Number);
   const dateLabel = `${dm}월 ${dd}일 (${DAY_NAMES[new Date(calSel + "T00:00:00").getDay()]})`;
   const selEvents = gcalEventsOn(calSel);
-  if (!entry || (!entry.content && !entry.weather_note && !entry.exercised && !(entry.city_notes && entry.city_notes.length) && !(entry.photos && entry.photos.length))) {
+  if (!entry || (!entry.content && !entry.weather_note && !entry.exercised && !entry.haircut && !(entry.city_notes && entry.city_notes.length) && !(entry.photos && entry.photos.length))) {
     detail.innerHTML = `<div class="cd-date hand">${dateLabel}</div><div class="cd-empty">이 날짜엔 기록이 없어요.</div>`;
   } else {
     const w = entry.weather;
@@ -1608,6 +1653,7 @@ function renderCalendarView() {
       ${entry.weather_note ? `<div class="cd-feel">☁ ${entry.weather_note}</div>` : ""}
       ${entry.exercised ? `<div class="cd-feel" style="color:var(--sage)">🏃 ${entry.exercise_note || "운동함"}</div>` : ""}
       ${entry.steps ? `<div class="cd-feel" style="color:var(--sage)">👟 ${Number(entry.steps).toLocaleString()}걸음</div>` : ""}
+      ${entry.haircut ? `<div class="cd-feel" style="color:var(--ink)">✂️ 이발한 날</div>` : ""}
       ${cityChipsHtml(entry.city_notes)}
       ${entry.photos && entry.photos.length ? `<div class="cd-photos">${entry.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
     detail.querySelector(".cd-body").textContent = entry.content || "";
@@ -1629,6 +1675,14 @@ function renderCalendarView() {
       evWrap.appendChild(item);
     });
     detail.appendChild(evWrap);
+  }
+  if (calSel <= today) {
+    const hairBtn = document.createElement("button");
+    const done = !!(entry && entry.haircut);
+    hairBtn.className = "hair-toggle" + (done ? " on" : "");
+    hairBtn.textContent = done ? "✂️ 이발 기록 지우기" : "✂️ 이 날 이발했어요";
+    hairBtn.addEventListener("click", () => toggleHaircut(calSel));
+    detail.appendChild(hairBtn);
   }
   if (calSel === today) {
     const jump = document.createElement("button");
