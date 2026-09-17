@@ -2268,13 +2268,12 @@ async function addTask(title) {
 
 /* ---------- 4트랙 사업 일정 불러오기 (2026-08-26 갱신: 계정별 주 1회 배치 제작 + 예약 발행, 찬작은 주 2회 발행(수·토), KST) ---------- */
 const SCHEDULE_TASKS = [
-  { title: "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)", project: "찬작스튜디오", repeat_days: [3], sub_total: 2, sub_start: 1, sub_anchor: "2026-08-26" },
-  // sub_start = "기준 주"의 시작 호수, sub_anchor = 그 기준 주의 발생일(그날 sub_start가 그대로 적용됨).
-  // 이후 주는 sub_total씩 자동으로 늘어나므로 매주 수동 갱신이 필요 없다.
-  // 화잠도 2026-08-30부터 월요일 배치로 통합 (제작+예약을 월요일에 한 번에)
-  { title: "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)", project: "화잠", repeat_days: [1], sub_total: 7, sub_start: 25, sub_anchor: "2026-08-31" },
-  // 우주사전2·찬로로(유튜브 쇼츠)는 2026-09-09부터 업로드가 예약 발행 API로 완전 자동화돼서
-  // 플래너에서 뺐다 (RETIRED_SCHEDULE_TITLES 참고). 14편짜리 호수 체크리스트가 주간보드를 너무 넓게 만들기도 했다.
+  // 2026-09-17 기준 반복 배치 일정 없음.
+  // - 우주사전2·찬로로: 09-09부터 예약 발행 API로 완전 자동화
+  // - 화잠: 09-17 발행 중단
+  // - 찬작: 발행 규칙이 바뀌어 주 2회 배치 카드 대신 '발행' 탭(publish.json)에서 건별로 관리
+  // 항목 형식: { title, project, repeat_days, sub_total, sub_start, sub_anchor }
+  //   sub_start = "기준 주"의 시작 호수, sub_anchor = 그 기준 주의 발생일. 이후 주는 sub_total씩 자동 증가.
 ];
 /* 편수 체크리스트의 각 칸이 실제로 예약 발행되는 요일(0=일...6=토)과 메모, 칸 순서대로.
    찬작: 수요일 제작일에 2편 — 수요일치는 당일 19:00 발행, 토요일치는 19:00 예약.
@@ -2290,18 +2289,9 @@ function twoPerDayWeek() {
   });
   return out;
 }
-const SUB_DAY_PATTERNS = {
-  "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)": [
-    { dow: 3, note: "수요일 19:00 · 당일 발행" },
-    { dow: 6, note: "토요일 19:00 · 예약 발행" },
-  ],
-  "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)": normSubDays([1,2,3,4,5,6,0]),
-};
+const SUB_DAY_PATTERNS = {};
 /* 주간보드에서 배치 카드에 표시할 짧은 이름 — 긴 제목·배지 대신 이거 하나만 보여줘서 공간 절약 */
-const BATCH_DISPLAY_NAMES = {
-  "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)": "찬작",
-  "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)": "화잠",
-};
+const BATCH_DISPLAY_NAMES = {};
 /* 당연히 매번 하는 일이라 일정에 넣을 필요 없거나, 예약 발행으로 자동 게시돼서
    더 이상 매일 확인이 필요 없거나, 주 1회 배치 제작 방식으로 재편되며 이름이 바뀐,
    아직 배치일을 정하지 못한(추후 결정) 일정 등, 예전에 씨딩됐던 일정 제목들 */
@@ -2323,6 +2313,9 @@ const RETIRED_SCHEDULE_TITLES = [
   "찬로로 월요일 배치 제작 (쇼츠 14편, 예약 발행)",
   // 소재 찾기·주간 리뷰는 업로드 당일 클로드한테 시키면 되는 일이라 일정으로 관리하지 않는다
   "다음 주 소재 큐 채우기 + 주간 리뷰",
+  // 2026-09-17: 화잠 발행 중단. 찬작은 발행 규칙이 바뀌어 '발행' 탭에서 건별 관리 → 수요일 배치 카드 폐기
+  "화잠 월요일 배치 제작 (릴스 7편, 예약 발행)",
+  "찬작 수요일 배치 제작 (릴스+블로그 2편: 수 당일 + 토 예약)",
 ];
 /* 찬로로 특별편성(정규 호수 없는 속보·시즌성 업로드) 기록용 — 회차 체크리스트에 안 들어가서
    완료 이력이 안 남으니, 업로드될 때마다 여기에 한 줄 추가하고 git push하면 다음 앱 실행 시
@@ -2723,7 +2716,7 @@ function render() {
   list.appendChild(taskList);
 
   if (taskTab === "today") {
-    if (!scheduleSeeded()) {
+    if (!scheduleSeeded() && SCHEDULE_TASKS.length) {
       const banner = document.createElement("div");
       banner.className = "task";
       banner.style.borderStyle = "dashed";
