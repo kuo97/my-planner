@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-17T18:26+09:00",
+ "updated": "2026-09-17T18:31+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -8,7 +8,7 @@
    "kind": "작품",
    "work": "19번",
    "title": "19번(환갑 의뢰작 — 가명판) 첫 발행",
-   "memo": "원고 7채널_원고.md · 썸네일 2종(09-17 2인칭 카피로 교체) · 유튜브 롱폼 ZiTr9bKy-8U / 쇼츠 EHo1Qr2WWm0 19:00 예약(재생목록 회갑칠순) · BGM Silent Coda Piano 최종 후 재업로드(18:25)",
+   "memo": "원고 7채널_원고.md · 썸네일 2종(09-17 2인칭 카피로 교체) · 유튜브 롱폼 ZiTr9bKy-8U / 쇼츠 EHo1Qr2WWm0 19:00 예약(재생목록 회갑칠순) · BGM Silent Coda Piano 최종 후 재업로드(18:25) · 18:40 찬진: 인스타·쓰레드·블로그·클립 업로드 완료(블로그엔 유튜브 링크 없음). 유튜브·쇼츠는 19:00 자동 공개",
    "prep": [
     {
      "text": "캡컷 `찬작_환갑19_가명판` 내보내기 → 세션에 전달",
@@ -36,22 +36,22 @@
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "published",
      "due": "2026-09-17T21:00:00+09:00"
     },
     "threads": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "published",
      "due": "2026-09-17T21:00:00+09:00"
     },
     "blog": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "published",
      "due": "2026-09-17T19:00:00+09:00"
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "published",
      "due": "2026-09-17T21:00:00+09:00"
     }
    }
