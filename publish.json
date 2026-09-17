@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-17T16:27+09:00",
+ "updated": "2026-09-17T17:07+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -8,7 +8,7 @@
    "kind": "작품",
    "work": "19번",
    "title": "19번(환갑 의뢰작 — 가명판) 첫 발행",
-   "memo": "원고 7채널_원고.md · 썸네일 2종(09-17 2인칭 카피로 교체) · 유튜브 롱폼 PHHe8JAKEcU / 쇼츠 DuTMYlU8quY 19:00 예약(재생목록 회갑칠순)",
+   "memo": "원고 7채널_원고.md · 썸네일 2종(09-17 2인칭 카피로 교체) · 유튜브 롱폼 iicxJsiaHWM / 쇼츠 9825zsn8rUI 19:00 예약(재생목록 회갑칠순) · BGM World's Sunrise 로 교체 후 재업로드(17:10)",
    "prep": [
     {
      "text": "캡컷 `찬작_환갑19_가명판` 내보내기 → 세션에 전달",
@@ -23,14 +23,14 @@
     "youtube": {
      "who": "session",
      "status": "scheduled",
-     "url": "https://youtu.be/PHHe8JAKEcU",
+     "url": "https://youtu.be/iicxJsiaHWM",
      "publishAt": "2026-09-17T10:00:00Z",
      "due": "2026-09-17T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
      "status": "scheduled",
-     "url": "https://youtu.be/DuTMYlU8quY",
+     "url": "https://youtu.be/9825zsn8rUI",
      "publishAt": "2026-09-17T10:00:00Z",
      "due": "2026-09-17T19:00:00+09:00"
     },
