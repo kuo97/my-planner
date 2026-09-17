@@ -132,6 +132,14 @@ create policy "anon read publish_status" on publish_status for select
   to anon using (true);
 ```
 
+
+※ 실행 후 앱에서 "저장 실패" 또는 세션 쪽에서 401(42501 permission denied) 이 나면 **권한 부여가 빠진 것** — 아래 두 줄을 한 번 더 실행:
+
+```sql
+grant select, insert, update, delete on public.publish_status to authenticated;
+grant select on public.publish_status to anon;
+```
+
 발행 일정 자체(`publish.json`)는 세션이 `개인\찬작스튜디오\발행_일정.json` 에서 만들어 이 저장소에 push 한다(`실험\영상편집자동화\publish_sync.py`). 앱은 그 파일만 읽는다.
 
 ## 2. 프로젝트 키 확인
