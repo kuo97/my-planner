@@ -2946,7 +2946,7 @@ function renderPublish() {
   if (!publishData) { list.innerHTML = '<div class="empty">publish.json 을 못 읽었어요. 세션이 아직 push 하지 않았거나 오프라인이에요.</div>'; return; }
   const today = todayStr();
   const legend = document.createElement("div"); legend.className = "pub-legend";
-  legend.innerHTML = "칩을 누르면 <b>대기 → 예약됨 → 발행됨</b> 순으로 바뀌어요. 칩의 시각 = 그 채널 업로드 시각(유튜브 19:00 · 인스타·쓰레드 21:00 · 블로그 다음날 08:00 · 클립 다음날 12:30 · 카카오 다음날 11:00). 점선 칩 = 세션이 올리는 유튜브, 자동 갱신.";
+  legend.innerHTML = "칩을 누르면 <b>대기 → 예약됨 → 발행됨</b> 순으로 바뀌어요. 칩의 시각 = 그 채널 업로드 시각(유튜브·블로그 19:00 · 인스타·쓰레드·클립 21:00 · 카카오는 당일 아무 때나). 점선 칩 = 세션이 올리는 유튜브, 자동 갱신.";
   list.appendChild(legend);
   const slots = (publishData.slots || []).slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
   const upcoming = slots.filter(x => x.date >= today), past = slots.filter(x => x.date < today).reverse();
