@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-17T15:00+09:00",
+ "updated": "2026-09-17T16:27+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -8,26 +8,30 @@
    "kind": "작품",
    "work": "19번",
    "title": "19번(환갑 의뢰작 — 가명판) 첫 발행",
-   "memo": "원고 7채널_원고.md · 썸네일 2종 완성",
+   "memo": "원고 7채널_원고.md · 썸네일 2종(09-17 2인칭 카피로 교체) · 유튜브 롱폼 PHHe8JAKEcU / 쇼츠 DuTMYlU8quY 19:00 예약(재생목록 회갑칠순)",
    "prep": [
     {
      "text": "캡컷 `찬작_환갑19_가명판` 내보내기 → 세션에 전달",
-     "done": false
+     "done": true
     },
     {
      "text": "세션: 완성본 4종·숏폼 잘라 폴더에 넣기",
-     "done": false
+     "done": true
     }
    ],
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/PHHe8JAKEcU",
+     "publishAt": "2026-09-17T10:00:00Z",
      "due": "2026-09-17T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/DuTMYlU8quY",
+     "publishAt": "2026-09-17T10:00:00Z",
      "due": "2026-09-17T19:00:00+09:00"
     },
     "instagram": {
