@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-17T22:13+09:00",
+ "updated": "2026-09-17T23:12+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -63,22 +63,24 @@
    "kind": "파생·정보형",
    "work": "15번",
    "title": "15번(돌잔치 작품)의 파생물 — 돌잔치 준비 순서 5단계 릴스 + 블로그",
-   "memo": "영상·캡션·블로그.md 완성. 블로그 제목 `돌잔치 준비 순서, 장소부터 알아보면 안 되는 이유 (AI 애니메이션 돌잔치 영상)` · 블로그: 09-17 즉시발행 실수 → 삭제 후 09-18 19:00 예약(찬진). 표는 줄글로 교체본",
+   "memo": "영상·캡션·블로그.md 완성(09-17 이미지 자리·QR·줄글 표로 수정). 쇼츠 hVmYa6e9D90 19:00 예약. 인스타(DM 문구)·쓰레드(블로그 유도 삭제)·블로그·클립 전부 찬진 09-17 밤 예약 완료",
    "prep": [],
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/hVmYa6e9D90",
      "due": "2026-09-18T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
      "status": "todo",
+     "at": null,
      "due": "2026-09-18T21:00:00+09:00"
     },
     "threads": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-09-18T21:00:00+09:00"
     },
     "blog": {
@@ -88,7 +90,7 @@
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-09-18T21:00:00+09:00"
     }
    }
