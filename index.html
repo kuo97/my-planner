@@ -2931,7 +2931,7 @@ async function pubCycle(slot, ch, conf, btn) {
   const cur = pubChipState(slot, ch, conf).status;
   const next = PUB_CYCLE[(PUB_CYCLE.indexOf(cur) + 1) % PUB_CYCLE.length];
   let at = null;
-  if (next === "scheduled") at = `${slot.date}T${slot.time || "19:00"}:00+09:00`;   // 예약 시각 = 슬롯 시각
+  if (next === "scheduled") at = conf.due || `${slot.date}T${slot.time || "19:00"}:00+09:00`;   // 예약 시각 = 채널별 업로드 시각(due)
   if (next === "published") at = new Date().toISOString();
   const row = { slot_id: slot.id, channel: ch, status: next, at, updated_at: new Date().toISOString() };
   const { error } = await sb.from("publish_status").upsert(row, { onConflict: "user_id,slot_id,channel" });
@@ -2946,7 +2946,7 @@ function renderPublish() {
   if (!publishData) { list.innerHTML = '<div class="empty">publish.json 을 못 읽었어요. 세션이 아직 push 하지 않았거나 오프라인이에요.</div>'; return; }
   const today = todayStr();
   const legend = document.createElement("div"); legend.className = "pub-legend";
-  legend.innerHTML = "칩을 누르면 <b>대기 → 예약됨 → 발행됨</b> 순으로 바뀌어요 (인스타·쓰레드·블로그·클립·카카오는 찬진이 예약). 점선 칩 = 세션이 올리는 유튜브, 자동으로 갱신돼요.";
+  legend.innerHTML = "칩을 누르면 <b>대기 → 예약됨 → 발행됨</b> 순으로 바뀌어요. 칩의 시각 = 그 채널 업로드 시각(유튜브 19:00 · 인스타·쓰레드 21:00 · 블로그 다음날 08:00 · 클립 다음날 12:30 · 카카오 다음날 11:00). 점선 칩 = 세션이 올리는 유튜브, 자동 갱신.";
   list.appendChild(legend);
   const slots = (publishData.slots || []).slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
   const upcoming = slots.filter(x => x.date >= today), past = slots.filter(x => x.date < today).reverse();
@@ -2971,7 +2971,8 @@ function renderPublish() {
       const row = document.createElement("div"); row.className = "pub-ch";
       chs.forEach(([ch, conf]) => {
         const st = pubChipState(slot, ch, conf);
-        const label = `${PUB_CH[ch] || ch} · ${PUB_ST[st.status] || st.status}${st.status === "scheduled" && st.at ? " " + pubFmtAt(st.at) : ""}`;
+        const when = st.status === "scheduled" && st.at ? pubFmtAt(st.at) : (conf.due ? pubFmtAt(conf.due) : "");
+        const label = `${PUB_CH[ch] || ch} · ${PUB_ST[st.status] || st.status}${when ? " " + when : ""}`;
         if (conf.who === "chanjin") {
           const b = document.createElement("button"); b.className = "s-" + st.status; b.textContent = label;
           b.addEventListener("click", () => pubCycle(slot, ch, conf, b)); row.appendChild(b);

@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-17T11:26+09:00",
+ "updated": "2026-09-17T11:32+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -22,27 +22,33 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-17T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-17T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-17T21:00:00+09:00"
     },
     "threads": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-17T21:00:00+09:00"
     },
     "blog": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-18T08:00:00+09:00"
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-18T12:30:00+09:00"
     }
    }
   },
@@ -58,23 +64,28 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-18T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-18T21:00:00+09:00"
     },
     "threads": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-18T21:00:00+09:00"
     },
     "blog": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-19T08:00:00+09:00"
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-19T12:30:00+09:00"
     }
    }
   },
@@ -95,31 +106,38 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-19T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-19T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-19T21:00:00+09:00"
     },
     "threads": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-19T21:00:00+09:00"
     },
     "blog": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-20T08:00:00+09:00"
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-20T12:30:00+09:00"
     },
     "kakao": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-20T11:00:00+09:00"
     }
    }
   },
@@ -135,11 +153,13 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-20T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-20T21:00:00+09:00"
     }
    }
   },
@@ -160,11 +180,13 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-21T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-21T21:00:00+09:00"
     }
    }
   },
@@ -180,11 +202,13 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-22T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-22T21:00:00+09:00"
     }
    }
   },
@@ -213,27 +237,33 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-23T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-23T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-23T21:00:00+09:00"
     },
     "threads": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-23T21:00:00+09:00"
     },
     "blog": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-24T08:00:00+09:00"
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo"
+     "status": "todo",
+     "due": "2026-09-24T12:30:00+09:00"
     }
    }
   }
