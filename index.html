@@ -222,6 +222,13 @@
 
 
   /* ---------- 발행 탭 (찬작스튜디오 발행 일정·예약 트래킹) ---------- */
+  .pub-deadline { display: flex; gap: 14px; align-items: center; background: #FFF1EC; border: 2px solid var(--coral); border-radius: 16px; padding: 14px 16px; margin: 6px 0 12px; }
+  .pub-deadline.urgent { background: var(--coral); color: white; }
+  .pub-deadline .dday { font-size: 26px; font-weight: 900; color: var(--coral); min-width: 84px; text-align: center; letter-spacing: -0.5px; }
+  .pub-deadline.urgent .dday { color: white; }
+  .pub-deadline .k { font-size: 12px; font-weight: 700; opacity: 0.8; }
+  .pub-deadline .t { font-size: 16px; font-weight: 800; margin-top: 2px; }
+  .pub-deadline .m { font-size: 12.5px; margin-top: 4px; opacity: 0.85; white-space: pre-line; }
   .pub-day { margin: 18px 0 8px; display: flex; align-items: baseline; gap: 8px; }
   .pub-day .d { font-weight: 800; font-size: 15px; }
   .pub-day .w { color: var(--muted); font-size: 12.5px; }
@@ -2931,6 +2938,15 @@ function renderPublish() {
   const legend = document.createElement("div"); legend.className = "pub-legend";
   legend.innerHTML = "칩을 누르면 <b>대기 → 예약됨 → 발행됨</b> 순으로 바뀌어요. 칩의 시각 = 그 채널 업로드 시각(유튜브·블로그 19:00 · 인스타·쓰레드·클립 21:00 · 카카오는 당일 아무 때나). 점선 칩 = 세션이 올리는 유튜브, 자동 갱신.";
   list.appendChild(legend);
+  // ★ 납기 고정 카드 (2026-09-18 찬진: "의뢰작 납기일도 눈에 아주 잘 띄게") — publish.json deadlines, status!=done
+  const dls = (publishData.deadlines || []).filter(x => x.status !== "done").sort((a, b) => a.due.localeCompare(b.due));
+  dls.forEach(x => {
+    const dd = Math.round((new Date(x.due + "T00:00:00") - new Date(today + "T00:00:00")) / 86400000);
+    const d = new Date(x.due + "T00:00:00");
+    const card = document.createElement("div"); card.className = "pub-deadline" + (dd <= 2 ? " urgent" : "");
+    card.innerHTML = `<div class="dday">${dd < 0 ? "D+" + (-dd) : dd === 0 ? "D-DAY" : "D-" + dd}</div><div class="body"><div class="k">${x.kind || "납기"} · ${d.getMonth()+1}월 ${d.getDate()}일 ${DAY_NAMES[d.getDay()]}</div><div class="t">${x.title}</div>${x.memo ? `<div class="m">${x.memo}</div>` : ""}</div>`;
+    list.appendChild(card);
+  });
   const slots = (publishData.slots || []).slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
   const upcoming = slots.filter(x => x.date >= today), past = slots.filter(x => x.date < today).reverse();
   const draw = (arr) => {
