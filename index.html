@@ -791,33 +791,36 @@ const EXERCISE_ROUTINES = [
     { name: "벤치프레스", w: 55, reps: "6×5", memo: "바20+원판35 · 워밍업 빈바10→40kg5" },
     { name: "렛풀다운", w: 32, reps: "12×4" },
     { name: "시티드 덤벨 숄더프레스", w: 8, reps: "12×4", memo: "한쪽 무게 · OHP 대체", step: 1 },
-    { name: "시티드로우", w: 25, reps: "12×4" },
-    { name: "케이블푸쉬다운", w: 20, reps: "12×3" },
+    { name: "시티드로우", w: 25, reps: "12×3" },
     { name: "케이블이두컬", w: 25, reps: "12×3" },
   ]},
   { key: "lowerA", label: "하체A", items: [
     { name: "V스쿼트 머신", w: 45, reps: "12×4", memo: "워밍업 20kg 10회" },
     { name: "레그프레스", w: 60, reps: "12×3", memo: "원판 기준" },
     { name: "레그컬", w: 25, reps: "12×3" },
-    { name: "카프레이즈", w: 20, reps: "15×4", memo: "자체중~20kg" },
+    { name: "카프레이즈", w: 20, reps: "15×3", memo: "자체중~20kg" },
   ]},
   { key: "upperB", label: "상체B", items: [
     { name: "티바로우", w: 17.5, reps: "10×4", memo: "첫 종목 · 무겁게", step: 2.5 },
     { name: "인클라인 덤벨프레스", w: 12, reps: "10×4", memo: "한쪽 무게 · 등받이 30도", step: 1 },
     { name: "사이드레터럴레이즈", w: 7, reps: "10~12×4", memo: "덤벨 · 10회에서 실패할 무게", step: 1 },
     { name: "리버스펙덱플라이", w: 10, reps: "12×3", step: 2.5 },
-    { name: "펙덱플라이", w: 32, reps: "12×3" },
-    { name: "라잉트라이셉스", w: 15, reps: "12×3" },
-    { name: "덤벨해머컬", w: 8, reps: "12×3", memo: "한쪽 무게", step: 1 },
-    { name: "스트레이트암풀다운", w: 17.5, reps: "12×3", memo: "선택 · 가볍게", step: 2.5 },
+    { name: "케이블푸쉬다운", w: 20, reps: "12×3" },
   ]},
   { key: "lowerB", label: "하체B", items: [
     // 바벨 OHP는 코어 불안정 때문에 몇 년째 20kg 정체 → 시티드 덤벨 프레스로 대체(2026-09-11). 코어(엉덩이 조이기·갈비뼈 내리기)가 잡히면 상체A로 복귀 예정.
     { name: "덤벨 RDL", w: 8, reps: "10×4", memo: "한쪽 무게 · 워밍업 빈손 힌지 10회", step: 1 },
-    { name: "레그프레스", w: 60, reps: "12×4", memo: "원판 기준 · 워밍업 40kg 12회" },
-    { name: "레그컬", w: 25, reps: "12×4" },
-    { name: "카프레이즈", w: 20, reps: "15×4", memo: "자체중~20kg" },
+    { name: "레그프레스", w: 60, reps: "12×3", memo: "원판 기준 · 워밍업 40kg 12회" },
+    { name: "레그컬", w: 25, reps: "12×3" },
+    { name: "카프레이즈", w: 20, reps: "15×3", memo: "자체중~20kg" },
   ]},
+];
+/* 선택 종목 — 기본 루틴엔 없고 "운동 추가"에서 고를 수 있다. 힘·시간이 남는 날 하나만. */
+const EXTRA_EXERCISES = [
+  { name: "펙덱플라이", w: 32, reps: "12×3", memo: "선택" },
+  { name: "덤벨해머컬", w: 8, reps: "12×3", memo: "선택 · 한쪽 무게", step: 1 },
+  { name: "라잉트라이셉스", w: 15, reps: "12×3", memo: "선택" },
+  { name: "스트레이트암풀다운", w: 17.5, reps: "12×3", memo: "선택 · 가볍게", step: 2.5 },
 ];
 /* 예전 부위별 분할(2026-09-18 이전)로 저장된 기록을 편집기에서 다시 열 때만 쓴다 — 칩으로는 안 보임 */
 const LEGACY_ROUTINES = [
@@ -1201,7 +1204,7 @@ async function renderDiary() {
     saveDiaryDraft(); // 프로그램이 채운 값은 input 이벤트가 안 나므로 직접 반영
   }
   // 모든 루틴의 운동을 모은 카탈로그 — 다른 루틴의 운동을 끌어다 넣을 때 기본 무게/단위를 그대로 쓴다
-  const EXERCISE_CATALOG = EXERCISE_ROUTINES.flatMap(r => r.items);
+  const EXERCISE_CATALOG = [...EXERCISE_ROUTINES.flatMap(r => r.items), ...EXTRA_EXERCISES];
   /* 저장해둔 운동 메모("가슴·삼두 — 벤치프레스 50kg 6×5, ...")를 다시 편집 가능한 상태로 되돌린다.
      저장 후 앱을 다시 열어도 칩·무게 조절 UI로 이어서 고칠 수 있게 하기 위한 것.
      형식이 안 맞으면(직접 쓴 자유 메모 등) null을 돌려주고 편집기를 띄우지 않는다. */
