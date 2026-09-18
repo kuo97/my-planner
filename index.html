@@ -784,39 +784,45 @@ const SUPABASE_ANON_KEY = "sb_publishable_XhakCx4w4s7KRczs1kOcJQ_J8Qq11hK";
 
 const DAY_NAMES = ["일","월","화","수","목","금","토"];
 const MAX_PHOTOS = 6;
-/* 루틴별 운동 구성 (2026-09-18 보완 — 운동 폼 가이드와 동일). w = 기본 무게(kg), step = 무게 조절 단위(kg, 생략 시 5), reps = "횟수×세트"
-   고립운동은 3~4세트(실패 1~2회 전까지), 컴파운드는 5세트. 하체B에 레그프레스·덤벨 RDL, 가슴에 인클라인 덤벨, 이두에 해머컬 추가. */
+/* 루틴별 운동 구성 (2026-09-18 상하체 분할로 재배치 — 운동 폼 가이드와 동일). w = 기본 무게(kg), step = 무게 조절 단위(kg, 생략 시 5), reps = "횟수×세트"
+   월 상체A · 화 하체A · 목 상체B · 금 하체B — 모든 부위 주 2회. 컴파운드 4~5세트, 고립 3세트(실패 1~2회 전까지). */
 const EXERCISE_ROUTINES = [
-  { key: "chestLegsA", label: "가슴·하체A", items: [
+  { key: "upperA", label: "상체A", items: [
     { name: "벤치프레스", w: 55, reps: "6×5", memo: "바20+원판35 · 워밍업 빈바10→40kg5" },
+    { name: "렛풀다운", w: 32, reps: "12×4" },
+    { name: "시티드 덤벨 숄더프레스", w: 8, reps: "12×4", memo: "한쪽 무게 · OHP 대체", step: 1 },
+    { name: "시티드로우", w: 25, reps: "12×4" },
+    { name: "케이블푸쉬다운", w: 20, reps: "12×3" },
+    { name: "케이블이두컬", w: 25, reps: "12×3" },
+  ]},
+  { key: "lowerA", label: "하체A", items: [
+    { name: "V스쿼트 머신", w: 45, reps: "12×4", memo: "워밍업 20kg 10회" },
+    { name: "레그프레스", w: 60, reps: "12×3", memo: "원판 기준" },
+    { name: "레그컬", w: 25, reps: "12×3" },
+    { name: "카프레이즈", w: 20, reps: "15×4", memo: "자체중~20kg" },
+  ]},
+  { key: "upperB", label: "상체B", items: [
+    { name: "티바로우", w: 17.5, reps: "10×4", memo: "첫 종목 · 무겁게", step: 2.5 },
     { name: "인클라인 덤벨프레스", w: 12, reps: "10×4", memo: "한쪽 무게 · 등받이 30도", step: 1 },
-    { name: "펙덱플라이", w: 32, reps: "12×3", memo: "인클라인 뒤 마무리" },
-    { name: "V스쿼트 머신", w: 45, reps: "12×5" },
-    { name: "카프레이즈", w: 20, reps: "15×4", memo: "자체중~20kg" },
-  ]},
-  { key: "backABi", label: "등A·이두", items: [
-    { name: "렛풀다운", w: 32, reps: "12×5" },
-    { name: "티바로우", w: 17.5, reps: "12×5", step: 2.5 },
-    { name: "스트레이트암풀다운", w: 17.5, reps: "12×3", memo: "선택 · 가볍게", step: 2.5 },
-    { name: "케이블이두컬", w: 25, reps: "12×4" },
-    { name: "덤벨해머컬", w: 8, reps: "12×3", memo: "한쪽 무게", step: 1 },
-  ]},
-  { key: "shoulderLegsB", label: "어깨·하체B", items: [
-    // 바벨 OHP는 코어 불안정 때문에 몇 년째 20kg 정체 → 등받이가 몸통을 잡아주는 시티드 덤벨 프레스로 대체 (2026-09-11).
-    // 코어(엉덩이 조이기·갈비뼈 내리기)가 잡히면 바벨 OHP로 복귀 예정. 무게는 덤벨 한쪽 기준.
-    { name: "시티드 덤벨 숄더프레스", w: 8, reps: "12×5", memo: "한쪽 무게 · 8~10kg 시작 · OHP 대체", step: 1 },
-    { name: "사이드레터럴레이즈", w: 7, reps: "10~12×4", memo: "덤벨 · 10회에서 실패할 무게 찾기", step: 1 },
-    { name: "레그프레스", w: 60, reps: "12×4", memo: "원판 기준 · 워밍업 40kg 12회" },
-    { name: "덤벨 RDL", w: 8, reps: "10×3", memo: "한쪽 무게 · 코어 잡힐 때까지 가볍게", step: 1 },
-    { name: "레그컬", w: 25, reps: "12×4", memo: "20~25kg" },
-    { name: "카프레이즈", w: 20, reps: "15×4", memo: "자체중~20kg" },
-  ]},
-  { key: "backBTri", label: "등B·삼두", items: [
-    { name: "시티드로우", w: 25, reps: "12×5", memo: "시작 무게" },
-    { name: "리버스펙덱플라이", w: 10, reps: "12×4", step: 2.5 },
-    { name: "케이블푸쉬다운", w: 20, reps: "12×4" },
+    { name: "사이드레터럴레이즈", w: 7, reps: "10~12×4", memo: "덤벨 · 10회에서 실패할 무게", step: 1 },
+    { name: "리버스펙덱플라이", w: 10, reps: "12×3", step: 2.5 },
+    { name: "펙덱플라이", w: 32, reps: "12×3" },
     { name: "라잉트라이셉스", w: 15, reps: "12×3" },
+    { name: "덤벨해머컬", w: 8, reps: "12×3", memo: "한쪽 무게", step: 1 },
+    { name: "스트레이트암풀다운", w: 17.5, reps: "12×3", memo: "선택 · 가볍게", step: 2.5 },
   ]},
+  { key: "lowerB", label: "하체B", items: [
+    // 바벨 OHP는 코어 불안정 때문에 몇 년째 20kg 정체 → 시티드 덤벨 프레스로 대체(2026-09-11). 코어(엉덩이 조이기·갈비뼈 내리기)가 잡히면 상체A로 복귀 예정.
+    { name: "덤벨 RDL", w: 8, reps: "10×4", memo: "한쪽 무게 · 워밍업 빈손 힌지 10회", step: 1 },
+    { name: "레그프레스", w: 60, reps: "12×4", memo: "원판 기준 · 워밍업 40kg 12회" },
+    { name: "레그컬", w: 25, reps: "12×4" },
+    { name: "카프레이즈", w: 20, reps: "15×4", memo: "자체중~20kg" },
+  ]},
+];
+/* 예전 부위별 분할(2026-09-18 이전)로 저장된 기록을 편집기에서 다시 열 때만 쓴다 — 칩으로는 안 보임 */
+const LEGACY_ROUTINES = [
+  { key: "chestLegsA", label: "가슴·하체A" }, { key: "backABi", label: "등A·이두" },
+  { key: "shoulderLegsB", label: "어깨·하체B" }, { key: "backBTri", label: "등B·삼두" },
 ];
 /* "12×5" → { r:"12", s:5 }. 세트 수를 ±로 조절할 때 쓴다. 형식이 다르면(예: "40초") 세트 조절 없이 그대로 둔다. */
 function splitReps(reps) {
@@ -1203,7 +1209,7 @@ async function renderDiary() {
     const m = (note || "").split(" — ");
     if (m.length < 2) return null;
     const label = m[0].trim();
-    const routine = EXERCISE_ROUTINES.find(r => r.label === label);
+    const routine = EXERCISE_ROUTINES.find(r => r.label === label) || LEGACY_ROUTINES.find(r => r.label === label);
     if (!routine) return null;
     const items = [];
     for (const part of m.slice(1).join(" — ").split(",")) {
