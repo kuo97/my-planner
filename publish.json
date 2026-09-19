@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-19T13:08+09:00",
+ "updated": "2026-09-19T14:38+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -102,7 +102,7 @@
    "kind": "작품",
    "work": "18번",
    "title": "18번(영화관 예고편 프로포즈 — 시네마틱 대표작, 가명판) 첫 발행",
-   "memo": "09-19 13:40 세트 완성(숏폼 3종·포스터 썸네일 2종·블로그 9장·7채널_원고.md). 유튜브 제목 OK 후 세션 예약 업로드. 카카오 소식 10일 주기 시작",
+   "memo": "09-19 14:40 유튜브 롱폼 kGtxslY_7j4 / 쇼츠 zpxdjqlgM60 19:00 예약. 인스타·쓰레드·블로그·클립·카카오 찬진 업로드 완료(14:30)",
    "prep": [
     {
      "text": "세션: 숏폼 3종·썸네일·블로그 이미지·7채널 원고 제작 (09-17~18)",
@@ -112,37 +112,41 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/kGtxslY_7j4",
+     "publishAt": "2026-09-19T10:00:00Z",
      "due": "2026-09-19T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/zpxdjqlgM60",
+     "publishAt": "2026-09-19T10:00:00Z",
      "due": "2026-09-19T19:00:00+09:00"
     },
     "instagram": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-09-19T21:00:00+09:00"
     },
     "threads": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-09-19T21:00:00+09:00"
     },
     "blog": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-09-19T19:00:00+09:00"
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-09-19T21:00:00+09:00"
     },
     "kakao": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-09-19T19:00:00+09:00"
     }
    }
