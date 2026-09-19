@@ -820,11 +820,13 @@ const EXTRA_EXERCISES = [
   { name: "펙덱플라이", w: 32, reps: "12×3", memo: "선택 · 가슴 정체 시 1순위" },
   { name: "케이블푸쉬다운", w: 20, reps: "12×3", memo: "선택 · 라잉 뒤에" },
 ];
-/* 예전 부위별 분할(2026-09-18 이전)로 저장된 기록을 편집기에서 다시 열 때만 쓴다 — 칩으로는 안 보임 */
-const LEGACY_ROUTINES = [
-  { key: "chestLegsA", label: "가슴·하체A" }, { key: "backABi", label: "등A·이두" },
-  { key: "shoulderLegsB", label: "어깨·하체B" }, { key: "backBTri", label: "등B·삼두" },
-];
+/* 일기의 운동 선택 칩 = 루틴에 들어 있는 모든 운동 + 선택 종목, 이름 중복 없이 루틴 순서대로.
+   (2026-09-19) 루틴 단위로 고르던 걸 종목 단위로 바꿈 — 그날 한 운동만 골라 무게·세트를 맞추는 게 더 간편해서.
+   EXERCISE_ROUTINES는 기본 무게·세트·메모의 출처로만 쓴다. */
+const EXERCISE_CATALOG = (() => {
+  const seen = new Set();
+  return [...EXERCISE_ROUTINES.flatMap(r => r.items), ...EXTRA_EXERCISES].filter(i => !seen.has(i.name) && seen.add(i.name));
+})();
 /* "12×5" → { r:"12", s:5 }. 세트 수를 ±로 조절할 때 쓴다. 형식이 다르면(예: "40초") 세트 조절 없이 그대로 둔다. */
 function splitReps(reps) {
   const m = String(reps || "").match(/^(.+)×(\d+)$/);
@@ -1138,7 +1140,7 @@ async function renderDiary() {
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 5km)">
     <div class="exercise-presets" id="exercisePresets">
-      ${EXERCISE_ROUTINES.map(p => `<button type="button" class="ex-chip" data-k="${p.key}">${p.label}</button>`).join("")}
+      ${EXERCISE_CATALOG.map(c => `<button type="button" class="ex-chip" data-n="${c.name}">${c.name}</button>`).join("")}
       <button type="button" class="ex-chip run-chip" data-k="run">🏃 러닝</button>
     </div>
     <div class="routine-editor" id="routineEditor" style="display:none;"></div>
@@ -1168,7 +1170,7 @@ async function renderDiary() {
   });
 
   /* 루틴 칩 → 무게 조절 가능한 운동 목록 에디터 */
-  let activeRoutine = null; // { key, label, items: [{name, w, reps, memo}] } 의 사본
+  let activeRoutine = null; // { items: [{name, w, reps, memo}] } — 그날 고른 종목들. 비면 null
   let runKm = null;         // 러닝 거리(km). null이면 러닝 안 함. 웨이트 루틴과 같은 날 병행 가능
   const editorEl = dCard.querySelector("#routineEditor");
   const noteInput = dCard.querySelector("#exerciseNote");
@@ -1189,8 +1191,8 @@ async function renderDiary() {
   function composeNote() {
     const { routinePart } = splitNote(noteInput.value);
     const parts = [];
-    if (activeRoutine) {
-      parts.push(`${activeRoutine.label} — ` + activeRoutine.items.map(i => `${i.name} ${i.w}kg ${i.reps}`).join(", "));
+    if (activeRoutine && activeRoutine.items.length) {
+      parts.push(activeRoutine.items.map(i => `${i.name} ${i.w}kg ${i.reps}`).join(", "));
     } else if (routinePart && !parseRoutineNote(routinePart)) {
       parts.push(routinePart); // 직접 쓴 자유 메모(예: "수영 30분")는 러닝을 켜고 꺼도 지우지 않는다
     }
@@ -1201,19 +1203,16 @@ async function renderDiary() {
     noteInput.value = composeNote();
     saveDiaryDraft(); // 프로그램이 채운 값은 input 이벤트가 안 나므로 직접 반영
   }
-  // 모든 루틴의 운동을 모은 카탈로그 — 다른 루틴의 운동을 끌어다 넣을 때 기본 무게/단위를 그대로 쓴다
-  const EXERCISE_CATALOG = [...EXERCISE_ROUTINES.flatMap(r => r.items), ...EXTRA_EXERCISES];
-  /* 저장해둔 운동 메모("가슴·삼두 — 벤치프레스 50kg 6×5, ...")를 다시 편집 가능한 상태로 되돌린다.
-     저장 후 앱을 다시 열어도 칩·무게 조절 UI로 이어서 고칠 수 있게 하기 위한 것.
+  /* 저장해둔 운동 메모("벤치프레스 55kg 6×5, 렛풀다운 32kg 12×4")를 다시 편집 가능한 상태로 되돌린다.
+     예전 형식("상체A — 벤치프레스 ...")은 앞의 루틴 이름만 떼고 똑같이 읽는다.
      형식이 안 맞으면(직접 쓴 자유 메모 등) null을 돌려주고 편집기를 띄우지 않는다. */
   function parseRoutineNote(note) {
-    const m = (note || "").split(" — ");
-    if (m.length < 2) return null;
-    const label = m[0].trim();
-    const routine = EXERCISE_ROUTINES.find(r => r.label === label) || LEGACY_ROUTINES.find(r => r.label === label);
-    if (!routine) return null;
+    let body = (note || "").trim();
+    if (!body) return null;
+    const dash = body.indexOf(" — ");
+    if (dash >= 0) body = body.slice(dash + 3).trim();
     const items = [];
-    for (const part of m.slice(1).join(" — ").split(",")) {
+    for (const part of body.split(",")) {
       // "벤치프레스 50kg 6×5" — 이름은 공백을 포함할 수 있다
       const mm = part.trim().match(/^(.+?)\s+([\d.]+)kg\s+(\S+)$/);
       if (!mm) return null;
@@ -1221,7 +1220,12 @@ async function renderDiary() {
       const known = EXERCISE_CATALOG.find(c => c.name === name);
       items.push({ ...(known || {}), name, w: Number(mm[2]), reps: mm[3] });
     }
-    return items.length ? { key: routine.key, label, items } : null;
+    return items.length ? { items } : null;
+  }
+  /* 칩 켜짐 상태 = 지금 목록에 들어 있는 종목 */
+  function syncChips() {
+    const names = new Set(activeRoutine ? activeRoutine.items.map(i => i.name) : []);
+    dCard.querySelectorAll(".ex-chip:not(.run-chip)").forEach(c => c.classList.toggle("on", names.has(c.dataset.n)));
   }
   function renderRoutineEditor() {
     if (!activeRoutine && runKm == null) { editorEl.style.display = "none"; editorEl.innerHTML = ""; return; }
@@ -1268,6 +1272,8 @@ async function renderDiary() {
       });
       row.querySelector(".rt-del").addEventListener("click", () => {
         activeRoutine.items.splice(idx, 1);
+        if (!activeRoutine.items.length) activeRoutine = null;
+        syncChips();
         renderRoutineEditor();
         syncRoutineNote();
       });
@@ -1312,6 +1318,7 @@ async function renderDiary() {
       if (activeRoutine.items.some(i => i.name === name)) { toast("이미 목록에 있어요"); return; }
       const known = EXERCISE_CATALOG.find(c => c.name === name);
       activeRoutine.items.push(known ? { ...known } : { name, w: 20, reps: "12×5" });
+      syncChips();
       renderRoutineEditor();
       syncRoutineNote();
     }
@@ -1328,15 +1335,13 @@ async function renderDiary() {
   });
   dCard.querySelectorAll(".ex-chip:not(.run-chip)").forEach(chip => {
     chip.addEventListener("click", () => {
-      const routine = EXERCISE_ROUTINES.find(p => p.key === chip.dataset.k);
-      if (!routine) return;
-      if (chip.classList.contains("on")) {
-        chip.classList.remove("on");
-        activeRoutine = null;
-      } else {
-        dCard.querySelectorAll(".ex-chip:not(.run-chip)").forEach(c => c.classList.toggle("on", c === chip));
-        activeRoutine = { key: routine.key, label: routine.label, items: routine.items.map(i => ({ ...i })) };
-      }
+      const name = chip.dataset.n;
+      if (!activeRoutine) activeRoutine = { items: [] };
+      const idx = activeRoutine.items.findIndex(i => i.name === name);
+      if (idx >= 0) activeRoutine.items.splice(idx, 1);            // 두 번 누르면 뺀다 (실수 클릭)
+      else activeRoutine.items.push({ ...EXERCISE_CATALOG.find(c => c.name === name) }); // 기본 무게·세트로 추가
+      if (!activeRoutine.items.length) activeRoutine = null;
+      syncChips();
       renderRoutineEditor();
       syncRoutineNote();
     });
@@ -1347,7 +1352,7 @@ async function renderDiary() {
     const restored = parseRoutineNote(routinePart);
     activeRoutine = restored;
     runKm = run;
-    dCard.querySelectorAll(".ex-chip:not(.run-chip)").forEach(c => c.classList.toggle("on", !!restored && c.dataset.k === restored.key));
+    syncChips();
     runChip.classList.toggle("on", runKm != null);
     renderRoutineEditor();
   }
