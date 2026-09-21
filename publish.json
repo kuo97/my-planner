@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-19T16:54+09:00",
+ "updated": "2026-09-21T11:29+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -22,14 +22,14 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/ZiTr9bKy-8U",
      "publishAt": "2026-09-17T10:00:00Z",
      "due": "2026-09-17T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/EHo1Qr2WWm0",
      "publishAt": "2026-09-17T10:00:00Z",
      "due": "2026-09-17T19:00:00+09:00"
@@ -68,7 +68,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/hVmYa6e9D90",
      "due": "2026-09-18T19:00:00+09:00"
     },
@@ -112,14 +112,14 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/kGtxslY_7j4",
      "publishAt": "2026-09-19T10:00:00Z",
      "due": "2026-09-19T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/zpxdjqlgM60",
      "publishAt": "2026-09-19T10:00:00Z",
      "due": "2026-09-19T19:00:00+09:00"
@@ -152,45 +152,25 @@
    }
   },
   {
-   "id": "2026-09-20_19",
-   "date": "2026-09-20",
-   "time": "19:00",
-   "kind": "파생·정보형",
-   "work": "11번",
-   "title": "11번(돌잔치 작품)의 파생물 — 성장영상 공통점 5가지 릴스 (서진 나레이션판)",
-   "memo": "09-18 무나레이션 편과 48h 비교용",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "todo",
-     "due": "2026-09-20T19:00:00+09:00"
-    },
-    "instagram": {
-     "who": "chanjin",
-     "status": "todo",
-     "due": "2026-09-20T21:00:00+09:00"
-    }
-   }
-  },
-  {
    "id": "2026-09-21_19",
    "date": "2026-09-21",
    "time": "19:00",
    "kind": "후기",
    "work": "18번",
-   "title": "후기 — 영화관 프로포즈 고객 후기 분할본 (아래칸 = 18번 가명판)",
-   "memo": "",
+   "title": "18번(영화관 예고편 프로포즈)의 파생물 — 실제 후기 릴스",
+   "memo": "09-21 11:15 배치 완료. 쇼츠 YaGiIENdHQs 19:00 예약(재생목록 프로포즈). 훅 E2 반응 인용 \"영화 예고편 같은 분위기가 잘 살아 있어서\". 인스타 21:00 찬진 MBS",
    "prep": [
     {
      "text": "세션: 월요일 배치에서 제작",
-     "done": false
+     "done": true
     }
    ],
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/YaGiIENdHQs",
+     "publishAt": "2026-09-21T10:00:00Z",
      "due": "2026-09-21T19:00:00+09:00"
     },
     "instagram": {
@@ -207,12 +187,14 @@
    "kind": "파생·정보형",
    "work": "14번",
    "title": "14번(프로포즈 작품)의 파생물 — 프로포즈 영상 준비 순서 5가지 릴스",
-   "memo": "영상·캡션 완성. 유튜브 meta publishAt 09-22 19:00",
+   "memo": "영상·캡션 완성. 09-21 쇼츠 aC5EwOdtEpg 09-22 19:00 예약 업로드(썸네일_세로 추가). 인스타 21:00 찬진",
    "prep": [],
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/aC5EwOdtEpg",
+     "publishAt": "2026-09-22T10:00:00Z",
      "due": "2026-09-22T19:00:00+09:00"
     },
     "instagram": {
@@ -266,6 +248,76 @@
      "who": "chanjin",
      "status": "todo",
      "due": "2026-09-23T21:00:00+09:00"
+    }
+   }
+  },
+  {
+   "id": "2026-09-27_19",
+   "date": "2026-09-27",
+   "time": "19:00",
+   "kind": "파생·정보형",
+   "work": "11번",
+   "title": "11번(돌잔치 작품)의 파생물 — 성장영상 공통점 5가지 릴스 (서진 나레이션판)",
+   "memo": "09-21 확인: 09-20 유튜브 예약이 안 돼 있어 09-27(일) 돌잔치 축으로 이동. 쇼츠 zfSd1cZtulk 09-27 19:00 예약(재생목록 돌잔치 영상). 인스타는 09-20에 안 올렸으면 09-27 21:00으로. 09-18 무나레이션 편과 비교용",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/zfSd1cZtulk",
+     "publishAt": "2026-09-27T10:00:00Z",
+     "due": "2026-09-27T19:00:00+09:00"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-09-27T21:00:00+09:00"
+    }
+   }
+  },
+  {
+   "id": "2026-09-25_19",
+   "date": "2026-09-25",
+   "time": "19:00",
+   "kind": "파생·정보형",
+   "work": "18번",
+   "title": "18번(영화관 예고편 프로포즈)의 파생물 — 최악의 프로포즈 5가지 릴스 (서진 나레이션)",
+   "memo": "09-21 배치. 쇼츠 gH4aqgQbC0s 09-25 19:00 예약. 인스타·쓰레드 캡션.txt. 롤모델 5★ '마지막 컷=상품' 적용. 소재는 09-21 유튜브 수요 실측(최악의 프로포즈 26.6만·5만)",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/gH4aqgQbC0s",
+     "publishAt": "2026-09-25T10:00:00Z",
+     "due": "2026-09-25T19:00:00+09:00"
+    },
+    "instagram": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-09-25T21:00:00+09:00"
+    },
+    "threads": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-09-25T21:00:00+09:00"
+    }
+   }
+  },
+  {
+   "id": "2026-09-25_19b",
+   "date": "2026-09-25",
+   "time": "19:00",
+   "kind": "파생·블로그",
+   "work": "4번",
+   "title": "4번(아버지 환갑 작품)의 파생물 — 정보형 블로그 「환갑 영상 제작, 잔치 한 달 전에는 맡겨야 하는 이유」",
+   "memo": "09-21 배치. 블로그.md(이미지 6장+QR, 영상 중간, 동영상 업로드 메타 3종) → 찬진 네이버 예약 09-25 19:00",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-09-25T19:00:00+09:00"
     }
    }
   }
