@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-22T12:00+09:00",
+ "updated": "2026-09-22T12:38+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -211,22 +211,26 @@
    "kind": "작품",
    "work": "20번",
    "title": "20번(시네마틱 프로포즈 「13시간」 — 장거리 연애) 첫 발행",
-   "memo": "최종본 47.6초(09-17 15:00). 원고 7채널_원고.md · 썸네일 B · 영어판 드래프트 `(영어)찬작_시네마틱20_13시간` 내보내기 대기",
+   "memo": "09-22 찬진 OK → 롱폼 ssLGeJHoXiM / 쇼츠 hiIs5segUew 09-23 19:00 예약(재생목록 프로포즈). 블로그·클립·인스타·쓰레드 원고는 7채널_원고.md(09-22 QR·동영상 메타·화살표 정정). 클립은 찬진 예약 후 블로그 연결",
    "prep": [
     {
      "text": "유튜브 제목 확인(7채널_원고.md 3·4절) → 세션 예약 업로드",
-     "done": false
+     "done": true
     }
    ],
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/ssLGeJHoXiM",
+     "publishAt": "2026-09-23T10:00:00Z",
      "due": "2026-09-23T19:00:00+09:00"
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/hiIs5segUew",
+     "publishAt": "2026-09-23T10:00:00Z",
      "due": "2026-09-23T19:00:00+09:00"
     },
     "instagram": {
