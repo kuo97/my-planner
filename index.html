@@ -138,6 +138,16 @@
   .cal-stats-row { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: -4px 0 10px; }
   .cal-stats-row .ex-stats.cal-ex { margin: 0; }
   .ex-stats.hair-stats { background: var(--paper-card); border-color: var(--line); }
+  .ex-stats.lotto-pick {
+    background: var(--paper-card); border-color: var(--line); color: var(--muted);
+    cursor: pointer; font-family: inherit; gap: 4px;
+  }
+  .ex-stats.lotto-pick b {
+    font-family: 'Gaegu', sans-serif; font-size: 14px; color: var(--ink); margin: 0;
+    min-width: 21px; text-align: center; background: var(--paper); border-radius: 999px; padding: 1px 4px;
+  }
+  .ex-stats.lotto-pick .lotto-again { font-size: 11px; color: var(--muted); margin-left: 3px; }
+  .ex-stats.lotto-pick:active { transform: scale(0.97); }
   .ex-stats.hair-stats b { color: var(--ink); }
   .hair-toggle {
     display: inline-block; margin-top: 10px; margin-right: 8px; padding: 7px 13px; border-radius: 999px;
@@ -1630,6 +1640,40 @@ function exerciseStatsEl() {
   return el;
 }
 
+/* ---------- 로또 번호 추천 (6/45) ----------
+   한 번 뽑은 번호는 그날 안에선 그대로 두고(화면이 다시 그려져도 안 바뀜), 다시 누르면 새로 뽑는다. */
+const LOTTO_KEY = "lotto_pick";
+function drawLotto() {
+  const pool = Array.from({ length: 45 }, (_, i) => i + 1);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 6).sort((a, b) => a - b);
+}
+function lottoStatsEl() {
+  let saved = null;
+  try {
+    const raw = JSON.parse(localStorage.getItem(LOTTO_KEY) || "null");
+    if (raw && raw.date === todayStr() && Array.isArray(raw.nums)) saved = raw.nums;
+  } catch {}
+  const el = document.createElement("button");
+  el.type = "button";
+  el.className = "ex-stats lotto-pick";
+  const paint = nums => {
+    el.innerHTML = `<span class="ex-icon">🎱</span>` + (nums
+      ? nums.map(n => `<b>${n}</b>`).join("") + `<span class="lotto-again">다시</span>`
+      : `<span>로또 번호 뽑기</span>`);
+  };
+  paint(saved);
+  el.addEventListener("click", () => {
+    const nums = drawLotto();
+    try { localStorage.setItem(LOTTO_KEY, JSON.stringify({ date: todayStr(), nums })); } catch {}
+    paint(nums);
+  });
+  return el;
+}
+
 /* ---------- 이발 기록: 달력에서 날짜를 고르고 ✂️ 칩을 누르면 그 날 이발한 걸로 기록 ---------- */
 function lastHaircutDate() {
   const dates = Object.keys(calMap).filter(d => calMap[d].haircut && d <= todayStr()).sort();
@@ -2750,7 +2794,11 @@ function render() {
     });
     const statusEl = gcalBar.querySelector("#gcalStatus");
     if (statusEl) statusEl.addEventListener("click", () => alert("구글 캘린더 연동 기록 (최신순)\n\n" + gcalLogEntries().slice().reverse().join("\n")));
-    list.appendChild(exerciseStatsEl());
+    const statsRow = document.createElement("div");
+    statsRow.className = "cal-stats-row";
+    statsRow.appendChild(exerciseStatsEl());
+    statsRow.appendChild(lottoStatsEl());
+    list.appendChild(statsRow);
     list.appendChild(gcalBar);
   }
 
