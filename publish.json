@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-24T20:19+09:00",
+ "updated": "2026-09-24T20:23+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -572,7 +572,9 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/ua1Dm5nvmnw",
+     "publishAt": "2026-09-30T19:00:00+09:00",
      "due": "2026-09-30T19:00:00+09:00",
      "ready": false
     },
