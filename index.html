@@ -3163,7 +3163,7 @@ taskCtxMenu.addEventListener("click", async (e) => {
    publish.json 은 찬작 세션(Claude)이 발행_일정.json 에서 만들어 이 저장소에 push 한다.
    찬진이 직접 예약하는 채널(인스타·쓰레드·블로그·클립·카카오)은 칩을 눌러 대기→예약됨→발행됨 으로 바꾸고,
    그 상태는 Supabase publish_status 에 저장된다(세션이 anon 키로 읽어 발행_일정.md 에 반영).
-   세션이 올리는 채널(유튜브)은 점선 칩 — publish.json 값만 보여준다. */
+   자동 발행 채널(유튜브·인스타·쓰레드)은 점선 칩 — publish.json 값만 보여준다. 영상·캡션이 다 있으면 준비됨. */
 const PUBLISH_URL = "./publish.json";
 const PUB_CH = { youtube: "유튜브", shorts: "쇼츠", instagram: "인스타", threads: "쓰레드", blog: "블로그", clip: "클립", kakao: "카카오" };
 const PUB_ST = { todo: "대기", scheduled: "예약됨", published: "발행됨", skip: "안 올림" };

@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-24T17:22+09:00",
+ "updated": "2026-09-24T17:24+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -480,13 +480,13 @@
      "who": "session",
      "status": "todo",
      "due": "2026-09-28T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "todo",
      "due": "2026-09-28T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -519,13 +519,13 @@
      "who": "session",
      "status": "todo",
      "due": "2026-09-29T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "todo",
      "due": "2026-09-29T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
