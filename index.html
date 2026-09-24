@@ -279,6 +279,8 @@
     background: var(--coral); vertical-align: -2px; }
   .pub-legend .lg { font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1.5px solid var(--line); background: white; }
   .pub-legend .lg.s-todo { border-color: var(--coral); color: var(--coral); background: #FFF6F3; }
+  /* 준비됨 = 영상·캡션이 다 있고 발행 시각만 남은 상태 (2026-09-24) */
+  .pub-ch .s-ready, .pub-legend .lg.s-ready { border-color: var(--sage); color: var(--sage); background: var(--sage-soft); }
   .pub-legend .lg.s-scheduled { background: var(--gcal-soft); border-color: var(--gcal); color: var(--gcal); }
   .pub-legend .lg.s-published { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); }
 
@@ -3238,8 +3240,9 @@ function renderPublish() {
 
   const lg = document.createElement("div"); lg.className = "pub-legend";
   lg.innerHTML = '<span class="bar"></span> 왼쪽 빨간 선 = <b>내가 아직 안 올린 것</b>'
-    + ' &nbsp;·&nbsp; <span class="lg s-todo">대기</span> <span class="lg s-scheduled">예약됨</span> <span class="lg s-published">발행됨</span>'
-    + ' &nbsp;·&nbsp; 점선 = 세션이 올리는 것';
+    + ' &nbsp;·&nbsp; <span class="lg s-todo">대기</span> <span class="lg s-ready">준비됨</span>'
+    + ' <span class="lg s-scheduled">예약됨</span> <span class="lg s-published">발행됨</span>'
+    + ' &nbsp;·&nbsp; 점선 = <b>자동 발행</b>';
   list.appendChild(lg);
 
   const drawDays = function (arr, isPast) {
@@ -3281,12 +3284,15 @@ function renderPublish() {
         const lb = document.createElement("span"); lb.className = "rowlab"; lb.textContent = "자동"; r2.appendChild(lb);
         auto.forEach(function (e) {
           const ch = e[0], conf = e[1], st = pubChipState(slot, ch, conf);
-          const txt = (PUB_CH[ch] || ch) + " " + pubHM(conf.due, slot, ch) + " · " + (PUB_ST[st.status] || st.status);
+          // 아직 안 나갔지만 영상·캡션이 다 있으면 '대기' 가 아니라 '준비됨' 이다 (2026-09-24 찬진)
+          const label = st.status === "todo" && conf.ready ? "준비됨" : (PUB_ST[st.status] || st.status);
+          const txt = (PUB_CH[ch] || ch) + " " + pubHM(conf.due, slot, ch) + " · " + label;
+          const cls = "s-" + st.status + " s-session" + (st.status === "todo" && conf.ready ? " s-ready" : "");
           if (st.url) {
             const a2 = document.createElement("a"); a2.href = st.url; a2.target = "_blank";
-            a2.className = "s-" + st.status + " s-session"; a2.innerHTML = txt + " ↗"; r2.appendChild(a2);
+            a2.className = cls; a2.innerHTML = txt + " ↗"; r2.appendChild(a2);
           } else {
-            const sp = document.createElement("span"); sp.className = "s-" + st.status + " s-session";
+            const sp = document.createElement("span"); sp.className = cls;
             sp.textContent = txt; r2.appendChild(sp);
           }
         });
