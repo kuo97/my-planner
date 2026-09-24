@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-24T18:03+09:00",
+ "updated": "2026-09-24T18:06+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -510,7 +510,7 @@
    "prep": [
     {
      "text": "네이버 클립 업로드 — 콘텐츠 링크에 블로그 글 주소 넣기",
-     "done": false,
+     "done": true,
      "ch": "clip"
     }
    ],
@@ -529,7 +529,7 @@
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-09-29T21:00:00+09:00",
      "ready": false
     },
