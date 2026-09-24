@@ -271,6 +271,17 @@
     border: none; background: none; padding: 0 2px 0 0; min-width: 26px; }
   .pub-ch button b { font-weight: 800; }
   .pub-ch.auto a { text-decoration: none; }
+  /* 상태를 색과 글자 둘 다로 (09-24 찬진: "예약 발행이 된 건지도 보기 좋게") */
+  .pub-slot.mine .pub-ch button.s-todo { border-color: var(--coral); color: var(--coral); background: #FFF6F3; }
+  .pub-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+    font-size: 11.5px; color: var(--muted); margin: 2px 0 4px; line-height: 1.7; }
+  .pub-legend .bar { display: inline-block; width: 5px; height: 13px; border-radius: 3px;
+    background: var(--coral); vertical-align: -2px; }
+  .pub-legend .lg { font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1.5px solid var(--line); background: white; }
+  .pub-legend .lg.s-todo { border-color: var(--coral); color: var(--coral); background: #FFF6F3; }
+  .pub-legend .lg.s-scheduled { background: var(--gcal-soft); border-color: var(--gcal); color: var(--gcal); }
+  .pub-legend .lg.s-published { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); }
+
   .pub-legend { font-size: 11.5px; color: var(--muted); margin: 4px 0 2px; line-height: 1.6; }
   .pub-updated { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: 10px; }
   .pub-more { width: 100%; padding: 10px; border-radius: 12px; border: 1.5px dashed var(--line); background: transparent; color: var(--muted); font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 6px; }
@@ -3067,6 +3078,12 @@ function renderPublish() {
     list.appendChild(card);
   });
 
+  const lg = document.createElement("div"); lg.className = "pub-legend";
+  lg.innerHTML = '<span class="bar"></span> 왼쪽 빨간 선 = <b>내가 아직 안 올린 것</b>'
+    + ' &nbsp;·&nbsp; <span class="lg s-todo">대기</span> <span class="lg s-scheduled">예약됨</span> <span class="lg s-published">발행됨</span>'
+    + ' &nbsp;·&nbsp; 점선 = 세션이 올리는 것';
+  list.appendChild(lg);
+
   const drawDays = function (arr, isPast) {
     let lastDate = null;
     arr.forEach(function (slot) {
@@ -3095,7 +3112,7 @@ function renderPublish() {
           const ch = e[0], conf = e[1], st = pubChipState(slot, ch, conf);
           const btn = document.createElement("button"); btn.className = "s-" + st.status;
           btn.innerHTML = (PUB_CH[ch] || ch) + ' <b>' + pubHM(conf.due, slot, ch) + '</b>'
-            + (st.status === "scheduled" ? " 예약함" : st.status === "published" ? " 발행함" : "");
+            + ' · ' + (PUB_ST[st.status] || st.status);
           btn.addEventListener("click", function () { pubCycle(slot, ch, conf, btn); });
           r1.appendChild(btn);
         });
@@ -3106,7 +3123,7 @@ function renderPublish() {
         const lb = document.createElement("span"); lb.className = "rowlab"; lb.textContent = "자동"; r2.appendChild(lb);
         auto.forEach(function (e) {
           const ch = e[0], conf = e[1], st = pubChipState(slot, ch, conf);
-          const txt = (PUB_CH[ch] || ch) + " " + pubHM(conf.due, slot, ch);
+          const txt = (PUB_CH[ch] || ch) + " " + pubHM(conf.due, slot, ch) + " · " + (PUB_ST[st.status] || st.status);
           if (st.url) {
             const a2 = document.createElement("a"); a2.href = st.url; a2.target = "_blank";
             a2.className = "s-" + st.status + " s-session"; a2.innerHTML = txt + " ↗"; r2.appendChild(a2);
