@@ -580,7 +580,9 @@
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/ppMTv5Kn2sQ",
+     "publishAt": "2026-09-30T19:00:00+09:00",
      "due": "2026-09-30T19:00:00+09:00",
      "ready": false
     },
