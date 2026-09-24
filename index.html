@@ -257,6 +257,35 @@
   .pub-ch .s-published { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); }
   .pub-ch .s-skip { text-decoration: line-through; opacity: .6; }
   .pub-ch .s-session { border-style: dashed; }
+  /* 09-24 재설계: ①내가 올릴 것 ②자동으로 나갈 것 ③올린 것 */
+  .pub-sec { margin: 20px 0 9px; display: flex; align-items: baseline; justify-content: space-between; font-weight: 800; font-size: 16px; }
+  .pub-sec .cnt { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+  .pub-none { font-size: 13px; color: var(--muted); padding: 10px 2px 2px; }
+  .todo-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    background: white; border: 1.5px solid var(--line); border-left: 6px solid var(--line);
+    border-radius: 16px; padding: 13px 14px; margin-bottom: 9px; font-family: inherit; cursor: pointer; }
+  .todo-row.now { border-left-color: var(--coral); background: #FFF6F3; }
+  .todo-row.soon { border-left-color: var(--gcal); }
+  .todo-row .when { min-width: 76px; display: flex; flex-direction: column; line-height: 1.25; }
+  .todo-row .when b { font-size: 14px; font-weight: 800; }
+  .todo-row .when span { font-size: 12px; color: var(--muted); }
+  .todo-row.now .when b { color: var(--coral); }
+  .todo-row .mid { flex: 1; min-width: 0; }
+  .todo-row .ch { font-size: 15px; font-weight: 800; }
+  .todo-row .ch .badge { font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;
+    background: var(--gcal-soft); color: var(--gcal); vertical-align: 2px; }
+  .todo-row .ttl { font-size: 12.5px; color: var(--muted); margin-top: 1px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .todo-row .prep { font-size: 12px; color: var(--danger); margin-top: 4px; line-height: 1.45; white-space: normal; }
+  .todo-row .go { font-size: 11.5px; font-weight: 800; color: var(--gcal); white-space: nowrap; }
+  .pub-slot .head { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+  .pub-slot .when2 { font-size: 12.5px; font-weight: 800; color: var(--muted); }
+  .pub-slot.today .when2 { color: var(--coral); }
+  .pub-slot .t2 { font-size: 15.5px; font-weight: 800; line-height: 1.35; }
+  .pub-auto { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
+  .pub-auto a { color: var(--gcal); font-weight: 700; text-decoration: none; }
+  .memo-toggle { font-size: 11.5px; color: var(--muted); background: none; border: none;
+    padding: 4px 0 0; cursor: pointer; font-family: inherit; text-decoration: underline; }
   .pub-legend { font-size: 11.5px; color: var(--muted); margin: 4px 0 2px; line-height: 1.6; }
   .pub-updated { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: 10px; }
   .pub-more { width: 100%; padding: 10px; border-radius: 12px; border: 1.5px dashed var(--line); background: transparent; color: var(--muted); font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 6px; }
@@ -3024,69 +3053,135 @@ async function pubCycle(slot, ch, conf, btn) {
   renderPublish();
 }
 
+function pubShort(slot) {
+  return slot.short || slot.title || "";
+}
+function pubWhenLabel(iso, today) {
+  const d = new Date(iso), ds = iso.slice(0, 10);
+  const dd = Math.round((new Date(ds + "T00:00:00") - new Date(today + "T00:00:00")) / 86400000);
+  const hm = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  const day = dd === 0 ? "오늘" : dd === 1 ? "내일" : (d.getMonth() + 1) + "/" + d.getDate() + "(" + DAY_NAMES[d.getDay()] + ")";
+  return { day: day, hm: hm, dd: dd };
+}
+
+/* 발행 탭 — 2026-09-24 재설계.
+   찬진: "지금 업로드 할 거랑 업로드한 거 보기 아주 좋고 눈에 잘 들어오게. 지금은 너무 장황해서 눈에 안 들어와"
+   ① 내가 올릴 것 (찬진 채널만, 날짜순 한 줄씩 · 누르면 상태 순환)
+   ② 자동으로 나갈 것 (날짜별, 짧은 제목 + 자동 채널 요약. 제작 메모는 '자세히'로 접는다)
+   ③ 올린 것 (접힘) */
 function renderPublish() {
   const list = $("list"); list.innerHTML = "";
   if (!publishData) { list.innerHTML = '<div class="empty">publish.json 을 못 읽었어요. 세션이 아직 push 하지 않았거나 오프라인이에요.</div>'; return; }
   const today = todayStr();
-  const legend = document.createElement("div"); legend.className = "pub-legend";
-  legend.innerHTML = "칩을 누르면 <b>대기 → 예약됨 → 발행됨</b> 순으로 바뀌어요. 칩의 시각 = 그 채널 업로드 시각(유튜브·블로그 19:00 · 인스타·쓰레드·클립 21:00 · 카카오는 당일 아무 때나). 점선 칩 = 세션이 올리는 유튜브, 자동 갱신.";
-  list.appendChild(legend);
-  // ★ 납기 고정 카드 (2026-09-18 찬진: "의뢰작 납기일도 눈에 아주 잘 띄게") — publish.json deadlines, status!=done
-  const dls = (publishData.deadlines || []).filter(x => x.status !== "done").sort((a, b) => a.due.localeCompare(b.due));
-  dls.forEach(x => {
+  const slots = (publishData.slots || []).slice().sort(function (x, y) { return (x.date + x.time).localeCompare(y.date + y.time); });
+
+  // 납기 고정 카드 (기존 유지)
+  const dls = (publishData.deadlines || []).filter(function (x) { return x.status !== "done"; }).sort(function (x, y) { return x.due.localeCompare(y.due); });
+  dls.forEach(function (x) {
     const dd = Math.round((new Date(x.due + "T00:00:00") - new Date(today + "T00:00:00")) / 86400000);
     const d = new Date(x.due + "T00:00:00");
     const card = document.createElement("div"); card.className = "pub-deadline" + (dd <= 2 ? " urgent" : "");
-    card.innerHTML = `<div class="dday">${dd < 0 ? "D+" + (-dd) : dd === 0 ? "D-DAY" : "D-" + dd}</div><div class="body"><div class="k">${x.kind || "납기"} · ${d.getMonth()+1}월 ${d.getDate()}일 ${DAY_NAMES[d.getDay()]}</div><div class="t">${x.title}</div>${x.memo ? `<div class="m">${x.memo}</div>` : ""}</div>`;
+    card.innerHTML = '<div class="dday">' + (dd < 0 ? "D+" + (-dd) : dd === 0 ? "D-DAY" : "D-" + dd) + '</div>'
+      + '<div class="body"><div class="k">' + (x.kind || "납기") + ' · ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + DAY_NAMES[d.getDay()] + '</div>'
+      + '<div class="t">' + x.title + '</div>' + (x.memo ? '<div class="m">' + x.memo + '</div>' : "") + '</div>';
     list.appendChild(card);
   });
-  const slots = (publishData.slots || []).slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  const upcoming = slots.filter(x => x.date >= today), past = slots.filter(x => x.date < today).reverse();
-  const draw = (arr) => {
-    let lastDate = null;
-    arr.forEach(slot => {
-      if (slot.date !== lastDate) {
-        lastDate = slot.date;
-        const d = new Date(slot.date + "T00:00:00");
-        const h = document.createElement("div"); h.className = "pub-day" + (slot.date === today ? " today" : "");
-        h.innerHTML = `<span class="d">${d.getMonth()+1}월 ${d.getDate()}일 ${DAY_NAMES[d.getDay()]}</span><span class="w">${slot.date === today ? "오늘" : ""}</span>`;
-        list.appendChild(h);
-      }
-      const chs = Object.entries(slot.channels || {});
-      const states = chs.map(([ch, conf]) => pubChipState(slot, ch, conf).status);
-      const allDone = states.length && states.every(st => st === "published" || st === "skip");
-      const card = document.createElement("div"); card.className = "pub-slot" + (allDone ? " done" : "");
-      const prepLeft = (slot.prep || []).filter(p => !p.done);
-      const prepHtml = (slot.prep || []).length
-        ? `<div class="prep ${prepLeft.length ? "" : "ok"}">${prepLeft.length ? "⚠ 먼저: " + prepLeft.map(p => p.text).join(" · ") : "✓ 준비 완료 — 예약만 걸면 돼요"}</div>` : "";
-      card.innerHTML = `<div class="t"><span class="kind">${slot.kind || ""}</span>${slot.time || "19:00"} · ${slot.title}</div>${prepHtml}${slot.memo ? `<div class="memo">${slot.memo}</div>` : ""}`;
-      const row = document.createElement("div"); row.className = "pub-ch";
-      chs.forEach(([ch, conf]) => {
-        const st = pubChipState(slot, ch, conf);
-        const when = st.status === "scheduled" && st.at ? pubFmtAt(st.at) : (conf.due ? pubFmtAt(conf.due) : "");
-        const label = `${PUB_CH[ch] || ch} · ${PUB_ST[st.status] || st.status}${when ? " " + when : ""}`;
-        if (conf.who === "chanjin") {
-          const b = document.createElement("button"); b.className = "s-" + st.status; b.textContent = label;
-          b.addEventListener("click", () => pubCycle(slot, ch, conf, b)); row.appendChild(b);
-        } else {
-          const sp = document.createElement("span"); sp.className = "s-" + st.status + " s-session";
-          sp.textContent = label;
-          if (st.url) { const a = document.createElement("a"); a.href = st.url; a.target = "_blank"; a.textContent = " ↗"; a.style.color = "inherit"; sp.appendChild(a); }
-          row.appendChild(sp);
-        }
-      });
-      card.appendChild(row); list.appendChild(card);
+
+  // ── ① 내가 올릴 것 ──
+  const todos = [];
+  slots.filter(function (x) { return x.date >= today; }).forEach(function (slot) {
+    Object.entries(slot.channels || {}).forEach(function (e) {
+      const ch = e[0], conf = e[1];
+      if (conf.who !== "chanjin") return;
+      const st = pubChipState(slot, ch, conf);
+      if (st.status === "published" || st.status === "skip") return;
+      todos.push({ slot: slot, ch: ch, conf: conf, st: st, due: conf.due || (slot.date + "T" + (slot.time || "19:00") + ":00+09:00") });
     });
-  };
-  if (!upcoming.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "예정된 발행이 없어요."; list.appendChild(e); }
-  draw(upcoming);
-  if (past.length) {
-    const b = document.createElement("button"); b.className = "pub-more";
-    b.textContent = publishShowPast ? "지난 발행 접기" : `지난 발행 ${past.length}건 보기`;
-    b.addEventListener("click", () => { publishShowPast = !publishShowPast; renderPublish(); });
-    list.appendChild(b);
-    if (publishShowPast) draw(past);
+  });
+  todos.sort(function (x, y) { return x.due.localeCompare(y.due); });
+
+  const h1 = document.createElement("div"); h1.className = "pub-sec";
+  h1.innerHTML = '<span>✍️ 내가 올릴 것</span><span class="cnt">' + todos.length + '건</span>';
+  list.appendChild(h1);
+  if (!todos.length) {
+    const e0 = document.createElement("div"); e0.className = "pub-none";
+    e0.textContent = "올릴 게 없어요. 나머지는 자동으로 나갑니다 🎉";
+    list.appendChild(e0);
   }
+  todos.forEach(function (t) {
+    const w = pubWhenLabel(t.due, today);
+    const prepLeft = (t.slot.prep || []).filter(function (x) { return !x.done; });
+    const row = document.createElement("button");
+    row.className = "todo-row" + (w.dd <= 0 ? " now" : w.dd === 1 ? " soon" : "");
+    row.innerHTML =
+      '<div class="when"><b>' + w.day + '</b><span>' + w.hm + '</span></div>'
+      + '<div class="mid"><div class="ch">' + (PUB_CH[t.ch] || t.ch)
+      + (t.st.status === "scheduled" ? ' <span class="badge">예약함</span>' : "") + '</div>'
+      + '<div class="ttl">' + pubShort(t.slot) + '</div>'
+      + (prepLeft.length ? '<div class="prep">⚠ ' + prepLeft.map(function (x) { return x.text; }).join(" · ") + '</div>' : "")
+      + '</div><div class="go">' + (t.st.status === "todo" ? "눌러서 예약함" : "눌러서 발행함") + '</div>';
+    row.addEventListener("click", function () { pubCycle(t.slot, t.ch, t.conf, row); });
+    list.appendChild(row);
+  });
+
+  // ── ② 자동으로 나갈 것 ──
+  const upcoming = slots.filter(function (x) { return x.date >= today; });
+  const h2 = document.createElement("div"); h2.className = "pub-sec";
+  h2.innerHTML = '<span>🤖 자동으로 나갈 것</span><span class="cnt">' + upcoming.length + '편</span>';
+  list.appendChild(h2);
+  if (!upcoming.length) {
+    const e1 = document.createElement("div"); e1.className = "pub-none"; e1.textContent = "예정된 발행이 없어요.";
+    list.appendChild(e1);
+  }
+  upcoming.forEach(function (slot) {
+    const w = pubWhenLabel(slot.date + "T" + (slot.time || "19:00") + ":00+09:00", today);
+    const all = Object.entries(slot.channels || {});
+    const auto = all.filter(function (e) { return e[1].who !== "chanjin"; });
+    const mine = all.filter(function (e) { return e[1].who === "chanjin"; });
+    const ready = auto.filter(function (e) { return pubChipState(slot, e[0], e[1]).status !== "todo"; }).length;
+    const links = auto.filter(function (e) { return pubChipState(slot, e[0], e[1]).url; })
+      .map(function (e) { return '<a href="' + pubChipState(slot, e[0], e[1]).url + '" target="_blank">' + (PUB_CH[e[0]] || e[0]) + ' ↗</a>'; }).join(" ");
+    const card = document.createElement("div"); card.className = "pub-slot" + (w.dd === 0 ? " today" : "");
+    card.innerHTML =
+      '<div class="head"><span class="when2">' + w.day + ' ' + w.hm + '</span><span class="kind">' + (slot.kind || "") + '</span></div>'
+      + '<div class="t2">' + pubShort(slot) + '</div>'
+      + '<div class="pub-auto">'
+      + (auto.length ? '자동 ' + auto.map(function (e) { return PUB_CH[e[0]] || e[0]; }).join("·") + ' <b>' + ready + '/' + auto.length + ' 준비됨</b>' : "자동 채널 없음")
+      + (mine.length ? ' · 내가 올릴 것 ' + mine.map(function (e) { return PUB_CH[e[0]] || e[0]; }).join("·") : "")
+      + (links ? ' · ' + links : "") + '</div>'
+      + (slot.memo ? '<button class="memo-toggle">자세히</button><div class="memo" hidden>' + slot.memo + '</div>' : "");
+    const tg = card.querySelector(".memo-toggle");
+    if (tg) tg.addEventListener("click", function () {
+      const m = card.querySelector(".memo"); m.hidden = !m.hidden; tg.textContent = m.hidden ? "자세히" : "접기";
+    });
+    list.appendChild(card);
+  });
+
+  // ── ③ 올린 것 ──
+  const past = slots.filter(function (x) { return x.date < today; }).reverse();
+  if (past.length) {
+    const more = document.createElement("button"); more.className = "pub-more";
+    more.textContent = publishShowPast ? "올린 것 접기" : "✅ 올린 것 " + past.length + "편 보기";
+    more.addEventListener("click", function () { publishShowPast = !publishShowPast; renderPublish(); });
+    list.appendChild(more);
+    if (publishShowPast) past.forEach(function (slot) {
+      const d = new Date(slot.date + "T00:00:00");
+      const chs = Object.entries(slot.channels || {});
+      const done = chs.filter(function (e) { return pubChipState(slot, e[0], e[1]).status === "published"; }).length;
+      const links = chs.filter(function (e) { return pubChipState(slot, e[0], e[1]).url; })
+        .map(function (e) { return '<a href="' + pubChipState(slot, e[0], e[1]).url + '" target="_blank">' + (PUB_CH[e[0]] || e[0]) + ' ↗</a>'; }).join(" ");
+      const card = document.createElement("div"); card.className = "pub-slot done";
+      card.innerHTML = '<div class="head"><span class="when2">' + (d.getMonth() + 1) + '/' + d.getDate() + '(' + DAY_NAMES[d.getDay()] + ')</span>'
+        + '<span class="kind">' + (slot.kind || "") + '</span></div>'
+        + '<div class="t2">' + pubShort(slot) + '</div>'
+        + '<div class="pub-auto">' + done + '/' + chs.length + ' 발행됨' + (links ? ' · ' + links : "") + '</div>';
+      list.appendChild(card);
+    });
+  }
+
+  const lg = document.createElement("div"); lg.className = "pub-legend";
+  lg.textContent = "위 칸을 누르면 대기 → 예약함 → 발행함 으로 바뀌어요.";
+  list.appendChild(lg);
   const u = document.createElement("div"); u.className = "pub-updated";
   u.textContent = "세션 갱신 " + (publishData.updated || "");
   list.appendChild(u);
