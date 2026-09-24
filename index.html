@@ -674,6 +674,44 @@
   }
   .date-toggle button.on { background: var(--coral); border-color: var(--coral); color: white; }
 
+  /* ---------- 성장 (일기 탭) ---------- */
+  .g-areas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .g-area {
+    --gc: var(--coral); text-align: left; border: 1.5px solid var(--line); background: var(--paper);
+    border-radius: 14px; padding: 10px 12px; cursor: pointer; color: var(--ink); font: inherit;
+    display: flex; flex-direction: column; gap: 2px; transition: transform 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .g-area:active { transform: scale(0.97); }
+  .g-area b { font-family: 'Gaegu', sans-serif; font-size: 18px; color: var(--gc); display: flex; justify-content: space-between; align-items: center; }
+  .g-area b i { font-style: normal; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 12px; color: white; }
+  .g-area span { font-size: 12px; color: var(--muted); line-height: 1.35; }
+  .g-area.on { border-color: var(--gc); background: color-mix(in srgb, var(--gc) 12%, var(--paper-card)); }
+  .g-area.on b i { background: var(--gc); border-color: var(--gc); }
+  .g-line {
+    width: 100%; border: 1.5px solid var(--line); background: var(--paper); border-radius: 12px;
+    padding: 10px 12px; font: inherit; font-size: 14px; color: var(--ink); margin-bottom: 6px; outline: none;
+  }
+  .g-line:focus { border-color: var(--coral); }
+  .g-saved { font-size: 12px; color: var(--muted); text-align: right; min-height: 16px; }
+  .g-streak { font-size: 12.5px; color: var(--sage); }
+  .g-try { margin-top: 8px; background: var(--sage-soft); border-radius: 12px; padding: 9px 12px; font-size: 13.5px; }
+  .g-try b { font-family: 'Gaegu', sans-serif; color: var(--sage); margin-right: 6px; }
+  .g-more { margin-top: 8px; border: none; background: none; color: var(--muted); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; padding: 4px 0; }
+  .g-detail h4 { font-family: 'Gaegu', sans-serif; font-size: 15px; margin: 12px 0 6px; }
+  .g-rank { display: grid; grid-template-columns: 40px 1fr auto; gap: 8px; align-items: center; font-size: 12.5px; margin-bottom: 5px; }
+  .g-rank b { font-family: 'Gaegu', sans-serif; font-size: 15px; }
+  .g-bar { height: 7px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .g-bar i { display: block; height: 100%; border-radius: 99px; }
+  .g-rank small { color: var(--muted); white-space: nowrap; }
+  .g-detail ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
+  .g-detail li { margin: 2px 0; }
+  .g-q { font-size: 13.5px; margin-bottom: 4px; }
+  .g-q b { font-family: 'Gaegu', sans-serif; margin-right: 6px; }
+  .g-q small { color: var(--muted); }
+  .g-notes { font-size: 13px; }
+  .g-notes div { padding: 5px 0; border-bottom: 1px dashed var(--line); }
+  .g-notes time { color: var(--muted); margin-right: 6px; font-size: 12px; }
+
   /* ---------- 달력 ---------- */
   .cal-card { background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 18px; padding: 16px 17px; margin-bottom: 12px; }
   .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -1035,6 +1073,7 @@ async function loadDiary() {
     sb.from("diary").select("*").eq("on_date", editDate).maybeSingle(),
     sb.from("diary").select("*").eq("on_date", lastYearStr()).maybeSingle(),
   ]);
+  await loadGrowth();
   cities = c.data || [];
   todayEntry = t.data || null;
   lastYearEntry = ly.data || null;
@@ -1141,6 +1180,122 @@ async function deleteCity(city) {
   await loadDiary(); renderDiary();
 }
 
+/* ---------- 성장 (2026-09-24) ----------
+   매일 밤 돈·몸·머리·놀이 4칸 + 한 줄 3개 → Supabase growth 표.
+   Claude 는 일요일 아침 스캔에서 growth_export(토큰) RPC 로 기록을 읽고,
+   코칭·이달 퀘스트를 growth.json 으로 이 저장소에 push 한다(발행 탭의 publish.json 과 같은 방식). */
+const GROWTH_AREAS = [
+  { k: "money", nm: "돈",   q: "버는 실력을 한 칸 올렸다", c: "#D39A12" },
+  { k: "body",  nm: "몸",   q: "운동·잠·식사를 챙겼다",   c: "#E0533D" },
+  { k: "mind",  nm: "머리", q: "세상을 하나 더 알았다",   c: "#3B73D9" },
+  { k: "joy",   nm: "놀이", q: "오늘을 즐긴 순간이 있다", c: "#2F9E68" },
+];
+const GROWTH_RANKS = [[0, "하수"], [30, "중수"], [90, "고수"], [180, "달인"], [365, "놀이터 주인"]];
+let growthRows = {}, growthReady = false, growthCoach = null, growthOpen = false;
+let growthTimer = null, growthPending = null;
+const growthDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+async function loadGrowth() {
+  const [g, c] = await Promise.all([
+    sb.from("growth").select("on_date,areas,learn,miss,next_one"),
+    fetch("./growth.json?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+  growthReady = !g.error;
+  if (!g.error) { growthRows = {}; (g.data || []).forEach(r => { growthRows[r.on_date] = r; }); }
+  growthCoach = c;
+}
+function growthEntry(d) { return growthRows[d] || { on_date: d, areas: {}, learn: "", miss: "", next_one: "" }; }
+function growthDayOn(d) { const r = growthRows[d]; return !!(r && r.areas && GROWTH_AREAS.some(a => r.areas[a.k])); }
+function queueGrowthSave(d, ms) {
+  if (growthPending && growthPending !== d) flushGrowth();
+  growthPending = d; clearTimeout(growthTimer);
+  growthTimer = setTimeout(flushGrowth, ms);
+  const st = $("growthSaved"); if (st) st.textContent = "저장 중…";
+}
+async function flushGrowth() {
+  clearTimeout(growthTimer);
+  const d = growthPending; if (!d) return; growthPending = null;
+  const r = growthEntry(d);
+  const { error } = await sb.from("growth").upsert({
+    on_date: d, areas: r.areas || {}, learn: r.learn || "", miss: r.miss || "", next_one: r.next_one || "",
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "user_id,on_date" });
+  const st = $("growthSaved"); if (st) st.textContent = error ? "저장 실패: " + error.message : "저장됨";
+}
+function growthCard(dayWord) {
+  flushGrowth();
+  const card = document.createElement("div");
+  card.className = "dcard";
+  if (!growthReady) {
+    card.innerHTML = `<div class="dlabel">성장</div><div class="wx-loading">성장 기록 표가 아직 없어요 — SETUP.md 1-6 의 SQL 을 Supabase 에서 한 번 실행하면 켜져요</div>`;
+    return card;
+  }
+  const e = growthEntry(editDate);
+  // 연속 기록일: 오늘 칸이 비어 있으면 어제부터 센다
+  let streak = 0; const d = new Date();
+  if (!growthDayOn(todayStr())) d.setDate(d.getDate() - 1);
+  while (growthDayOn(growthDateStr(d))) { streak++; d.setDate(d.getDate() - 1); }
+  const tot = {}; GROWTH_AREAS.forEach(a => { tot[a.k] = 0; });
+  Object.values(growthRows).forEach(r => GROWTH_AREAS.forEach(a => { if (r.areas && r.areas[a.k]) tot[a.k]++; }));
+  const ranks = GROWTH_AREAS.map(a => {
+    const n = tot[a.k]; let i = 0;
+    while (i + 1 < GROWTH_RANKS.length && n >= GROWTH_RANKS[i + 1][0]) i++;
+    const lo = GROWTH_RANKS[i][0], hi = GROWTH_RANKS[i + 1] ? GROWTH_RANKS[i + 1][0] : null;
+    const pct = hi ? Math.round((n - lo) / (hi - lo) * 100) : 100;
+    return `<div class="g-rank"><b style="color:${a.c}">${a.nm}</b><div class="g-bar"><i style="width:${pct}%;background:${a.c}"></i></div>
+      <small>${GROWTH_RANKS[i][1]} · ${n}일${hi ? ` (${GROWTH_RANKS[i + 1][1]}까지 ${hi - n})` : ""}</small></div>`;
+  }).join("");
+  const co = growthCoach || {};
+  const li = arr => (arr || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
+  const quests = (co.quests && co.quests.items) || [];
+  const notes = Object.keys(growthRows).filter(k => (growthRows[k].learn || "").trim()).sort().reverse().slice(0, 30);
+  const moreLabel = () => growthOpen ? "접기 ▴" : "등급 · 코칭 · 세상 노트 ▾";
+  card.innerHTML = `
+    <div class="dlabel" style="justify-content:space-between;"><span>${dayWord}의 성장</span><span class="g-streak">${streak}일 연속</span></div>
+    <div class="g-areas">${GROWTH_AREAS.map(a => `<button type="button" class="g-area${e.areas && e.areas[a.k] ? " on" : ""}" data-k="${a.k}" style="--gc:${a.c}">
+      <b>${a.nm}<i>${e.areas && e.areas[a.k] ? "✓" : ""}</i></b><span>${a.q}</span></button>`).join("")}</div>
+    <input class="g-line" id="gLearn" data-f="learn" placeholder="오늘 알게 된 세상 원리">
+    <input class="g-line" id="gMiss" data-f="miss" placeholder="아쉬운 것 → 다음엔 이렇게">
+    <input class="g-line" id="gNext" data-f="next_one" placeholder="내일 딱 하나">
+    <div class="g-saved" id="growthSaved"></div>
+    ${co.try ? `<div class="g-try"><b>이번 주 실험</b>${escapeHtml(co.try)}</div>` : ""}
+    <button type="button" class="g-more" id="gMore">${moreLabel()}</button>
+    <div class="g-detail" id="gDetail" ${growthOpen ? "" : "hidden"}>
+      <h4>등급</h4>${ranks}
+      ${co.headline ? `<h4>이번 주 코칭 <small style="color:var(--muted);font-size:12px;">${escapeHtml(co.week || "")}</small></h4>
+        <div style="font-size:14px;margin-bottom:4px;">${escapeHtml(co.headline)}</div>
+        ${co.good && co.good.length ? `<ul>${li(co.good.map(x => "잘한 것 · " + x))}</ul>` : ""}
+        ${co.fix && co.fix.length ? `<ul>${li(co.fix.map(x => "고칠 것 · " + x))}</ul>` : ""}` : ""}
+      ${quests.length ? `<h4>이달 퀘스트</h4>${quests.map(q => { const a = GROWTH_AREAS.find(x => x.k === q.area) || { nm: "", c: "" };
+        return `<div class="g-q"><b style="color:${a.c}">${a.nm}</b>${escapeHtml(q.text)} <small>${escapeHtml(q.measure || "")}</small></div>`; }).join("")}` : ""}
+      <h4>세상 노트</h4>
+      <div class="g-notes">${notes.length ? notes.map(k => `<div><time>${Number(k.slice(5, 7))}/${Number(k.slice(8))}</time>${escapeHtml(growthRows[k].learn)}</div>`).join("")
+        : `<div style="color:var(--muted)">‘오늘 알게 된 세상 원리’를 적으면 여기 쌓여요</div>`}</div>
+    </div>`;
+  card.querySelectorAll(".g-line").forEach(inp => {
+    inp.value = e[inp.dataset.f] || "";
+    inp.addEventListener("input", () => {
+      const r = { ...growthEntry(editDate) }; r[inp.dataset.f] = inp.value;
+      growthRows[editDate] = r; queueGrowthSave(editDate, 900);
+    });
+    inp.addEventListener("blur", flushGrowth);
+  });
+  card.querySelectorAll(".g-area").forEach(b => b.addEventListener("click", () => {
+    const r = { ...growthEntry(editDate) }; r.areas = { ...(r.areas || {}) };
+    r.areas[b.dataset.k] = !r.areas[b.dataset.k];
+    growthRows[editDate] = r;
+    const on = r.areas[b.dataset.k];
+    b.classList.toggle("on", on); b.querySelector("i").textContent = on ? "✓" : "";
+    queueGrowthSave(editDate, 300);
+  }));
+  card.querySelector("#gMore").addEventListener("click", () => {
+    growthOpen = !growthOpen;
+    card.querySelector("#gDetail").hidden = !growthOpen;
+    card.querySelector("#gMore").textContent = moreLabel();
+  });
+  return card;
+}
+
 async function renderDiary() {
   const list = $("list");
   list.innerHTML = "";
@@ -1158,6 +1313,9 @@ async function renderDiary() {
   lyCard.className = "dcard";
   lyCard.innerHTML = `<div class="dlabel">작년 이맘때 · ${lastYearStr().slice(0,4)}년 ${new Date().getMonth()+1}월 ${new Date().getDate()}일</div><div class="wx-loading" id="wxLast">불러오는 중...</div>`;
   list.appendChild(lyCard);
+
+  /* 성장 카드 (돈·몸·머리·놀이) */
+  list.appendChild(growthCard(editDate === todayStr() ? "오늘" : "어제"));
 
   /* 오늘/어제 일기 카드 */
   const isToday = editDate === todayStr();

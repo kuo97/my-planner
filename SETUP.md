@@ -142,6 +142,39 @@ grant select on public.publish_status to anon;
 
 발행 일정 자체(`publish.json`)는 세션이 `개인\찬작스튜디오\발행_일정.json` 에서 만들어 이 저장소에 push 한다(`실험\영상편집자동화\publish_sync.py`). 앱은 그 파일만 읽는다.
 
+## 1-6. 성장 기록 (일기 탭 성장 카드) — 추가 SQL
+
+돈·몸·머리·놀이 4칸 + 한 줄 3개. 토큰 자리(`TOKEN_HERE`)에는 **저장소에 올리지 않는** 비밀 토큰을 넣는다
+(실제 SQL은 `실험\성장시스템\growth_setup.sql`, 토큰은 같은 폴더 `growth_token.txt`).
+코칭·퀘스트는 Claude가 `growth.json` 으로 push 한다.
+
+```sql
+create table growth (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users,
+  on_date date not null,
+  areas jsonb not null default '{}'::jsonb,
+  learn text default '',
+  miss text default '',
+  next_one text default '',
+  updated_at timestamptz default now(),
+  unique (user_id, on_date)
+);
+
+alter table growth enable row level security;
+
+create policy "own growth" on growth for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Claude(일요일 아침 스캔)가 anon 키 + 비밀 토큰으로만 읽는 통로. 토큰이 틀리면 빈 결과.
+create or replace function growth_export(p_token text)
+returns setof growth language sql security definer set search_path = public as $$
+  select * from growth where p_token = 'TOKEN_HERE' order by on_date;
+$$;
+revoke all on function growth_export(text) from public;
+grant execute on function growth_export(text) to anon;
+```
+
 ## 2. 프로젝트 키 확인
 
 대시보드 → **Settings → API** 에서 두 값을 복사:
