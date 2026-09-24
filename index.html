@@ -3110,7 +3110,8 @@ function renderPublish() {
   }
   todos.forEach(function (t) {
     const w = pubWhenLabel(t.due, today);
-    const prepLeft = (t.slot.prep || []).filter(function (x) { return !x.done; });
+    // prep 은 채널이 붙은 것만 그 줄에 보여 준다 — 안 그러면 같은 슬롯의 세 채널에 똑같은 문구가 세 번 나온다(09-24)
+    const prepLeft = (t.slot.prep || []).filter(function (x) { return !x.done && (x.ch ? x.ch === t.ch : false); });
     const row = document.createElement("button");
     row.className = "todo-row" + (w.dd <= 0 ? " now" : w.dd === 1 ? " soon" : "");
     row.innerHTML =

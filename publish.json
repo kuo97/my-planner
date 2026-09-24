@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-24T13:17+09:00",
+ "updated": "2026-09-24T13:18+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -13,11 +13,13 @@
    "prep": [
     {
      "text": "캡컷 `찬작_환갑19_가명판` 내보내기 → 세션에 전달",
-     "done": true
+     "done": true,
+     "ch": null
     },
     {
      "text": "세션: 완성본 4종·숏폼 잘라 폴더에 넣기",
-     "done": true
+     "done": true,
+     "ch": null
     }
    ],
    "channels": {
@@ -109,7 +111,8 @@
    "prep": [
     {
      "text": "세션: 숏폼 3종·썸네일·블로그 이미지·7채널 원고 제작 (09-17~18)",
-     "done": true
+     "done": true,
+     "ch": "blog"
     }
    ],
    "channels": {
@@ -166,7 +169,8 @@
    "prep": [
     {
      "text": "세션: 월요일 배치에서 제작",
-     "done": true
+     "done": true,
+     "ch": null
     }
    ],
    "channels": {
@@ -221,7 +225,8 @@
    "prep": [
     {
      "text": "유튜브 제목 확인(7채널_원고.md 3·4절) → 세션 예약 업로드",
-     "done": true
+     "done": true,
+     "ch": null
     }
    ],
    "channels": {
@@ -327,8 +332,9 @@
    "short": "블로그 — 환갑 영상, 한 달 전에 맡겨야 하는 이유",
    "prep": [
     {
-     "text": "네이버 블로그 예약발행 (19:00)",
-     "done": false
+     "text": "네이버 블로그 예약발행",
+     "done": false,
+     "ch": "blog"
     }
    ],
    "channels": {
@@ -350,8 +356,9 @@
    "short": "23번 「이적 발표」 축구 신랑입장",
    "prep": [
     {
-     "text": "19:00 블로그 발행된 뒤 21:00 전에 — 네이버 클립 열어 [콘텐츠 링크 > 블로그]에 그 글 주소 넣기 (예약 발행이라 URL이 19:00에야 생김)",
-     "done": false
+     "text": "네이버 클립 업로드 — 콘텐츠 링크에 블로그 글 주소 넣기",
+     "done": false,
+     "ch": "clip"
     }
    ],
    "channels": {
@@ -450,8 +457,9 @@
    "short": "정보형 — 프로포즈 키워드",
    "prep": [
     {
-     "text": "네이버 클립 업로드 (21:00, 블로그 URL 연결)",
-     "done": false
+     "text": "네이버 클립 업로드 — 콘텐츠 링크에 블로그 글 주소 넣기",
+     "done": false,
+     "ch": "clip"
     }
    ],
    "channels": {
@@ -483,16 +491,19 @@
    "short": "22번 「違うチーム」 야구장 답프로포즈",
    "prep": [
     {
-     "text": "네이버 블로그 예약발행 (19:00)",
-     "done": false
+     "text": "네이버 블로그 예약발행",
+     "done": false,
+     "ch": "blog"
     },
     {
-     "text": "네이버 클립 업로드 (21:00, 블로그 URL 연결)",
-     "done": false
+     "text": "네이버 클립 업로드 — 콘텐츠 링크에 블로그 글 주소 넣기",
+     "done": false,
+     "ch": "clip"
     },
     {
      "text": "카카오채널 소식 올리기 (당일 아무 때나)",
-     "done": false
+     "done": false,
+     "ch": "kakao"
     }
    ],
    "channels": {
@@ -567,12 +578,14 @@
    "short": "정보형 — 환갑·칠순 + 블로그",
    "prep": [
     {
-     "text": "네이버 블로그 예약발행 (19:00)",
-     "done": false
+     "text": "네이버 블로그 예약발행",
+     "done": false,
+     "ch": "blog"
     },
     {
-     "text": "네이버 클립 업로드 (21:00, 블로그 URL 연결)",
-     "done": false
+     "text": "네이버 클립 업로드 — 콘텐츠 링크에 블로그 글 주소 넣기",
+     "done": false,
+     "ch": "clip"
     }
    ],
    "channels": {
@@ -605,7 +618,8 @@
    "prep": [
     {
      "text": "네이버 클립 업로드 (21:00, 09-18 돌잔치 순서 블로그 글 링크 연결)",
-     "done": true
+     "done": true,
+     "ch": "clip"
     }
    ],
    "channels": {
@@ -644,12 +658,14 @@
    "short": "21번 「마지막 질문」 엘리베이터 프로포즈",
    "prep": [
     {
-     "text": "네이버 블로그 예약발행 (19:00)",
-     "done": false
+     "text": "네이버 블로그 예약발행",
+     "done": false,
+     "ch": "blog"
     },
     {
-     "text": "네이버 클립 업로드 (21:00, 블로그 URL 연결)",
-     "done": false
+     "text": "네이버 클립 업로드 — 콘텐츠 링크에 블로그 글 주소 넣기",
+     "done": false,
+     "ch": "clip"
     }
    ],
    "channels": {
