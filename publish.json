@@ -335,7 +335,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/gH4aqgQbC0s",
      "publishAt": "2026-09-25T10:00:00Z",
      "due": "2026-09-25T19:00:00+09:00",
@@ -636,7 +636,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/J8Om1-dgAOk",
-     "publishAt": "2026-10-01T19:00:00+09:00",
+     "publishAt": "2026-10-01T10:00:00Z",
      "due": "2026-10-01T19:00:00+09:00",
      "ready": false
     },
