@@ -1,0 +1,37 @@
+# 찬작 인스타·쓰레드 21:00 클라우드 발행 (2026-09-25) — 노트북이 꺼져 있어도 나간다.
+# 깃허브 예약 실행은 정시에 몰려 5~30분 밀릴 수 있어 21:00 직전부터 여러 번 건다.
+# 스크립트가 발행 시각 전이면 기다리고, 이미 올린 건 건너뛰므로 여러 번 돌아도 한 번만 올라간다.
+name: chanjak-publish
+on:
+  schedule:
+    - cron: "52 11 * * *"   # 20:52 KST — 21:00 까지 기다렸다 발행
+    - cron: "17 12 * * *"   # 21:17 KST — 앞 실행이 밀리거나 실패했을 때
+    - cron: "47 12 * * *"   # 21:47
+    - cron: "37 13 * * *"   # 22:37
+    - cron: "27 14 * * *"   # 23:27 — 그날 마지막. 자정이 지나면 올리지 않는다
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "run = 큐 발행 / test = 호스팅만 시험(게시 안 함)"
+        default: "test"
+      slot_id:
+        description: "(선택) 이 슬롯만 지금 바로 발행"
+        default: ""
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: chanjak-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - name: publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IG_TOKEN_JSON: ${{ secrets.IG_TOKEN_JSON }}
+          TH_TOKEN_JSON: ${{ secrets.TH_TOKEN_JSON }}
+        run: python .github/scripts/cloud_publish.py "${{ github.event.inputs.mode || 'run' }}" ${{ github.event.inputs.slot_id }}
