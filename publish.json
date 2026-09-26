@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-26T00:13+09:00",
+ "updated": "2026-09-26T16:26+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -791,6 +791,77 @@
      "who": "chanjin",
      "status": "todo",
      "due": "2026-10-07T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-10_19",
+   "date": "2026-10-10",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "24번",
+   "title": "24번(시네마틱 칠순 「정순아, 하고 불렀습니다」) 첫 발행",
+   "memo": "09-26 발행 세트 완성 — 숏폼 3종(49.9초)·썸네일 2종(포스터 문법, 카피 '어머님에게도 이름이 있었다')·블로그 정보형+이미지 9장·7채널 원고. 블로그 제목 「칠순 영상 제작, 호칭만 모아도 한 편이 됩니다」(재료형 신규 뼈대). 숏폼 훅 N 숫자형",
+   "short": "24번 「정순아」 칠순",
+   "prep": [
+    {
+     "text": "네이버 블로그 예약발행",
+     "done": false,
+     "ch": "blog"
+    },
+    {
+     "text": "네이버 클립 업로드 — 콘텐츠 링크에 블로그 글 주소 넣기",
+     "done": false,
+     "ch": "clip"
+    },
+    {
+     "text": "카카오채널 소식 올리기 (당일 아무 때나)",
+     "done": false,
+     "ch": "kakao"
+    }
+   ],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-10-10T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-10-10T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-10-10T21:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-10-10T21:00:00+09:00",
+     "ready": false
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-10-10T19:00:00+09:00",
+     "ready": false
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-10-10T21:00:00+09:00",
+     "ready": false
+    },
+    "kakao": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-10-10T19:00:00+09:00",
      "ready": false
     }
    }
