@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-27T20:30+09:00",
+ "updated": "2026-10-03T00:51+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -88,13 +88,13 @@
      "status": "scheduled",
      "at": "2026-09-18T12:00:00+00:00",
      "due": "2026-09-18T21:00:00+09:00",
-     "ready": true
+     "ready": false
     },
     "threads": {
      "who": "chanjin",
      "status": "scheduled",
      "due": "2026-09-18T21:00:00+09:00",
-     "ready": true
+     "ready": false
     },
     "blog": {
      "who": "chanjin",
@@ -204,7 +204,7 @@
      "who": "chanjin",
      "status": "scheduled",
      "due": "2026-09-22T21:00:00+09:00",
-     "ready": true
+     "ready": false
     }
    }
   },
@@ -231,7 +231,7 @@
      "who": "chanjin",
      "status": "todo",
      "due": "2026-09-24T21:00:00+09:00",
-     "ready": true
+     "ready": false
     }
    }
   },
@@ -318,7 +318,7 @@
      "status": "published",
      "at": "2026-09-24T20:26:36+09:00",
      "due": "2026-09-24T21:00:00+09:00",
-     "ready": true
+     "ready": false
     }
    }
   },
@@ -346,14 +346,14 @@
      "status": "published",
      "at": "2026-09-25T21:03:37+09:00",
      "due": "2026-09-25T21:00:00+09:00",
-     "ready": true
+     "ready": false
     },
     "threads": {
      "who": "session",
      "status": "published",
      "at": "2026-09-25T21:06:22+09:00",
      "due": "2026-09-25T21:00:00+09:00",
-     "ready": true
+     "ready": false
     }
    }
   },
@@ -417,15 +417,15 @@
     },
     "instagram": {
      "who": "session",
-     "status": "todo",
-     "due": "2026-09-26T21:00:00+09:00",
-     "ready": true
+     "status": "scheduled",
+     "due": "2026-10-04T21:00:00+09:00",
+     "ready": false
     },
     "threads": {
      "who": "session",
-     "status": "todo",
-     "due": "2026-09-26T21:00:00+09:00",
-     "ready": true
+     "status": "scheduled",
+     "due": "2026-10-04T21:00:00+09:00",
+     "ready": false
     },
     "blog": {
      "who": "chanjin",
@@ -463,8 +463,8 @@
     "instagram": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-09-27T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-05T21:00:00+09:00",
+     "ready": false
     }
    }
   },
@@ -482,14 +482,14 @@
     "instagram": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-09-28T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-06T21:00:00+09:00",
+     "ready": false
     },
     "threads": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-09-28T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-06T21:00:00+09:00",
+     "ready": false
     },
     "shorts": {
      "who": "session",
@@ -521,14 +521,14 @@
     "instagram": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-09-29T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-08T21:00:00+09:00",
+     "ready": false
     },
     "threads": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-09-29T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-08T21:00:00+09:00",
+     "ready": false
     },
     "clip": {
      "who": "chanjin",
@@ -592,14 +592,14 @@
     "instagram": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-09-30T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-09T21:00:00+09:00",
+     "ready": false
     },
     "threads": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-09-30T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-09T21:00:00+09:00",
+     "ready": false
     },
     "blog": {
      "who": "chanjin",
@@ -643,8 +643,8 @@
     "instagram": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-10-01T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-11T21:00:00+09:00",
+     "ready": false
     }
    }
   },
@@ -685,8 +685,8 @@
     "threads": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-10-02T21:00:00+09:00",
-     "ready": true
+     "due": "2026-10-12T21:00:00+09:00",
+     "ready": false
     }
    }
   },
@@ -711,13 +711,13 @@
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-03T21:00:00+09:00",
-     "ready": true
+     "ready": false
     },
     "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-03T21:00:00+09:00",
-     "ready": true
+     "ready": false
     },
     "clip": {
      "who": "chanjin",
