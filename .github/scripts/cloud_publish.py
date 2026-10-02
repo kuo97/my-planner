@@ -169,6 +169,11 @@ def token_warn():
             print("::warning::%s 만료 %s — 노트북에서 publish_cloud.py --stage 를 한 번 돌려 갱신할 것" % (key, exp))
 
 
+def patch_body(rel, m):
+    """초안 본문 갱신. tag_name 을 같이 안 넘기면 초안 태그가 untagged-… 로 바뀌어 q- 큐에서 빠진다 (10-03 발견)."""
+    gh("PATCH", "releases/%d" % rel["id"], {"body": json.dumps(m, ensure_ascii=False), "tag_name": rel["tag_name"]})
+
+
 def download_asset(rel):
     a = [x for x in rel.get("assets", []) if x["name"] == "video.mp4"]
     if not a:
@@ -207,7 +212,7 @@ def run(force_id=None):
                         if m["done"].get(ch) is None:
                             record(sid, ch, "missed", error="발행일이 지나 자동 발행 안 함")
                     m["missed"] = True
-                    gh("PATCH", "releases/%d" % rel["id"], {"body": json.dumps(m, ensure_ascii=False)})
+                    patch_body(rel, m)
                 continue
         todo = [ch for ch in m["channels"] if not m["done"].get(ch)]
         if not todo:
@@ -229,7 +234,7 @@ def run(force_id=None):
                     print("  [OK] %s %s" % (ch, mid))
                     m["done"][ch] = mid
                     # 채널 하나 끝날 때마다 초안에 적는다 — 중간에 죽어도 재실행 때 두 번 올리지 않는다
-                    gh("PATCH", "releases/%d" % rel["id"], {"body": json.dumps(m, ensure_ascii=False)})
+                    patch_body(rel, m)
                     record(sid, ch, "published", media_id=mid, reply_id=rid)
                 except Exception as e:
                     print("  [실패] %s: %s" % (ch, e))
