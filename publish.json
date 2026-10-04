@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-03T00:51+09:00",
+ "updated": "2026-10-04T22:22+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -88,13 +88,13 @@
      "status": "scheduled",
      "at": "2026-09-18T12:00:00+00:00",
      "due": "2026-09-18T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "chanjin",
      "status": "scheduled",
      "due": "2026-09-18T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
@@ -204,7 +204,7 @@
      "who": "chanjin",
      "status": "scheduled",
      "due": "2026-09-22T21:00:00+09:00",
-     "ready": false
+     "ready": true
     }
    }
   },
@@ -231,7 +231,7 @@
      "who": "chanjin",
      "status": "todo",
      "due": "2026-09-24T21:00:00+09:00",
-     "ready": false
+     "ready": true
     }
    }
   },
@@ -346,14 +346,14 @@
      "status": "published",
      "at": "2026-09-25T21:03:37+09:00",
      "due": "2026-09-25T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
      "at": "2026-09-25T21:06:22+09:00",
      "due": "2026-09-25T21:00:00+09:00",
-     "ready": false
+     "ready": true
     }
    }
   },
@@ -418,16 +418,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-04T21:02:05+09:00",
      "due": "2026-10-04T21:00:00+09:00",
-     "ready": false,
-     "at": "2026-10-04T21:02:05+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-04T21:03:33+09:00",
      "due": "2026-10-04T21:00:00+09:00",
-     "ready": false,
-     "at": "2026-10-04T21:03:33+09:00"
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
@@ -466,7 +466,7 @@
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-05T21:00:00+09:00",
-     "ready": false
+     "ready": true
     }
    }
   },
@@ -485,13 +485,13 @@
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-06T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-06T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -524,13 +524,13 @@
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-08T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-08T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
@@ -595,13 +595,13 @@
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-09T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-09T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
@@ -688,7 +688,7 @@
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-12T21:00:00+09:00",
-     "ready": false
+     "ready": true
     }
    }
   },
@@ -712,16 +712,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-03T21:02:39+09:00",
      "due": "2026-10-03T21:00:00+09:00",
-     "ready": false,
-     "at": "2026-10-03T21:02:39+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-03T21:03:57+09:00",
      "due": "2026-10-03T21:00:00+09:00",
-     "ready": false,
-     "at": "2026-10-03T21:03:57+09:00"
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
@@ -745,9 +745,9 @@
    "time": "19:00",
    "kind": "작품",
    "work": "21번",
-   "title": "21번(시네마틱 프로포즈 「마지막 질문」 — 멈춘 엘리베이터) 첫 발행",
-   "memo": "09-23 세트 전부 완성 — FHD/4K · 숏폼 3종(52.7초) · 썸네일 2종(poster, G 대조 카피) · 블로그 이미지 7장 · 6채널 원고(`7채널_원고.md`). 카카오는 이번 회차 없음(09-19 발행, 10일 주기). 남은 것: 유튜브 제목·설명 찬진 확인 → 세션 예약 업로드 / 인스타·쓰레드·블로그·클립은 찬진 예약. 영어판은 별도(시네마틱 라인 필수).",
-   "short": "21번 「마지막 질문」 엘리베이터 프로포즈",
+   "title": "21번(시네마틱 프로포즈 「꽃과 사이렌」 — 멈춘 엘리베이터) 첫 발행",
+   "memo": "10-04 제목 「마지막 질문」→「꽃과 사이렌」 적용(09-24 결정): 타이틀 카드만 새로 그려 캡컷원본 위에 덮어 FHD/4K 재출력, 숏폼 3종·썸네일 2종·블로그 이미지 7장 재생성(make_deliverables21.py), 옛 파일은 소스\\_이전제목_마지막질문\\. BGM 후보1 The Palace Gardens 확정(10-04 찬진). 캡션.txt·유튜브_meta 2종 작성. 카카오는 이번 회차 없음.",
+   "short": "21번 「꽃과 사이렌」 엘리베이터 프로포즈",
    "prep": [
     {
      "text": "네이버 블로그 예약발행",
@@ -775,15 +775,15 @@
     },
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-07T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-07T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
