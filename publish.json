@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-05T00:13+09:00",
+ "updated": "2026-10-05T00:16+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -910,6 +910,39 @@
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-08T21:30:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "2026-10-09_19",
+   "date": "2026-10-09",
+   "time": "19:00",
+   "kind": "정보형",
+   "work": "25번",
+   "title": "25번(시네마틱 프로포즈 「겁쟁이와 천재」)의 파생물 — 정보형 「서프라이즈 프로포즈, 들키는 실수 5가지」",
+   "memo": "10-05 주간 배치 제작. 배경 25번 컷 17·15·06·22·14·19, 엔드 cut_21. BGM Longer Distance(1273Hz). 회피형(09-25 최악의 프로포즈 후속 각도). 인스타·쓰레드 21:30(21:00 엔 22번 파울볼). 금요일 블로그 격주는 이번 주 쉼(작품 블로그 2편)",
+   "short": "서프라이즈 프로포즈 들키는 실수 5가지",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/flv_5MTzndE",
+     "publishAt": "2026-10-09T19:00:00+09:00",
+     "due": "2026-10-09T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-09T21:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-09T21:30:00+09:00",
      "ready": true
     }
    }
