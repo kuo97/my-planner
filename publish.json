@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-04T22:38+09:00",
+ "updated": "2026-10-04T22:40+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -844,15 +844,15 @@
     },
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-10T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-10T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
