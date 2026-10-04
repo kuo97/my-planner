@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-05T00:10+09:00",
+ "updated": "2026-10-05T00:13+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -878,6 +878,39 @@
      "status": "scheduled",
      "due": "2026-10-07T21:00:00+09:00",
      "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-08_19",
+   "date": "2026-10-08",
+   "time": "19:00",
+   "kind": "정보형",
+   "work": "12번",
+   "title": "12번(부모님 감사영상 「도윤 → 엄마·아빠」)의 파생물 — 정보형 「식장을 울린 부모님 감사영상, 공통점 5가지」",
+   "memo": "10-05 주간 배치 제작. 목요일 감성 숏폼은 재료(이미지·그록) 없어 정보형 대체. 배경 12번 컷 03·01·02·04·06·07, 엔드 cut_08. BGM Fruits of Life(1273Hz). 소재 = yt_demand '결혼식 부모님 감사 영상'(중앙 10.2만). 인스타·쓰레드 21:30(21:00 엔 09-29 답프로포즈)",
+   "short": "식장을 울린 부모님 감사영상 공통점",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/0O3NMQkgN88",
+     "publishAt": "2026-10-08T19:00:00+09:00",
+     "due": "2026-10-08T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-08T21:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-08T21:30:00+09:00",
+     "ready": true
     }
    }
   },
