@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-04T23:23+09:00",
+ "updated": "2026-10-05T00:06+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -740,6 +740,39 @@
    }
   },
   {
+   "id": "2026-10-05_19",
+   "date": "2026-10-05",
+   "time": "19:00",
+   "kind": "정보형",
+   "work": "21번",
+   "title": "21번(시네마틱 프로포즈 「꽃과 사이렌」)의 파생물 — 정보형 「프로포즈 반지 사이즈, 몰래 재는 법 5가지」",
+   "memo": "10-05 주간 배치 제작. 배경 21번 업스케일 컷 02·03·13·06·12·08, 엔드 cut_14. BGM Happy Tails(1512Hz). 소재 = yt_demand '프로포즈 반지 사이즈'(최고 161만). 클립·블로그 없음",
+   "short": "프로포즈 반지 사이즈 몰래 재는 법",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/NgRIXPb63BQ",
+     "publishAt": "2026-10-05T19:00:00+09:00",
+     "due": "2026-10-05T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-05T21:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-05T21:30:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "2026-10-07_19",
    "date": "2026-10-07",
    "time": "19:00",
@@ -825,7 +858,7 @@
     },
     {
      "text": "카카오채널 소식 올리기 (당일 아무 때나)",
-     "done": false,
+     "done": true,
      "ch": "kakao"
     }
    ],
@@ -872,7 +905,7 @@
     },
     "kakao": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-10T19:00:00+09:00",
      "ready": false
     }
