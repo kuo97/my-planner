@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-05T11:52+09:00",
+ "updated": "2026-10-05T12:06+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -937,14 +937,14 @@
    "prep": [
     {
      "text": "네이버 블로그 예약발행 (10-08 19:00) — 원고 블로그.md",
-     "done": false,
+     "done": true,
      "ch": "blog"
     }
    ],
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-08T19:00:00+09:00",
      "ready": false
     }
