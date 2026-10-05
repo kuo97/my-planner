@@ -443,11 +443,11 @@
     font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.1s;
   }
   .diary-save:active { transform: scale(0.97); }
-  .city-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .city-grid { display: flex; flex-wrap: wrap; gap: 6px; }
   .city-chip {
-    display: flex; align-items: center; gap: 7px;
+    display: flex; align-items: center; gap: 5px;
     background: var(--paper); border: 1.5px solid var(--line); border-radius: 999px;
-    padding: 8px 12px; font-size: 13.5px; font-weight: 600;
+    padding: 4px 6px 4px 11px; font-size: 13px; font-weight: 600;
     cursor: grab; user-select: none; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
   }
   .city-chip:active { cursor: grabbing; }
@@ -462,8 +462,8 @@
   .city-hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
   .city-chip .rec-btn {
     border: none; background: var(--coral-soft); color: var(--coral);
-    font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 12.5px;
-    border-radius: 999px; padding: 3px 9px; cursor: pointer;
+    font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 12px;
+    border-radius: 999px; padding: 1px 7px; cursor: pointer;
   }
   .city-chip .rec-btn.on { background: var(--sage); color: white; }
   .city-chip .del-btn {
@@ -472,7 +472,7 @@
   }
   .city-add {
     border: 1.5px dashed var(--muted); background: none; border-radius: 999px;
-    padding: 8px 14px; font-size: 13.5px; color: var(--muted); cursor: pointer;
+    padding: 4px 12px; font-size: 13px; color: var(--muted); cursor: pointer;
     font-family: 'Gaegu', sans-serif; font-weight: 700;
   }
   .past-entry { padding: 12px 4px; }
@@ -482,8 +482,17 @@
   .past-entry .pe-feel { font-size: 12.5px; color: var(--coral); margin-top: 3px; }
   .wx-loading { color: var(--muted); font-size: 13.5px; padding: 4px 0; }
 
-  /* ---------- 지난 일기: 날짜 그리드 ---------- */
+  /* ---------- 지난 일기: 월 알약 → 날짜 그리드 ---------- */
+  .pe-months { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pe-month {
+    border: 1.5px solid var(--line); background: var(--paper); border-radius: 999px;
+    padding: 4px 11px; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; color: var(--ink); cursor: pointer;
+  }
+  .pe-month small { color: var(--muted); font-weight: 400; margin-left: 2px; }
+  .pe-month.on { background: var(--coral); border-color: var(--coral); color: white; }
+  .pe-month.on small { color: rgba(255,255,255,0.8); }
   .pe-daygrid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pe-daygrid:not(:empty) { margin-top: 10px; }
   .pe-daychip {
     width: 34px; height: 34px; border-radius: 10px; border: 1.5px solid var(--line);
     background: var(--paper); color: var(--ink); font-family: 'Gaegu', sans-serif; font-weight: 700;
@@ -581,14 +590,14 @@
   .pe-steps { color: var(--sage) !important; }
   /* 걸음수 입력 — 단축어 자동 기록 값이 들어오는 칸 */
   .steps-row {
-    display: flex; align-items: center; gap: 8px; margin-top: 8px;
-    border: 1.5px solid var(--line); border-radius: 14px; padding: 4px 14px; background: var(--paper-card);
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; width: 170px;
+    border: 1.5px solid var(--line); border-radius: 999px; padding: 0 12px; background: var(--paper-card);
   }
   .steps-row:focus-within { border-color: var(--sage); }
-  .steps-ico { font-size: 15px; }
+  .steps-ico { font-size: 13px; }
   .steps-input {
-    flex: 1; border: none; outline: none; background: none; padding: 10px 0;
-    font-size: 15px; font-family: inherit; color: var(--ink); min-width: 0;
+    flex: 1; border: none; outline: none; background: none; padding: 6px 0;
+    font-size: 14px; font-family: inherit; color: var(--ink); min-width: 0;
   }
   .steps-input::-webkit-outer-spin-button, .steps-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .steps-input[type=number] { -moz-appearance: textfield; }
@@ -1236,7 +1245,7 @@ async function renderDiary() {
     <div class="routine-editor" id="routineEditor" style="display:none;"></div>
     <div class="steps-row">
       <span class="steps-ico">👟</span>
-      <input class="steps-input" id="stepsInput" type="number" inputmode="numeric" min="0" placeholder="걸음수 (단축어가 자동으로 채워줘요)">
+      <input class="steps-input" id="stepsInput" type="number" inputmode="numeric" min="0" placeholder="자동 입력" title="걸음수 — 단축어가 자동으로 채워줘요">
       <span class="steps-unit">걸음</span>
     </div>
     <div class="draft-hint" id="draftHint" style="display:none;">✎ 아직 저장하지 않은 내용이에요</div>
@@ -1481,7 +1490,7 @@ async function renderDiary() {
   /* 좋아하는 도시 카드 */
   const cCard = document.createElement("div");
   cCard.className = "dcard";
-  cCard.innerHTML = `<div class="dlabel">좋아하는 도시들</div><div class="city-grid" id="cityGrid"></div>`;
+  cCard.innerHTML = `<div class="dlabel">좋아하는 도시들<small style="font-weight:400;">· 드래그로 순서, 맨 앞이 내 도시</small></div><div class="city-grid" id="cityGrid"></div>`;
   list.appendChild(cCard);
   const grid = cCard.querySelector("#cityGrid");
   const notes = (todayEntry && todayEntry.city_notes) || [];
@@ -1524,8 +1533,9 @@ async function renderDiary() {
       try {
         const w = wxCache[city.id] || await fetchTodayWx(city.lat, city.lon);
         wxCache[city.id] = w;
-        chip.querySelector("[data-cw]").textContent = `${wmoEmoji(w.code)} ${wmoLabel(w.code)} ${w.temp}°`;
-        chip.querySelector("[data-hilo]").innerHTML = `<b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i>`;
+        chip.querySelector("[data-cw]").textContent = `${wmoEmoji(w.code)} ${w.temp}°`;
+        chip.querySelector("[data-hilo]").innerHTML = `<b>${w.tmax}</b>/<i>${w.tmin}</i>`;
+        chip.title = `${wmoLabel(w.code)} · 최고 ${w.tmax}° 최저 ${w.tmin}° — 누르면 오늘 일기에 기록, 드래그로 순서 변경`;
       } catch { chip.querySelector("[data-cw]").textContent = "—"; }
     })();
   });
@@ -1534,17 +1544,17 @@ async function renderDiary() {
   addBtn.textContent = "+ 도시 추가";
   addBtn.addEventListener("click", addCity);
   grid.appendChild(addBtn);
-  const hint = document.createElement("div");
-  hint.className = "city-hint";
-  hint.textContent = "칩을 드래그해서 순서를 바꿀 수 있어요. 맨 앞 도시가 '내 도시'가 됩니다.";
-  cCard.appendChild(hint);
 
   /* 지난 일기 (월별로 묶어서, 클릭하면 펼쳐지게 표시) */
-  const { data: past } = await sb.from("diary").select("*").lt("on_date", todayStr()).order("on_date", { ascending: false }).limit(60);
+  const { data: past } = await sb.from("diary").select("*").lt("on_date", todayStr()).gte("on_date", "2000-01-01").order("on_date", { ascending: false }).limit(60);
   if (past && past.length) {
+    /* 월 알약 한 줄 → 누르면 그 달 날짜 칩 → 날짜 누르면 그날 일기 */
     const pCard = document.createElement("div");
     pCard.className = "dcard";
-    pCard.innerHTML = `<div class="dlabel">지난 일기</div>`;
+    pCard.innerHTML = `<div class="dlabel">지난 일기</div><div class="pe-months"></div><div class="pe-daygrid"></div><div class="pe-detailwrap"></div>`;
+    const monthRow = pCard.querySelector(".pe-months");
+    const dayGrid = pCard.querySelector(".pe-daygrid");
+    const detailWrap = pCard.querySelector(".pe-detailwrap");
     const months = [];
     past.forEach(e => {
       const month = e.on_date.slice(0, 7);
@@ -1555,36 +1565,31 @@ async function renderDiary() {
     months.forEach(g => {
       const [yy, mm] = g.month.split("-");
       g.entries.sort((a, b) => a.on_date.localeCompare(b.on_date));
-      const details = document.createElement("details");
-      details.className = "month-group";
-      const summary = document.createElement("summary");
-      summary.className = "month-head";
-      summary.textContent = `${yy}년 ${Number(mm)}월 (${g.entries.length})`;
-      details.appendChild(summary);
-
-      const dayGrid = document.createElement("div");
-      dayGrid.className = "pe-daygrid";
-      g.entries.forEach(e => {
-        const day = Number(e.on_date.slice(8, 10));
-        const chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "pe-daychip";
-        chip.textContent = day;
-        chip.addEventListener("click", () => {
-          const isOn = chip.classList.contains("on");
-          dayGrid.querySelectorAll(".pe-daychip").forEach(c => c.classList.remove("on"));
-          detailWrap.innerHTML = "";
-          if (!isOn) { chip.classList.add("on"); detailWrap.appendChild(pastEntryDetail(e)); }
+      const pill = document.createElement("button");
+      pill.type = "button";
+      pill.className = "pe-month";
+      pill.innerHTML = `${yy === String(new Date().getFullYear()) ? "" : yy.slice(2) + "년 "}${Number(mm)}월 <small>${g.entries.length}</small>`;
+      pill.addEventListener("click", () => {
+        const isOn = pill.classList.contains("on");
+        monthRow.querySelectorAll(".pe-month").forEach(p => p.classList.remove("on"));
+        dayGrid.innerHTML = ""; detailWrap.innerHTML = "";
+        if (isOn) return;
+        pill.classList.add("on");
+        g.entries.forEach(e => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "pe-daychip";
+          chip.textContent = Number(e.on_date.slice(8, 10));
+          chip.addEventListener("click", () => {
+            const on = chip.classList.contains("on");
+            dayGrid.querySelectorAll(".pe-daychip").forEach(c => c.classList.remove("on"));
+            detailWrap.innerHTML = "";
+            if (!on) { chip.classList.add("on"); detailWrap.appendChild(pastEntryDetail(e)); }
+          });
+          dayGrid.appendChild(chip);
         });
-        dayGrid.appendChild(chip);
       });
-      details.appendChild(dayGrid);
-
-      const detailWrap = document.createElement("div");
-      detailWrap.className = "pe-detailwrap";
-      details.appendChild(detailWrap);
-
-      pCard.appendChild(details);
+      monthRow.appendChild(pill);
     });
     list.appendChild(pCard);
   }
