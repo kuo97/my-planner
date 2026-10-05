@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-05T09:35+09:00",
+ "updated": "2026-10-05T11:41+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -795,7 +795,7 @@
    "prep": [
     {
      "text": "네이버 클립 업로드 (21:00, 선택 — 환갑·칠순은 클립이 사는 라인)",
-     "done": false,
+     "done": true,
      "ch": "clip"
     }
    ],
@@ -822,7 +822,7 @@
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-06T21:00:00+09:00",
      "ready": false
     }
