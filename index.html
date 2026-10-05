@@ -624,6 +624,7 @@
     outline: none; margin-top: 8px; transition: opacity 0.15s;
   }
   .exercise-input:focus { border-color: var(--sage); }
+  .meals-input { resize: vertical; line-height: 1.5; min-height: 44px; display: block; }
   .exercise-input:disabled { opacity: 0.5; cursor: not-allowed; }
   .exercise-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .ex-chip {
@@ -981,11 +982,13 @@ function pastEntryDetail(e) {
     ${w ? `<span>${wmoEmoji(w.code)} ${w.tmax}°/${w.tmin}°</span>` : ""}</div>
     <div class="pe-body"></div>
     ${e.weather_note ? `<div class="pe-feel">☁ ${e.weather_note}</div>` : ""}
+    ${e.meals ? `<div class="pe-feel pe-meals"></div>` : ""}
     ${e.exercised ? `<div class="pe-feel pe-exercise">🏃 ${e.exercise_note || "운동함"}</div>` : ""}
     ${e.steps ? `<div class="pe-feel pe-steps">👟 ${Number(e.steps).toLocaleString()}걸음</div>` : ""}
     ${cityChipsHtml(e.city_notes)}
     ${e.photos && e.photos.length ? `<div class="past-photos">${e.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
   el.querySelector(".pe-body").textContent = e.content || "";
+  const peMeals = el.querySelector(".pe-meals"); if (peMeals) peMeals.textContent = "🍚 " + e.meals;
   return el;
 }
 
@@ -1091,9 +1094,11 @@ function saveDiaryDraft() {
     content: $("diaryContent").value,
     exercise_note: $("exerciseNote").value,
     steps: $("stepsInput").value,
+    meals: $("mealsNote") ? $("mealsNote").value : "",
   };
   const saved = todayEntry || {};
   const same = draft.content === (saved.content || "")
+    && draft.meals === (saved.meals || "")
     && draft.exercise_note === (saved.exercise_note || "")
     && draft.steps === String(saved.steps ?? "");
   const all = diaryDrafts();
@@ -1129,6 +1134,7 @@ async function saveDiary() {
     city_notes: todayEntry ? todayEntry.city_notes : null,
     exercised, exercise_note: exercised ? (exerciseNote || null) : null,
     steps,
+    meals: $("mealsNote") ? $("mealsNote").value.trim() : (todayEntry ? todayEntry.meals || "" : ""),
   };
   const { error } = await sb.from("diary").upsert(row, { onConflict: "user_id,on_date" });
   if (error) { toast("저장 실패: " + error.message); return; }
@@ -1239,6 +1245,7 @@ async function renderDiary() {
       </div>
     </div>
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
+    <textarea class="exercise-input meals-input" id="mealsNote" rows="1" placeholder="🍚 먹은 것 (예: 아침 쉐이크 / 점심 제육덮밥 / 저녁 샐러드 / 야식 X)"></textarea>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 5km)">
     <div class="exercise-presets" id="exercisePresets">
       ${EXERCISE_CATALOG.map(c => `<button type="button" class="ex-chip" data-n="${c.name}">${c.name}</button>`).join("")}
@@ -1274,12 +1281,14 @@ async function renderDiary() {
     content: todayEntry ? todayEntry.content || "" : "",
     exercise_note: todayEntry ? todayEntry.exercise_note || "" : "",
     steps: todayEntry ? todayEntry.steps ?? "" : "",
+    meals: todayEntry ? todayEntry.meals || "" : "",
   };
   dCard.querySelector("#diaryContent").value = shown.content || "";
+  dCard.querySelector("#mealsNote").value = shown.meals || "";
   dCard.querySelector("#exerciseNote").value = shown.exercise_note || "";
   dCard.querySelector("#stepsInput").value = shown.steps ?? "";
   if (draft) dCard.querySelector("#draftHint").style.display = "block";
-  ["diaryContent", "exerciseNote", "stepsInput"].forEach(id => {
+  ["diaryContent", "mealsNote", "exerciseNote", "stepsInput"].forEach(id => {
     dCard.querySelector("#" + id).addEventListener("input", saveDiaryDraft);
   });
 
@@ -1798,7 +1807,7 @@ async function toggleHaircut(date) {
 /* ---------- 달력 ---------- */
 async function loadCalendarData() {
   if (!calSel) calSel = todayStr();
-  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note,city_notes,steps,haircut");
+  const { data, error } = await sb.from("diary").select("on_date,content,weather_note,weather,photos,exercised,exercise_note,city_notes,steps,haircut,meals");
   if (error) { toast("달력 로드 실패: " + error.message); calMap = {}; return; }
   calMap = {};
   (data || []).forEach(e => { calMap[e.on_date] = e; });
@@ -1925,12 +1934,14 @@ function renderCalendarView() {
       ${w ? `<div style="font-size:13px;color:var(--muted);margin-bottom:6px;">${wmoEmoji(w.code)} 최고 ${w.tmax}° · 최저 ${w.tmin}°</div>` : ""}
       <div class="cd-body"></div>
       ${entry.weather_note ? `<div class="cd-feel">☁ ${entry.weather_note}</div>` : ""}
+      ${entry.meals ? `<div class="cd-feel cd-meals" style="color:var(--ink)"></div>` : ""}
       ${entry.exercised ? `<div class="cd-feel" style="color:var(--sage)">🏃 ${entry.exercise_note || "운동함"}</div>` : ""}
       ${entry.steps ? `<div class="cd-feel" style="color:var(--sage)">👟 ${Number(entry.steps).toLocaleString()}걸음</div>` : ""}
       ${entry.haircut ? `<div class="cd-feel" style="color:var(--ink)">✂️ 이발한 날</div>` : ""}
       ${cityChipsHtml(entry.city_notes)}
       ${entry.photos && entry.photos.length ? `<div class="cd-photos">${entry.photos.map(p => `<img src="${p.url}" alt="">`).join("")}</div>` : ""}`;
     detail.querySelector(".cd-body").textContent = entry.content || "";
+    const cdMeals = detail.querySelector(".cd-meals"); if (cdMeals) cdMeals.textContent = "🍚 " + entry.meals;
   }
   if (selEvents.length) {
     const evWrap = document.createElement("div");
