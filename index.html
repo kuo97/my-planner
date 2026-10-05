@@ -1217,7 +1217,9 @@ function coachCard() {
   return card;
 }
 
+let diaryRenderSeq = 0;
 async function renderDiary() {
+  const seq = ++diaryRenderSeq; // 그리는 도중 다시 불리면 앞의 것은 await 뒤에서 멈춘다(지난 일기 카드 중복 방지)
   const list = $("list");
   list.innerHTML = "";
 
@@ -1547,6 +1549,7 @@ async function renderDiary() {
 
   /* 지난 일기 (월별로 묶어서, 클릭하면 펼쳐지게 표시) */
   const { data: past } = await sb.from("diary").select("*").lt("on_date", todayStr()).gte("on_date", "2000-01-01").order("on_date", { ascending: false }).limit(60);
+  if (seq !== diaryRenderSeq) return;
   if (past && past.length) {
     /* 월 알약 한 줄 → 누르면 그 달 날짜 칩 → 날짜 누르면 그날 일기 */
     const pCard = document.createElement("div");
