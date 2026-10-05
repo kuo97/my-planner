@@ -694,6 +694,13 @@
   .g-detail h4 { font-family: 'Gaegu', sans-serif; font-size: 15px; margin: 12px 0 6px; }
   .g-detail ul { margin: 0; padding-left: 18px; font-size: 13.5px; }
   .g-detail li { margin: 2px 0; }
+  .g-events { margin-top: 8px; border: 1.5px dashed var(--line); border-radius: 12px; padding: 9px 12px; font-size: 13.5px; }
+  .g-events > b { font-family: 'Gaegu', sans-serif; color: var(--coral); display: block; margin-bottom: 4px; }
+  .g-ev { padding: 5px 0; border-top: 1px dashed var(--line); }
+  .g-ev:first-of-type { border-top: none; }
+  .g-ev a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .g-ev small { color: var(--muted); margin-left: 6px; }
+  .g-ev div { color: var(--muted); font-size: 12.5px; }
   .g-q { font-size: 13.5px; margin-bottom: 4px; }
   .g-q small { color: var(--muted); }
 
@@ -1199,6 +1206,12 @@ function coachCard() {
   const li = arr => (arr || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
   const quests = (co.quests && co.quests.items) || [];
   const people = co.people || [];
+  // 추천 모임: [{title, when, where, url, why}] — Claude 가 비공개 코칭에 매주 넣는다
+  const safeUrl = u => /^https:\/\//.test(u || "") ? escapeHtml(u) : "";
+  const events = (co.events || []).slice(0, 4).map(ev => `<div class="g-ev">
+      ${safeUrl(ev.url) ? `<a href="${safeUrl(ev.url)}" target="_blank" rel="noopener">${escapeHtml(ev.title || "")}</a>` : `<b>${escapeHtml(ev.title || "")}</b>`}
+      <small>${escapeHtml([ev.when, ev.where].filter(Boolean).join(" · "))}</small>
+      ${ev.why ? `<div>${escapeHtml(ev.why)}</div>` : ""}</div>`).join("");
   const hasMore = (co.good && co.good.length) || (co.fix && co.fix.length) || quests.length || people.length;
   const card = document.createElement("div");
   card.className = "dcard";
@@ -1207,6 +1220,7 @@ function coachCard() {
     <div class="g-head">${escapeHtml(co.headline)}</div>
     ${co.try ? `<div class="g-try"><b>이번 주 실험</b>${escapeHtml(co.try)}</div>` : ""}
     ${co.mission ? `<div class="g-try"><b>사람 미션</b>${escapeHtml(co.mission)}</div>` : ""}
+    ${events ? `<div class="g-events"><b>가 볼 만한 모임</b>${events}</div>` : ""}
     ${hasMore ? `<button type="button" class="g-more" id="gMore">더 보기 ▾</button>
     <div class="g-detail" id="gDetail" hidden>
       ${co.good && co.good.length ? `<ul>${li(co.good.map(x => "잘한 것 · " + x))}</ul>` : ""}
