@@ -1167,27 +1167,36 @@ async function deleteCity(city) {
 }
 
 /* ---------- 이번 주 방향 ----------
-   입력은 일기 하나. 코칭은 Claude 가 growth.json 으로 이 저장소에 push 한다(발행 탭의 publish.json 과 같은 방식). */
+   입력은 일기 하나. 코칭은 Claude 가 growth.json 으로 이 저장소에 push 한다(발행 탭의 publish.json 과 같은 방식).
+   사람·연애처럼 공개하면 안 되는 코칭은 Supabase coach 표(로그인해야 읽힘, SETUP.md 1-7)에 쓰고 여기서 덮어 합친다. */
 let growthCoach = null;
 async function loadGrowth() {
-  growthCoach = await fetch("./growth.json?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null);
+  const [pub, priv] = await Promise.all([
+    fetch("./growth.json?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null),
+    sb.from("coach").select("body").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  growthCoach = pub;
+  if (!priv.error && priv.data && priv.data.body) growthCoach = { ...(pub || {}), ...priv.data.body };
 }
 function coachCard() {
   const co = growthCoach;
   if (!co || !co.headline) return null;
   const li = arr => (arr || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
   const quests = (co.quests && co.quests.items) || [];
-  const hasMore = (co.good && co.good.length) || (co.fix && co.fix.length) || quests.length;
+  const people = co.people || [];
+  const hasMore = (co.good && co.good.length) || (co.fix && co.fix.length) || quests.length || people.length;
   const card = document.createElement("div");
   card.className = "dcard";
   card.innerHTML = `
     <div class="dlabel"><span>이번 주 방향</span><small style="font-weight:400;">${escapeHtml(co.week || "")}</small></div>
     <div class="g-head">${escapeHtml(co.headline)}</div>
     ${co.try ? `<div class="g-try"><b>이번 주 실험</b>${escapeHtml(co.try)}</div>` : ""}
+    ${co.mission ? `<div class="g-try"><b>사람 미션</b>${escapeHtml(co.mission)}</div>` : ""}
     ${hasMore ? `<button type="button" class="g-more" id="gMore">더 보기 ▾</button>
     <div class="g-detail" id="gDetail" hidden>
       ${co.good && co.good.length ? `<ul>${li(co.good.map(x => "잘한 것 · " + x))}</ul>` : ""}
       ${co.fix && co.fix.length ? `<ul>${li(co.fix.map(x => "고칠 것 · " + x))}</ul>` : ""}
+      ${people.length ? `<h4>사람 · 연애</h4><ul>${li(people)}</ul>` : ""}
       ${quests.length ? `<h4>이달 퀘스트</h4>${quests.map(q => `<div class="g-q">${escapeHtml(q.text)} <small>${escapeHtml(q.measure || "")}</small></div>`).join("")}` : ""}
     </div>` : ""}`;
   const more = card.querySelector("#gMore");

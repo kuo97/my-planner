@@ -140,7 +140,7 @@ grant select, insert, update, delete on public.publish_status to authenticated;
 grant select on public.publish_status to anon;
 ```
 
-발행 일정 자체(`publish.json`)는 세션이 `개인\찬작스튜디오\발행_일정.json` 에서 만들어 이 저장소에 push 한다(`실험\영상편집자동화\publish_sync.py`). 앱은 그 파일만 읽는다.
+발행 일정 자체(`publish.json`)는 세션이 `찬작스튜디오\운영\발행_일정.json` 에서 만들어 이 저장소에 push 한다(`실험\영상편집자동화\publish_sync.py`). 앱은 그 파일만 읽는다.
 
 ## 1-6. 성장 기록 (일기 탭 성장 카드) — 추가 SQL
 
@@ -173,6 +173,49 @@ returns setof growth language sql security definer set search_path = public as $
 $$;
 revoke all on function growth_export(text) from public;
 grant execute on function growth_export(text) to anon;
+```
+
+## 1-7. 일기 읽기 + 나만 보는 코칭 (2026-10-05) — 추가 SQL
+
+성장 카드의 입력 칸은 없앴다(1-6 의 growth 표는 더 쓰지 않는다). 입력은 일기 하나.
+Claude 는 `diary_export` 로 일기를 읽고, 공개해도 되는 코칭은 `growth.json`, 사람·연애처럼 비공개 코칭은 `coach` 표에 쓴다.
+SQL 에는 토큰의 sha256 해시(`HASH_HERE`)만 넣는다. 토큰 원문은 PC 의 `%USERPROFILE%\.claude\secrets\planner_diary_token.txt`.
+
+```sql
+create or replace function diary_export(p_token text, p_from date default current_date - 60)
+returns jsonb language sql security definer set search_path = public as $$
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'date', on_date, 'content', content, 'feel', weather_note,
+    'exercised', exercised, 'exercise', exercise_note, 'steps', steps
+  ) order by on_date), '[]'::jsonb)
+  from diary
+  where encode(sha256(convert_to(p_token, 'UTF8')), 'hex') = 'HASH_HERE'
+    and on_date >= p_from;
+$$;
+revoke all on function diary_export(text, date) from public;
+grant execute on function diary_export(text, date) to anon;
+
+create table if not exists coach (
+  user_id uuid not null references auth.users,
+  week text not null,
+  body jsonb not null,
+  updated_at timestamptz default now(),
+  primary key (user_id, week)
+);
+alter table coach enable row level security;
+create policy "own coach" on coach for select using (auth.uid() = user_id);
+
+create or replace function coach_set(p_token text, p_week text, p_body jsonb)
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> 'HASH_HERE' then return false; end if;
+  insert into coach (user_id, week, body, updated_at)
+  select user_id, p_week, p_body, now() from diary order by on_date desc limit 1
+  on conflict (user_id, week) do update set body = excluded.body, updated_at = now();
+  return true;
+end $$;
+revoke all on function coach_set(text, text, jsonb) from public;
+grant execute on function coach_set(text, text, jsonb) to anon;
 ```
 
 ## 2. 프로젝트 키 확인
