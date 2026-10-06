@@ -263,6 +263,27 @@ revoke all on function life_spend_set(text, date, jsonb) from public;
 grant execute on function life_spend_set(text, date, jsonb) to anon;
 ```
 
+## 1-9b. 지출 상세 내역(가맹점별) 저장 (2026-10-07) — 1-9 의 함수를 이걸로 교체
+
+앱에서 카테고리를 누르면 가맹점별 내역이 펼쳐진다. 분류 도구가 넘기는 `items` 를 meta 에 같이 저장한다.
+
+```sql
+create or replace function life_spend_set(p_token text, p_month date, p_rows jsonb)
+returns integer language plpgsql security definer set search_path = public as $$
+declare uid uuid; n integer;
+begin
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> 'HASH_HERE' then return -1; end if;
+  select user_id into uid from diary order by on_date desc limit 1;
+  delete from life_log where user_id = uid and kind = 'spend' and on_date = p_month;
+  insert into life_log (user_id, on_date, kind, label, amount, meta)
+  select uid, p_month, 'spend', x.label, x.amount,
+         jsonb_build_object('biz', coalesce(x.biz, false), 'items', coalesce(x.items, '[]'::jsonb))
+  from jsonb_to_recordset(p_rows) as x(label text, amount integer, biz boolean, items jsonb);
+  get diagnostics n = row_count;
+  return n;
+end $$;
+```
+
 ## 1-10. 구독 일괄 추가 (2026-10-07) — 추가 SQL
 
 Claude 가 명세서에서 찾은 구독을 넣는 통로. 같은 이름의 구독이 이미 있으면 건너뛴다.

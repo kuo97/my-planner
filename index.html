@@ -195,7 +195,7 @@
   .sp-seg:only-child { border-radius: 4px; }
   .sp-seg:hover { filter: brightness(1.08); outline: 2px solid var(--paper-card); }
   .sp-rank-title { font-size: 12.5px; color: var(--muted); margin: 12px 0 4px; }
-  .sp-rank { display: grid; grid-template-columns: 76px 1fr 82px; gap: 8px; align-items: center; font-size: 12.5px; padding: 2px 0; }
+  .sp-rank { display: grid; grid-template-columns: 104px 1fr 112px; gap: 8px; align-items: center; font-size: 12.5px; padding: 2px 0; }
   .sp-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sp-track { height: 8px; background: var(--paper); border-radius: 4px; overflow: hidden; }
   .sp-track i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
@@ -210,6 +210,45 @@
   .sp-cv { font-size: 11.5px; color: var(--ink); white-space: nowrap; }
   .sp-cm { font-size: 11.5px; color: var(--muted); margin-bottom: -18px; }
   #spTrend { padding-bottom: 20px; }
+  /* 생활 기록 v2: 섹션 접기 · 월 선택 · 내역 펼치기 · 표 */
+  .life-sec { border-top: 1px dashed var(--line); padding: 8px 0 4px; }
+  .life-sec:first-of-type { margin-top: 8px; }
+  .life-sec > summary { cursor: pointer; list-style: none; font-family: 'Gaegu', sans-serif; font-size: 15px; padding: 2px 0; }
+  .life-sec > summary::-webkit-details-marker { display: none; }
+  .life-sec > summary::before { content: "▸ "; color: var(--muted); }
+  .life-sec[open] > summary::before { content: "▾ "; }
+  .life-sec > summary small { font-family: inherit; font-size: 12.5px; color: var(--muted); font-weight: 400; margin-left: 4px; }
+  .life-sec-body { padding: 6px 0 4px; }
+  .sp-row { cursor: pointer; padding: 3px 6px; margin: 0 -6px 4px; border-radius: 10px; border: 1.5px solid transparent; }
+  .sp-row:hover { background: var(--paper); }
+  .sp-row.on { border-color: var(--ink); background: var(--paper); }
+  .sp-row .sp-bar { height: 12px; }
+  .sp-sel { font-size: 14px; margin: 12px 0 2px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .sp-sel small { color: var(--muted); }
+  .sp-hint { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+  .sp-rank-title small { font-weight: 400; }
+  .sp-rank.has-items { cursor: pointer; border-radius: 6px; }
+  .sp-rank.has-items:hover { background: var(--paper); }
+  .sp-rank.open { background: var(--paper); }
+  .sp-items { margin: 2px 0 6px 12px; padding: 4px 10px; border-left: 2px solid var(--line); font-size: 12.5px; }
+  .sp-items div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+  .sp-items small { color: var(--muted); }
+  .sp-items b { font-weight: 600; white-space: nowrap; }
+  .sp-col { cursor: pointer; border-radius: 6px; }
+  .sp-col.on .sp-cm { color: var(--ink); font-weight: 700; }
+  .life-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .life-tbl th { color: var(--muted); font-weight: 400; text-align: left; padding: 3px 4px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .life-tbl td { padding: 4px; border-bottom: 1px dashed var(--line); }
+  .life-tbl .num { text-align: right; white-space: nowrap; }
+  .life-tbl tr.tot td { border-bottom: none; font-weight: 600; }
+  .life-tbl tr.tot small { color: var(--muted); font-weight: 400; }
+  .life-tbl .x { border: none; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 13px; }
+  .life-tbl.season td, .life-tbl.season th { text-align: center; }
+  .life-tbl .tag { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--paper); color: var(--muted); }
+  .life-tbl .tag.biz { background: #fbf0d9; color: #8a5a00; }
+  .life-tbl .soon { font-size: 11px; padding: 0 6px; border-radius: 999px; background: var(--danger-soft); color: var(--danger); }
+  .life-add > summary { cursor: pointer; font-size: 12.5px; color: var(--muted); list-style: none; margin: 8px 0 4px; }
+  .life-add > summary::-webkit-details-marker { display: none; }
   .bill-form input:not([type]) { width: 120px; }
   .gcal-bar {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -1882,7 +1921,8 @@ const SEASON_KINDS = [
   { k: "난방 켬", ico: "🔥" }, { k: "난방 끔", ico: "🌤️" },
 ];
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
-let lifeLog = [], lifeOpen = false, lifeTrend = "배달";
+let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null;
+const lifeSecOpen = { spend: true };
 async function loadLifeLog() {
   const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta").order("on_date", { ascending: false });
   lifeLog = error ? null : (data || []);   // null = 표가 아직 없음
@@ -1915,6 +1955,8 @@ async function deleteBill(id) {
   if (error) { toast("삭제 실패: " + error.message); return; }
   await loadLifeLog(); renderCalendarView();
 }
+/* 생활 기록 카드를 다시 그릴 때 스크롤 위치를 유지한다 */
+function rerenderLife() { const y = window.scrollY; renderCalendarView(); window.scrollTo(0, y); }
 function lifeCard() {
   const card = document.createElement("details");
   card.className = "cal-card life-card";
@@ -1926,27 +1968,15 @@ function lifeCard() {
   }
   const md = d => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
   const won = n => Number(n).toLocaleString() + "원";
+  const man = n => !n ? "—" : (n / 10000).toFixed(n >= 1000000 ? 0 : 1) + "만";
+  const mLabel = m => `${Number(m.slice(5))}월`;
   const seasons = lifeLog.filter(r => r.kind === "season");
   const bills = lifeLog.filter(r => r.kind === "bill");
-  const lastSeason = seasons[0];
-  const thisMonth = todayStr().slice(0, 7);
-  const monthSum = m => bills.filter(b => b.on_date.slice(0, 7) === m).reduce((a, b) => a + (b.amount || 0), 0);
-  const latestBillMonth = bills[0] && bills[0].on_date.slice(0, 7);
   const subs = lifeLog.filter(r => r.kind === "sub");
-  const subTotal = biz => subs.filter(s => biz == null || !!(s.meta && s.meta.biz) === biz).reduce((a, s) => a + subMonthly(s), 0);
-  // 지출: Claude 가 카드 명세서를 분류해 넣은 월별 카테고리 합계(label=카테고리, meta.biz)
   const spends = lifeLog.filter(r => r.kind === "spend");
-  const spendMonths = [...new Set(spends.map(s => s.on_date.slice(0, 7)))].sort().reverse();
-  const spendSum = (m, biz) => spends.filter(s => s.on_date.slice(0, 7) === m && (biz == null || !!(s.meta && s.meta.biz) === biz)).reduce((a, s) => a + (s.amount || 0), 0);
-  const sumParts = [lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "",
-                    latestBillMonth ? `${Number(latestBillMonth.slice(5))}월 공과금 ${won(monthSum(latestBillMonth))}` : "",
-                    subs.length ? `구독 월 ${won(subTotal())}` : "",
-                    spendMonths[0] ? `${Number(spendMonths[0].slice(5))}월 지출 ${won(spendSum(spendMonths[0]))}` : ""].filter(Boolean);
-  const subRows = subs.slice().sort((a, b) => subMonthly(b) - subMonthly(a)).map(s => {
-    const m = s.meta || {};
-    return `<div class="bill-month"><span class="bill-item">${escapeHtml(s.label)} <small>${m.cycle === "연" ? "연" : "월"} ${won(s.amount)}${m.day ? ` · ${m.day}일` : ""} · ${m.biz ? "사업" : "개인"}</small><button data-del="${s.id}" title="삭제">×</button></span></div>`; }).join("");
-  // 지출 그래프: 달마다 1자 누적 막대(카테고리 비율) + 최근 달 카테고리 순위 막대.
-  // 색은 카테고리에 고정(순위 따라 바뀌지 않음). 6개 + 기타(회색). 팔레트는 dataviz 검증 통과(색 대비가 낮은 칸은 금액 라벨로 보완).
+  const thisMonth = todayStr().slice(0, 7);
+
+  /* ---- 지출: 카테고리는 고정 색 그룹으로 묶는다(색은 순위가 아니라 카테고리를 따른다). 팔레트 순서 = dataviz 검증 순서 ---- */
   const SPEND_GROUPS = [
     { k: "주거", c: "#2a78d6", m: l => l.startsWith("주거") },
     { k: "배달", c: "#eb6834", m: l => l === "배달" },
@@ -1954,99 +1984,136 @@ function lifeCard() {
     { k: "AI 툴", c: "#eda100", m: l => l.startsWith("사업") },
     { k: "생활·마트", c: "#e87ba4", m: l => l.startsWith("생활") },
     { k: "여행", c: "#008300", m: l => l === "여행" },
+    { k: "고정비", c: "#4a3aa7", m: l => /^(연금|통신|공과금|구독)/.test(l) },
   ];
   const OTHER = { k: "기타", c: "#c9c2b4" };
+  const ALL_GROUPS = [...SPEND_GROUPS, OTHER];
   const groupOf = l => SPEND_GROUPS.find(g => g.m(l)) || OTHER;
-  const monthGroups = m => {
-    const acc = new Map([...SPEND_GROUPS, OTHER].map(g => [g.k, { g, v: 0, items: [] }]));
-    spends.filter(s => s.on_date.slice(0, 7) === m).forEach(s => {
-      const e = acc.get(groupOf(s.label).k); e.v += s.amount || 0; e.items.push(s);
-    });
-    return [...acc.values()].filter(e => e.v > 0);
+  const spendMonths = [...new Set(spends.map(s => s.on_date.slice(0, 7)))].sort().reverse();
+  const inMonth = m => spends.filter(s => s.on_date.slice(0, 7) === m);
+  const spendSum = (m, biz) => inMonth(m).filter(s => biz == null || !!(s.meta && s.meta.biz) === biz).reduce((a, s) => a + (s.amount || 0), 0);
+  const groupSum = (m, k) => inMonth(m).filter(s => groupOf(s.label).k === k).reduce((a, s) => a + (s.amount || 0), 0);
+  if (!lifeSpendSel || !spendMonths.includes(lifeSpendSel)) lifeSpendSel = spendMonths[0] || null;
+
+  /* ---- 구독 ---- */
+  const subTotal = biz => subs.filter(s => biz == null || !!(s.meta && s.meta.biz) === biz).reduce((a, s) => a + subMonthly(s), 0);
+  const today = new Date(todayStr() + "T00:00:00");
+  const daysUntil = day => {          // 다음 결제일까지 남은 날
+    if (!day) return null;
+    let d = new Date(today.getFullYear(), today.getMonth(), day);
+    if (d < today) d = new Date(today.getFullYear(), today.getMonth() + 1, day);
+    return Math.round((d - today) / 86400000);
   };
-  const man = n => (n / 10000).toFixed(n >= 1000000 ? 0 : 1) + "만";
-  const spendLegend = spendMonths.length ? `<div class="sp-legend">${[...SPEND_GROUPS, OTHER].map(g =>
-    `<span><i style="background:${g.c}"></i>${g.k}</span>`).join("")}</div>` : "";
-  const spendBars = spendMonths.slice(0, 3).map((m, i) => {
-    const tot = spendSum(m), prev = spendMonths[i + 1], diff = prev ? tot - spendSum(prev) : null;
-    const segs = monthGroups(m).map(e => `<span class="sp-seg" style="flex:${e.v};background:${e.g.c}"
-        title="${e.g.k} ${won(e.v)} (${Math.round(e.v / tot * 100)}%)"></span>`).join("");
-    return `<div class="sp-row"><div class="sp-head"><b>${Number(m.slice(5))}월</b> ${man(tot)}원
-        ${diff != null ? `<small class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "▲" : "▼"} ${man(Math.abs(diff))}</small>` : ""}
-        <small>· 사업 ${man(spendSum(m, true))}</small></div><div class="sp-bar">${segs}</div></div>`; }).join("");
-  const latest = spendMonths[0];
-  const rank = latest ? (() => {
-    const rows = spends.filter(s => s.on_date.slice(0, 7) === latest).sort((a, b) => b.amount - a.amount);
-    const max = rows[0] ? rows[0].amount : 1, tot = spendSum(latest);
-    const prevM = spendMonths[1];
-    return `<div class="sp-rank-title">${Number(latest.slice(5))}월 카테고리별</div>` + rows.map(s => {
+
+  /* ---- 공과금: 월 × 항목 표 ---- */
+  const billMonths = [...new Set(bills.map(b => b.on_date.slice(0, 7)))].sort().reverse().slice(0, 6);
+  const billKindsUsed = BILL_KINDS.filter(k => bills.some(b => b.label === k));
+  const billSum = m => bills.filter(b => b.on_date.slice(0, 7) === m).reduce((a, b) => a + (b.amount || 0), 0);
+
+  const lastSeason = seasons[0];
+  const sumParts = [
+    lifeSpendSel ? `${mLabel(spendMonths[0])} 지출 ${man(spendSum(spendMonths[0]))}원` : "",
+    subs.length ? `구독 월 ${man(subTotal())}원` : "",
+    billMonths[0] ? `${mLabel(billMonths[0])} 공과금 ${won(billSum(billMonths[0]))}` : "",
+    lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "",
+  ].filter(Boolean);
+
+  const sec = (key, title, sub, body) => `<details class="life-sec" data-sec="${key}" ${lifeSecOpen[key] ? "open" : ""}>
+      <summary><b>${title}</b>${sub ? ` <small>${sub}</small>` : ""}</summary><div class="life-sec-body">${body}</div></details>`;
+
+  /* 지출 섹션 */
+  const spendBody = !spendMonths.length ? `<div class="cd-empty">아직 정리된 달이 없어요 — 뱅크샐러드 내보내기 파일을 for me\\지출\\명세서 에 넣고 Claude에게 "넣었어"</div>` : (() => {
+    const legend = `<div class="sp-legend">${ALL_GROUPS.map(g => `<span><i style="background:${g.c}"></i>${g.k}</span>`).join("")}</div>`;
+    const bars = spendMonths.slice(0, 6).map((m, i) => {
+      const tot = spendSum(m), prev = spendMonths[i + 1], diff = prev ? tot - spendSum(prev) : null;
+      const segs = ALL_GROUPS.map(g => ({ g, v: groupSum(m, g.k) })).filter(e => e.v > 0).map(e =>
+        `<span class="sp-seg" style="flex:${e.v};background:${e.g.c}" title="${e.g.k} ${won(e.v)} (${Math.round(e.v / tot * 100)}%)"></span>`).join("");
+      return `<div class="sp-row${m === lifeSpendSel ? " on" : ""}" data-month="${m}"><div class="sp-head"><b>${mLabel(m)}</b> ${man(tot)}원
+          ${diff != null ? `<small class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "▲" : "▼"} ${man(Math.abs(diff))}</small>` : ""}</div>
+          <div class="sp-bar">${segs}</div></div>`; }).join("");
+    // 선택한 달: 요약 + 카테고리 순위(누르면 가맹점 내역이 펼쳐짐)
+    const m = lifeSpendSel, tot = spendSum(m), idx = spendMonths.indexOf(m), prevM = spendMonths[idx + 1];
+    const rows = inMonth(m).slice().sort((a, b) => b.amount - a.amount), max = rows[0] ? rows[0].amount : 1;
+    const rank = rows.map(s => {
       const g = groupOf(s.label);
-      const pv = prevM ? spends.find(x => x.on_date.slice(0, 7) === prevM && x.label === s.label) : null;
+      const pv = prevM ? inMonth(prevM).find(x => x.label === s.label && !!(x.meta && x.meta.biz) === !!(s.meta && s.meta.biz)) : null;
       const d = pv ? s.amount - pv.amount : null;
-      return `<div class="sp-rank" title="${escapeHtml(s.label)} ${won(s.amount)}${d != null ? ` · 전달 대비 ${d >= 0 ? "+" : ""}${won(d)}` : ""}">
-        <span class="sp-name">${escapeHtml(s.label.replace("사업 · ", "").replace("주거 · ", ""))}</span>
-        <span class="sp-track"><i style="width:${Math.max(2, s.amount / max * 100)}%;background:${g.c}"></i></span>
-        <span class="sp-val">${man(s.amount)} <small>${Math.round(s.amount / tot * 100)}%</small></span></div>`; }).join("");
-  })() : "";
-  const spendRows = spendMonths.length ? spendLegend + spendBars + rank + `<div id="spTrend"></div>` : "";
-  // 계절: 연도별 한 줄 — 해마다 같은 칸을 비교한다
-  const years = [...new Set(seasons.map(s => s.on_date.slice(0, 4)))].sort().reverse();
-  const seasonRows = years.map(y => `<tr><th>${y}</th>${SEASON_KINDS.map(s => {
-      const hit = seasons.filter(r => r.label === s.k && r.on_date.slice(0, 4) === y).map(r => md(r.on_date)).sort();
-      return `<td>${hit.length ? hit.join(", ") : "—"}</td>`; }).join("")}</tr>`).join("");
-  // 공과금: 최근 6개월, 작년 같은 달 합계와 비교
-  const months = [...new Set(bills.map(b => b.on_date.slice(0, 7)))].sort().reverse().slice(0, 6);
-  const billRows = months.map(m => {
-    const items = bills.filter(b => b.on_date.slice(0, 7) === m);
-    const ly = `${Number(m.slice(0, 4)) - 1}${m.slice(4)}`, lySum = monthSum(ly);
-    return `<div class="bill-month"><b>${m.slice(2, 4)}.${m.slice(5)}</b> ${items.map(b =>
-      `<span class="bill-item">${escapeHtml(b.label)} ${won(b.amount)}<button data-del="${b.id}" title="삭제">×</button></span>`).join("")}
-      <span class="bill-sum">= ${won(monthSum(m))}${lySum ? ` <small>(작년 ${won(lySum)})</small>` : ""}</span></div>`; }).join("");
-  card.innerHTML = `
-    <summary class="life-sum">생활 기록${sumParts.length ? ` <small>· ${escapeHtml(sumParts.join(" · "))}</small>` : ""}</summary>
-    <h4>계절 <small>— 달력에서 날짜를 누르고 칩으로 기록</small></h4>
-    ${seasonRows ? `<table class="season-tbl"><tr><th></th>${SEASON_KINDS.map(s => `<th>${s.ico} ${s.k}</th>`).join("")}</tr>${seasonRows}</table>`
-                 : `<div class="cd-empty">아직 기록이 없어요</div>`}
-    <h4>공과금</h4>
-    <div class="bill-form">
-      <input type="month" id="billMonth" value="${thisMonth}">
-      <select id="billKind">${BILL_KINDS.map(k => `<option>${k}</option>`).join("")}</select>
-      <input type="number" id="billAmt" inputmode="numeric" placeholder="금액">
-      <button type="button" id="billAdd">추가</button>
-    </div>
-    ${billRows || `<div class="cd-empty">아직 기록이 없어요</div>`}
-    <h4>구독 <small>— 월 ${won(subTotal())} (사업 ${won(subTotal(true))} · 개인 ${won(subTotal(false))})</small></h4>
-    <div class="bill-form">
+      const items = (s.meta && s.meta.items) || [];
+      const key = s.label + (s.meta && s.meta.biz ? "|biz" : "");
+      const open = lifeSpendCat === key;
+      return `<div class="sp-rank${items.length ? " has-items" : ""}${open ? " open" : ""}" data-cat="${escapeHtml(key)}">
+          <span class="sp-name">${items.length ? (open ? "▾ " : "▸ ") : ""}${escapeHtml(s.label.replace("사업 · ", "").replace("주거 · ", ""))}</span>
+          <span class="sp-track"><i style="width:${Math.max(2, s.amount / max * 100)}%;background:${g.c}"></i></span>
+          <span class="sp-val">${man(s.amount)} <small>${Math.round(s.amount / tot * 100)}%${d != null && Math.abs(d) >= 10000 ? ` · ${d > 0 ? "▲" : "▼"}${man(Math.abs(d))}` : ""}</small></span></div>
+        ${open ? `<div class="sp-items">${items.map(it => `<div><span>${escapeHtml(it.n)}${it.c > 1 ? ` <small>${it.c}건</small>` : ""}</span><b>${won(it.a)}</b></div>`).join("")}</div>` : ""}`; }).join("");
+    const months6 = spendMonths.slice(0, 6).reverse();
+    const k = lifeTrend, tg = ALL_GROUPS.find(x => x.k === k);
+    const vals = months6.map(mm => k === "전체" ? spendSum(mm) : groupSum(mm, k)), vmax = Math.max(...vals, 1);
+    const trend = `<div class="sp-rank-title">월별 추이 <small>— 막대를 누르면 그 달로 이동</small></div>
+      <div class="sp-chips">${["전체", ...ALL_GROUPS.map(x => x.k)].map(x => `<button type="button" class="${x === k ? "on" : ""}" data-k="${x}">${x}</button>`).join("")}</div>
+      <div class="sp-cols">${months6.map((mm, i) => `<div class="sp-col${mm === lifeSpendSel ? " on" : ""}" data-month="${mm}" title="${mLabel(mm)} ${k} ${won(vals[i])}">
+          <span class="sp-cv">${man(vals[i])}</span>
+          <span class="sp-cbar" style="height:${Math.max(2, vals[i] / vmax * 70)}px;background:${tg ? tg.c : "var(--ink)"}"></span>
+          <span class="sp-cm">${mLabel(mm)}</span></div>`).join("")}</div>`;
+    return legend + `<div class="sp-rank-title">달을 누르면 아래에 그 달 내역이 나와요</div>` + bars +
+      `<div class="sp-sel"><b>${mLabel(m)}</b> 총 ${won(tot)} <small>· 사업 ${won(spendSum(m, true))} · 개인 ${won(spendSum(m, false))}${prevM ? ` · ${mLabel(prevM)} 대비 ${tot - spendSum(prevM) >= 0 ? "+" : ""}${won(tot - spendSum(prevM))}` : ""}</small></div>
+       <div class="sp-hint">카테고리를 누르면 어디에 썼는지 보여요</div>` + rank + `<div id="spTrend">${trend}</div>`;
+  })();
+
+  /* 구독 섹션 */
+  const subRows = subs.slice().sort((a, b) => ((a.meta && a.meta.day) || 99) - ((b.meta && b.meta.day) || 99)).map(s => {
+    const mm = s.meta || {}, du = daysUntil(mm.day);
+    return `<tr><td class="num">${mm.day ? mm.day + "일" : "—"}</td>
+      <td>${escapeHtml(s.label)}${du != null && du <= 7 ? ` <span class="soon">${du === 0 ? "오늘" : `D-${du}`}</span>` : ""}</td>
+      <td class="num">${mm.cycle === "연" ? `연 ${won(s.amount)}` : won(s.amount)}</td>
+      <td><span class="tag ${mm.biz ? "biz" : ""}">${mm.biz ? "사업" : "개인"}</span></td>
+      <td><button class="x" data-del="${s.id}" title="삭제">×</button></td></tr>`; }).join("");
+  const subBody = `${subRows ? `<table class="life-tbl"><tr><th>결제일</th><th>이름</th><th>금액</th><th></th><th></th></tr>${subRows}
+      <tr class="tot"><td></td><td>월 합계</td><td class="num">${won(subTotal())}</td><td colspan="2"><small>사업 ${man(subTotal(true))} · 개인 ${man(subTotal(false))}</small></td></tr></table>` : `<div class="cd-empty">아직 기록이 없어요</div>`}
+    <details class="life-add"><summary>+ 구독 추가</summary><div class="bill-form">
       <input id="subName" placeholder="이름 (예: Claude)">
       <input type="number" id="subAmt" inputmode="numeric" placeholder="금액">
       <select id="subCycle"><option>월</option><option>연</option></select>
       <input type="number" id="subDay" inputmode="numeric" min="1" max="31" placeholder="결제일" style="width:64px">
       <select id="subBiz"><option value="1">사업</option><option value="0">개인</option></select>
-      <button type="button" id="subAdd">추가</button>
-    </div>
-    ${subRows || `<div class="cd-empty">아직 기록이 없어요</div>`}
-    <h4>지출 <small>— 카드 명세서를 for me\\지출\\명세서 에 넣으면 Claude가 분류해서 올려요</small></h4>
-    ${spendRows || `<div class="cd-empty">아직 정리된 달이 없어요</div>`}`;
-  // 6개월 추이: 칩으로 카테고리를 고르면 그 카테고리의 달별 막대(값 라벨 포함)를 다시 그린다
-  const trendEl = card.querySelector("#spTrend");
-  if (trendEl) {
-    const months6 = spendMonths.slice(0, 6).reverse();
-    const valOf = (m, k) => k === "전체" ? spendSum(m)
-      : monthGroups(m).filter(e => e.g.k === k).reduce((a, e) => a + e.v, 0);
-    const drawTrend = () => {
-      const k = lifeTrend, g = [...SPEND_GROUPS, OTHER].find(x => x.k === k);
-      const vals = months6.map(m => valOf(m, k)), max = Math.max(...vals, 1);
-      trendEl.innerHTML = `<div class="sp-rank-title">월별 추이</div>
-        <div class="sp-chips">${["전체", ...SPEND_GROUPS.map(x => x.k)].map(x =>
-          `<button type="button" class="${x === k ? "on" : ""}" data-k="${x}">${x}</button>`).join("")}</div>
-        <div class="sp-cols">${months6.map((m, i) => `<div class="sp-col" title="${Number(m.slice(5))}월 ${k} ${won(vals[i])}">
-            <span class="sp-cv">${man(vals[i])}</span>
-            <span class="sp-cbar" style="height:${Math.max(2, vals[i] / max * 70)}px;background:${g ? g.c : "var(--ink)"}"></span>
-            <span class="sp-cm">${Number(m.slice(5))}월</span></div>`).join("")}</div>`;
-      trendEl.querySelectorAll("[data-k]").forEach(b => b.addEventListener("click", () => { lifeTrend = b.dataset.k; drawTrend(); }));
-    };
-    drawTrend();
-  }
+      <button type="button" id="subAdd">추가</button></div></details>`;
+
+  /* 공과금 섹션 */
+  const billBody = `${billMonths.length ? `<table class="life-tbl"><tr><th>월</th>${billKindsUsed.map(k => `<th>${k}</th>`).join("")}<th>합계</th><th>작년</th></tr>
+      ${billMonths.map(m => {
+        const ly = `${Number(m.slice(0, 4)) - 1}${m.slice(4)}`, lySum = billSum(ly);
+        return `<tr><td>${m.slice(2, 4)}.${m.slice(5)}</td>${billKindsUsed.map(k => {
+          const b = bills.find(x => x.on_date.slice(0, 7) === m && x.label === k);
+          return `<td class="num">${b ? `${won(b.amount)}<button class="x" data-del="${b.id}" title="삭제">×</button>` : "—"}</td>`; }).join("")}
+          <td class="num"><b>${won(billSum(m))}</b></td><td class="num"><small>${lySum ? won(lySum) : "—"}</small></td></tr>`; }).join("")}</table>`
+      : `<div class="cd-empty">아직 기록이 없어요</div>`}
+    <details class="life-add"><summary>+ 공과금 추가</summary><div class="bill-form">
+      <input type="month" id="billMonth" value="${thisMonth}">
+      <select id="billKind">${BILL_KINDS.map(k => `<option>${k}</option>`).join("")}</select>
+      <input type="number" id="billAmt" inputmode="numeric" placeholder="금액">
+      <button type="button" id="billAdd">추가</button></div></details>`;
+
+  /* 계절 섹션 */
+  const years = [...new Set(seasons.map(s => s.on_date.slice(0, 4)))].sort().reverse();
+  const seasonBody = years.length ? `<table class="life-tbl season"><tr><th></th>${SEASON_KINDS.map(s => `<th>${s.ico} ${s.k}</th>`).join("")}</tr>
+      ${years.map(y => `<tr><td>${y}</td>${SEASON_KINDS.map(s => {
+        const hit = seasons.filter(r => r.label === s.k && r.on_date.slice(0, 4) === y).map(r => md(r.on_date)).sort();
+        return `<td>${hit.length ? hit.join(", ") : "—"}</td>`; }).join("")}</tr>`).join("")}</table>
+      <div class="sp-hint">달력에서 날짜를 누르고 칩으로 기록해요</div>` : `<div class="cd-empty">달력에서 날짜를 누르고 칩으로 기록해요</div>`;
+
+  card.innerHTML = `
+    <summary class="life-sum">생활 기록${sumParts.length ? ` <small>· ${escapeHtml(sumParts.join(" · "))}</small>` : ""}</summary>
+    ${sec("spend", "지출", lifeSpendSel ? `${mLabel(lifeSpendSel)} ${won(spendSum(lifeSpendSel))}` : "", spendBody)}
+    ${sec("sub", "구독", subs.length ? `월 ${won(subTotal())}` : "", subBody)}
+    ${sec("bill", "공과금", billMonths[0] ? `${mLabel(billMonths[0])} ${won(billSum(billMonths[0]))}` : "", billBody)}
+    ${sec("season", "계절", lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "", seasonBody)}`;
+
+  card.querySelectorAll(".life-sec").forEach(d => d.addEventListener("toggle", () => { lifeSecOpen[d.dataset.sec] = d.open; }));
+  card.querySelectorAll("[data-month]").forEach(el => el.addEventListener("click", () => {
+    lifeSpendSel = el.dataset.month; lifeSpendCat = null; rerenderLife(); }));
+  card.querySelectorAll(".sp-rank.has-items").forEach(el => el.addEventListener("click", () => {
+    lifeSpendCat = lifeSpendCat === el.dataset.cat ? null : el.dataset.cat; rerenderLife(); }));
+  card.querySelectorAll(".sp-chips [data-k]").forEach(b => b.addEventListener("click", () => { lifeTrend = b.dataset.k; rerenderLife(); }));
   card.querySelector("#subAdd").addEventListener("click", () =>
     addSub(card.querySelector("#subName").value.trim(), parseInt(card.querySelector("#subAmt").value, 10) || 0,
            card.querySelector("#subCycle").value, parseInt(card.querySelector("#subDay").value, 10) || null,
@@ -2054,7 +2121,7 @@ function lifeCard() {
   card.querySelector("#billAdd").addEventListener("click", () =>
     addBill(card.querySelector("#billMonth").value, card.querySelector("#billKind").value,
             parseInt(card.querySelector("#billAmt").value, 10) || 0));
-  card.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteBill(b.dataset.del)));
+  card.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); deleteBill(b.dataset.del); }));
   return card;
 }
 
