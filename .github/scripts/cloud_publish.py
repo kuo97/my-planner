@@ -111,6 +111,70 @@ def publish_instagram(tok, url, caption):
                     {"creation_id": c["id"], "access_token": t})["id"]
 
 
+def publish_instagram_images(tok, urls, caption):
+    """1장 = 이미지 게시물, 2~10장 = 캐러셀 (2026-10-06 캐러셀 실험)."""
+    uid, t = tok["ig_user_id"], tok["access_token"]
+    base = "https://graph.instagram.com/v21.0/%s" % uid
+    if len(urls) == 1:
+        cid = meta_api(base + "/media", {"image_url": urls[0], "caption": caption, "access_token": t})["id"]
+    else:
+        kids = [meta_api(base + "/media", {"image_url": u, "is_carousel_item": "true", "access_token": t})["id"] for u in urls]
+        cid = meta_api(base + "/media", {"media_type": "CAROUSEL", "children": ",".join(kids), "caption": caption, "access_token": t})["id"]
+    for i in range(36):
+        st = meta_api("https://graph.instagram.com/v21.0/%s?fields=status_code,status&access_token=%s" % (cid, t))
+        if st.get("status_code") == "FINISHED":
+            break
+        if st.get("status_code") == "ERROR":
+            raise RuntimeError("인스타 처리 실패: %s" % st.get("status"))
+        time.sleep(5)
+    return meta_api(base + "/media_publish", {"creation_id": cid, "access_token": t})["id"]
+
+
+def download_images(rel, n):
+    """img01.jpg … 첨부를 받아 로컬 경로 목록으로."""
+    names = ["img%02d.jpg" % i for i in range(1, n + 1)]
+    assets = {a["name"]: a for a in rel.get("assets", [])}
+    out = []
+    for nm in names:
+        if nm not in assets:
+            raise RuntimeError(nm + " 첨부 없음")
+        p = "_dl_" + nm
+        r = subprocess.run(["curl", "-sSL", "--fail", "-o", p, "-H", "Authorization: Bearer " + GH,
+                            "-H", "Accept: application/octet-stream", assets[nm]["url"]], capture_output=True, text=True)
+        if r.returncode:
+            raise RuntimeError("이미지 내려받기 실패: " + r.stderr[-200:])
+        out.append(p)
+    return out
+
+
+def host_many(locals_, names):
+    """여러 장을 커밋 한 번으로 올리고 전부 열릴 때까지 기다린다."""
+    os.makedirs("media", exist_ok=True)
+    for l, n in zip(locals_, names):
+        os.replace(l, "media/" + n)
+    commit_push(["media"], "media: %d images" % len(names))
+    request_pages_build()
+    urls = [PAGES + "media/" + urllib.parse.quote(n) for n in names]
+    for i in range(48):
+        try:
+            if all(urllib.request.urlopen(urllib.request.Request(u, method="HEAD"), timeout=15).status == 200 for u in urls):
+                print("  공개 확인 %d초 -> %d장" % ((i + 1) * 15, len(urls)))
+                return urls
+        except Exception:
+            pass
+        time.sleep(15)
+    raise RuntimeError("Pages 에 이미지가 12분 안에 안 열렸다")
+
+
+def unhost_many(names):
+    gone = [n for n in names if os.path.exists("media/" + n)]
+    for n in gone:
+        os.remove("media/" + n)
+    if gone:
+        commit_push(["media"], "media: remove %d images" % len(gone))
+        request_pages_build()
+
+
 def publish_threads(tok, url, text, reply):
     uid, t = tok["threads_user_id"], tok["access_token"]
     c = meta_api("https://graph.threads.net/v1.0/%s/threads" % uid,
@@ -219,6 +283,25 @@ def run(force_id=None):
             gh("DELETE", "releases/%d" % rel["id"])
             continue
         print("▶ %s — %s" % (sid, ", ".join(todo)))
+        if m.get("media") == "images":           # 캐러셀·이미지 (10-06)
+            stamp = int(time.time())
+            names = ["%d_%s_%02d.jpg" % (stamp, sid.replace("_", "-"), i) for i in range(1, m["count"] + 1)]
+            try:
+                urls = host_many(download_images(rel, m["count"]), names)
+                mid = publish_instagram_images(json.loads(os.environ["IG_TOKEN_JSON"]), urls, m["ig_caption"])
+                print("  [OK] instagram %s (%d장)" % (mid, len(urls)))
+                m["done"]["instagram"] = mid
+                patch_body(rel, m)
+                record(sid, "instagram", "published", media_id=mid)
+            except Exception as e:
+                print("  [실패] instagram: %s" % e)
+                record(sid, "instagram", "failed", error=str(e)[:300])
+            finally:
+                unhost_many(names)
+            if m["done"].get("instagram"):
+                gh("DELETE", "releases/%d" % rel["id"])
+                print("  큐에서 삭제")
+            continue
         name = "%d_%s.mp4" % (int(time.time()), sid.replace("_", "-"))
         url = None
         try:
