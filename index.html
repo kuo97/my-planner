@@ -180,6 +180,27 @@
   .bill-sum { color: var(--muted); white-space: nowrap; }
   .bill-month small { color: var(--muted); }
   .spend-cats { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  /* 지출 그래프: 1자 누적 막대 + 순위 막대 */
+  .sp-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .sp-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  .sp-row { margin-bottom: 9px; }
+  .sp-head { font-size: 13px; margin-bottom: 4px; }
+  .sp-head small { color: var(--muted); margin-left: 4px; }
+  .sp-head small.up { color: var(--danger); }
+  .sp-head small.down { color: var(--sage); }
+  .sp-bar { display: flex; gap: 2px; height: 14px; }
+  .sp-seg { min-width: 3px; cursor: default; }
+  .sp-seg:first-child { border-radius: 4px 0 0 4px; }
+  .sp-seg:last-child { border-radius: 0 4px 4px 0; }
+  .sp-seg:only-child { border-radius: 4px; }
+  .sp-seg:hover { filter: brightness(1.08); outline: 2px solid var(--paper-card); }
+  .sp-rank-title { font-size: 12.5px; color: var(--muted); margin: 12px 0 4px; }
+  .sp-rank { display: grid; grid-template-columns: 76px 1fr 82px; gap: 8px; align-items: center; font-size: 12.5px; padding: 2px 0; }
+  .sp-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp-track { height: 8px; background: var(--paper); border-radius: 4px; overflow: hidden; }
+  .sp-track i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+  .sp-val { text-align: right; white-space: nowrap; }
+  .sp-val small { color: var(--muted); }
   .bill-form input:not([type]) { width: 120px; }
   .gcal-bar {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -1915,11 +1936,50 @@ function lifeCard() {
   const subRows = subs.slice().sort((a, b) => subMonthly(b) - subMonthly(a)).map(s => {
     const m = s.meta || {};
     return `<div class="bill-month"><span class="bill-item">${escapeHtml(s.label)} <small>${m.cycle === "연" ? "연" : "월"} ${won(s.amount)}${m.day ? ` · ${m.day}일` : ""} · ${m.biz ? "사업" : "개인"}</small><button data-del="${s.id}" title="삭제">×</button></span></div>`; }).join("");
-  const spendRows = spendMonths.slice(0, 3).map((m, i) => {
-    const cats = spends.filter(s => s.on_date.slice(0, 7) === m).sort((a, b) => b.amount - a.amount).slice(0, 4)
-      .map(s => `${escapeHtml(s.label)} ${won(s.amount)}`).join(" · ");
-    const prev = spendMonths[i + 1], diff = prev ? spendSum(m) - spendSum(prev) : null;
-    return `<div class="bill-month"><b>${m.slice(2, 4)}.${m.slice(5)}</b> 총 ${won(spendSum(m))} <small>(사업 ${won(spendSum(m, true))} · 개인 ${won(spendSum(m, false))}${diff != null ? ` · 전달 대비 ${diff >= 0 ? "+" : ""}${won(diff)}` : ""})</small><div class="spend-cats">${cats}</div></div>`; }).join("");
+  // 지출 그래프: 달마다 1자 누적 막대(카테고리 비율) + 최근 달 카테고리 순위 막대.
+  // 색은 카테고리에 고정(순위 따라 바뀌지 않음). 6개 + 기타(회색). 팔레트는 dataviz 검증 통과(색 대비가 낮은 칸은 금액 라벨로 보완).
+  const SPEND_GROUPS = [
+    { k: "주거", c: "#2a78d6", m: l => l.startsWith("주거") },
+    { k: "배달", c: "#eb6834", m: l => l === "배달" },
+    { k: "외식·카페", c: "#1baf7a", m: l => l.startsWith("외식") || l.startsWith("카페") },
+    { k: "AI 툴", c: "#eda100", m: l => l.startsWith("사업") },
+    { k: "생활·마트", c: "#e87ba4", m: l => l.startsWith("생활") },
+    { k: "여행", c: "#008300", m: l => l === "여행" },
+  ];
+  const OTHER = { k: "기타", c: "#c9c2b4" };
+  const groupOf = l => SPEND_GROUPS.find(g => g.m(l)) || OTHER;
+  const monthGroups = m => {
+    const acc = new Map([...SPEND_GROUPS, OTHER].map(g => [g.k, { g, v: 0, items: [] }]));
+    spends.filter(s => s.on_date.slice(0, 7) === m).forEach(s => {
+      const e = acc.get(groupOf(s.label).k); e.v += s.amount || 0; e.items.push(s);
+    });
+    return [...acc.values()].filter(e => e.v > 0);
+  };
+  const man = n => (n / 10000).toFixed(n >= 1000000 ? 0 : 1) + "만";
+  const spendLegend = spendMonths.length ? `<div class="sp-legend">${[...SPEND_GROUPS, OTHER].map(g =>
+    `<span><i style="background:${g.c}"></i>${g.k}</span>`).join("")}</div>` : "";
+  const spendBars = spendMonths.slice(0, 3).map((m, i) => {
+    const tot = spendSum(m), prev = spendMonths[i + 1], diff = prev ? tot - spendSum(prev) : null;
+    const segs = monthGroups(m).map(e => `<span class="sp-seg" style="flex:${e.v};background:${e.g.c}"
+        title="${e.g.k} ${won(e.v)} (${Math.round(e.v / tot * 100)}%)"></span>`).join("");
+    return `<div class="sp-row"><div class="sp-head"><b>${Number(m.slice(5))}월</b> ${man(tot)}원
+        ${diff != null ? `<small class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "▲" : "▼"} ${man(Math.abs(diff))}</small>` : ""}
+        <small>· 사업 ${man(spendSum(m, true))}</small></div><div class="sp-bar">${segs}</div></div>`; }).join("");
+  const latest = spendMonths[0];
+  const rank = latest ? (() => {
+    const rows = spends.filter(s => s.on_date.slice(0, 7) === latest).sort((a, b) => b.amount - a.amount);
+    const max = rows[0] ? rows[0].amount : 1, tot = spendSum(latest);
+    const prevM = spendMonths[1];
+    return `<div class="sp-rank-title">${Number(latest.slice(5))}월 카테고리별</div>` + rows.map(s => {
+      const g = groupOf(s.label);
+      const pv = prevM ? spends.find(x => x.on_date.slice(0, 7) === prevM && x.label === s.label) : null;
+      const d = pv ? s.amount - pv.amount : null;
+      return `<div class="sp-rank" title="${escapeHtml(s.label)} ${won(s.amount)}${d != null ? ` · 전달 대비 ${d >= 0 ? "+" : ""}${won(d)}` : ""}">
+        <span class="sp-name">${escapeHtml(s.label.replace("사업 · ", "").replace("주거 · ", ""))}</span>
+        <span class="sp-track"><i style="width:${Math.max(2, s.amount / max * 100)}%;background:${g.c}"></i></span>
+        <span class="sp-val">${man(s.amount)} <small>${Math.round(s.amount / tot * 100)}%</small></span></div>`; }).join("");
+  })() : "";
+  const spendRows = spendMonths.length ? spendLegend + spendBars + rank : "";
   // 계절: 연도별 한 줄 — 해마다 같은 칸을 비교한다
   const years = [...new Set(seasons.map(s => s.on_date.slice(0, 4)))].sort().reverse();
   const seasonRows = years.map(y => `<tr><th>${y}</th>${SEASON_KINDS.map(s => {
