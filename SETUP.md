@@ -263,6 +263,28 @@ revoke all on function life_spend_set(text, date, jsonb) from public;
 grant execute on function life_spend_set(text, date, jsonb) to anon;
 ```
 
+## 1-10. 구독 일괄 추가 (2026-10-07) — 추가 SQL
+
+Claude 가 명세서에서 찾은 구독을 넣는 통로. 같은 이름의 구독이 이미 있으면 건너뛴다.
+
+```sql
+create or replace function life_sub_add(p_token text, p_rows jsonb)
+returns integer language plpgsql security definer set search_path = public as $$
+declare uid uuid; n integer;
+begin
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> 'HASH_HERE' then return -1; end if;
+  select user_id into uid from diary order by on_date desc limit 1;
+  insert into life_log (user_id, on_date, kind, label, amount, meta)
+  select uid, current_date, 'sub', x.label, x.amount, jsonb_build_object('cycle', coalesce(x.cycle, '월'), 'day', x.day, 'biz', coalesce(x.biz, false))
+  from jsonb_to_recordset(p_rows) as x(label text, amount integer, cycle text, day integer, biz boolean)
+  where not exists (select 1 from life_log l where l.user_id = uid and l.kind = 'sub' and l.label = x.label);
+  get diagnostics n = row_count;
+  return n;
+end $$;
+revoke all on function life_sub_add(text, jsonb) from public;
+grant execute on function life_sub_add(text, jsonb) to anon;
+```
+
 ## 2. 프로젝트 키 확인
 
 대시보드 → **Settings → API** 에서 두 값을 복사:

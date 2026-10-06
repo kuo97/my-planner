@@ -201,6 +201,15 @@
   .sp-track i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
   .sp-val { text-align: right; white-space: nowrap; }
   .sp-val small { color: var(--muted); }
+  .sp-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .sp-chips button { border: 1.5px solid var(--line); background: var(--paper); border-radius: 999px; padding: 2px 9px; font: inherit; font-size: 12px; color: var(--muted); cursor: pointer; }
+  .sp-chips button.on { border-color: var(--ink); color: var(--ink); background: var(--paper-card); }
+  .sp-cols { display: flex; align-items: flex-end; gap: 10px; height: 108px; padding: 0 2px; border-bottom: 1px solid var(--line); }
+  .sp-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; min-width: 0; }
+  .sp-cbar { width: 100%; max-width: 34px; border-radius: 4px 4px 0 0; }
+  .sp-cv { font-size: 11.5px; color: var(--ink); white-space: nowrap; }
+  .sp-cm { font-size: 11.5px; color: var(--muted); margin-bottom: -18px; }
+  #spTrend { padding-bottom: 20px; }
   .bill-form input:not([type]) { width: 120px; }
   .gcal-bar {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -1873,7 +1882,7 @@ const SEASON_KINDS = [
   { k: "난방 켬", ico: "🔥" }, { k: "난방 끔", ico: "🌤️" },
 ];
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
-let lifeLog = [], lifeOpen = false;
+let lifeLog = [], lifeOpen = false, lifeTrend = "배달";
 async function loadLifeLog() {
   const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta").order("on_date", { ascending: false });
   lifeLog = error ? null : (data || []);   // null = 표가 아직 없음
@@ -1979,7 +1988,7 @@ function lifeCard() {
         <span class="sp-track"><i style="width:${Math.max(2, s.amount / max * 100)}%;background:${g.c}"></i></span>
         <span class="sp-val">${man(s.amount)} <small>${Math.round(s.amount / tot * 100)}%</small></span></div>`; }).join("");
   })() : "";
-  const spendRows = spendMonths.length ? spendLegend + spendBars + rank : "";
+  const spendRows = spendMonths.length ? spendLegend + spendBars + rank + `<div id="spTrend"></div>` : "";
   // 계절: 연도별 한 줄 — 해마다 같은 칸을 비교한다
   const years = [...new Set(seasons.map(s => s.on_date.slice(0, 4)))].sort().reverse();
   const seasonRows = years.map(y => `<tr><th>${y}</th>${SEASON_KINDS.map(s => {
@@ -2018,6 +2027,26 @@ function lifeCard() {
     ${subRows || `<div class="cd-empty">아직 기록이 없어요</div>`}
     <h4>지출 <small>— 카드 명세서를 for me\\지출\\명세서 에 넣으면 Claude가 분류해서 올려요</small></h4>
     ${spendRows || `<div class="cd-empty">아직 정리된 달이 없어요</div>`}`;
+  // 6개월 추이: 칩으로 카테고리를 고르면 그 카테고리의 달별 막대(값 라벨 포함)를 다시 그린다
+  const trendEl = card.querySelector("#spTrend");
+  if (trendEl) {
+    const months6 = spendMonths.slice(0, 6).reverse();
+    const valOf = (m, k) => k === "전체" ? spendSum(m)
+      : monthGroups(m).filter(e => e.g.k === k).reduce((a, e) => a + e.v, 0);
+    const drawTrend = () => {
+      const k = lifeTrend, g = [...SPEND_GROUPS, OTHER].find(x => x.k === k);
+      const vals = months6.map(m => valOf(m, k)), max = Math.max(...vals, 1);
+      trendEl.innerHTML = `<div class="sp-rank-title">월별 추이</div>
+        <div class="sp-chips">${["전체", ...SPEND_GROUPS.map(x => x.k)].map(x =>
+          `<button type="button" class="${x === k ? "on" : ""}" data-k="${x}">${x}</button>`).join("")}</div>
+        <div class="sp-cols">${months6.map((m, i) => `<div class="sp-col" title="${Number(m.slice(5))}월 ${k} ${won(vals[i])}">
+            <span class="sp-cv">${man(vals[i])}</span>
+            <span class="sp-cbar" style="height:${Math.max(2, vals[i] / max * 70)}px;background:${g ? g.c : "var(--ink)"}"></span>
+            <span class="sp-cm">${Number(m.slice(5))}월</span></div>`).join("")}</div>`;
+      trendEl.querySelectorAll("[data-k]").forEach(b => b.addEventListener("click", () => { lifeTrend = b.dataset.k; drawTrend(); }));
+    };
+    drawTrend();
+  }
   card.querySelector("#subAdd").addEventListener("click", () =>
     addSub(card.querySelector("#subName").value.trim(), parseInt(card.querySelector("#subAmt").value, 10) || 0,
            card.querySelector("#subCycle").value, parseInt(card.querySelector("#subDay").value, 10) || null,
