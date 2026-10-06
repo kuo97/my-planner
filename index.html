@@ -178,6 +178,9 @@
   .bill-item { margin-right: 8px; white-space: nowrap; }
   .bill-item button { border: none; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; }
   .bill-sum { color: var(--muted); white-space: nowrap; }
+  .bill-month small { color: var(--muted); }
+  .spend-cats { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .bill-form input:not([type]) { width: 120px; }
   .gcal-bar {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     background: var(--gcal-soft); border: 1.5px solid var(--gcal); border-radius: 14px;
@@ -1851,7 +1854,7 @@ const SEASON_KINDS = [
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
 let lifeLog = [], lifeOpen = false;
 async function loadLifeLog() {
-  const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount").order("on_date", { ascending: false });
+  const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta").order("on_date", { ascending: false });
   lifeLog = error ? null : (data || []);   // null = 표가 아직 없음
 }
 const seasonOn = date => (lifeLog || []).filter(r => r.kind === "season" && r.on_date === date);
@@ -1869,6 +1872,14 @@ async function addBill(month, label, amount) {
   if (error) { toast("기록 실패: " + error.message); return; }
   await loadLifeLog(); renderCalendarView();
 }
+/* 구독: label=이름, amount=결제 1회 금액(원), meta={cycle:"월"|"연", day:결제일, biz:사업용 여부} */
+async function addSub(name, amount, cycle, day, biz) {
+  if (!name || !amount) { toast("이름과 금액을 넣어 주세요"); return; }
+  const { error } = await sb.from("life_log").insert({ on_date: todayStr(), kind: "sub", label: name, amount, meta: { cycle, day, biz } });
+  if (error) { toast("기록 실패: " + error.message); return; }
+  await loadLifeLog(); renderCalendarView();
+}
+const subMonthly = s => (s.meta && s.meta.cycle === "연") ? Math.round((s.amount || 0) / 12) : (s.amount || 0);
 async function deleteBill(id) {
   const { error } = await sb.from("life_log").delete().eq("id", id);
   if (error) { toast("삭제 실패: " + error.message); return; }
@@ -1891,8 +1902,24 @@ function lifeCard() {
   const thisMonth = todayStr().slice(0, 7);
   const monthSum = m => bills.filter(b => b.on_date.slice(0, 7) === m).reduce((a, b) => a + (b.amount || 0), 0);
   const latestBillMonth = bills[0] && bills[0].on_date.slice(0, 7);
+  const subs = lifeLog.filter(r => r.kind === "sub");
+  const subTotal = biz => subs.filter(s => biz == null || !!(s.meta && s.meta.biz) === biz).reduce((a, s) => a + subMonthly(s), 0);
+  // 지출: Claude 가 카드 명세서를 분류해 넣은 월별 카테고리 합계(label=카테고리, meta.biz)
+  const spends = lifeLog.filter(r => r.kind === "spend");
+  const spendMonths = [...new Set(spends.map(s => s.on_date.slice(0, 7)))].sort().reverse();
+  const spendSum = (m, biz) => spends.filter(s => s.on_date.slice(0, 7) === m && (biz == null || !!(s.meta && s.meta.biz) === biz)).reduce((a, s) => a + (s.amount || 0), 0);
   const sumParts = [lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "",
-                    latestBillMonth ? `${Number(latestBillMonth.slice(5))}월 공과금 ${won(monthSum(latestBillMonth))}` : ""].filter(Boolean);
+                    latestBillMonth ? `${Number(latestBillMonth.slice(5))}월 공과금 ${won(monthSum(latestBillMonth))}` : "",
+                    subs.length ? `구독 월 ${won(subTotal())}` : "",
+                    spendMonths[0] ? `${Number(spendMonths[0].slice(5))}월 지출 ${won(spendSum(spendMonths[0]))}` : ""].filter(Boolean);
+  const subRows = subs.slice().sort((a, b) => subMonthly(b) - subMonthly(a)).map(s => {
+    const m = s.meta || {};
+    return `<div class="bill-month"><span class="bill-item">${escapeHtml(s.label)} <small>${m.cycle === "연" ? "연" : "월"} ${won(s.amount)}${m.day ? ` · ${m.day}일` : ""} · ${m.biz ? "사업" : "개인"}</small><button data-del="${s.id}" title="삭제">×</button></span></div>`; }).join("");
+  const spendRows = spendMonths.slice(0, 3).map((m, i) => {
+    const cats = spends.filter(s => s.on_date.slice(0, 7) === m).sort((a, b) => b.amount - a.amount).slice(0, 4)
+      .map(s => `${escapeHtml(s.label)} ${won(s.amount)}`).join(" · ");
+    const prev = spendMonths[i + 1], diff = prev ? spendSum(m) - spendSum(prev) : null;
+    return `<div class="bill-month"><b>${m.slice(2, 4)}.${m.slice(5)}</b> 총 ${won(spendSum(m))} <small>(사업 ${won(spendSum(m, true))} · 개인 ${won(spendSum(m, false))}${diff != null ? ` · 전달 대비 ${diff >= 0 ? "+" : ""}${won(diff)}` : ""})</small><div class="spend-cats">${cats}</div></div>`; }).join("");
   // 계절: 연도별 한 줄 — 해마다 같은 칸을 비교한다
   const years = [...new Set(seasons.map(s => s.on_date.slice(0, 4)))].sort().reverse();
   const seasonRows = years.map(y => `<tr><th>${y}</th>${SEASON_KINDS.map(s => {
@@ -1918,7 +1945,23 @@ function lifeCard() {
       <input type="number" id="billAmt" inputmode="numeric" placeholder="금액">
       <button type="button" id="billAdd">추가</button>
     </div>
-    ${billRows || `<div class="cd-empty">아직 기록이 없어요</div>`}`;
+    ${billRows || `<div class="cd-empty">아직 기록이 없어요</div>`}
+    <h4>구독 <small>— 월 ${won(subTotal())} (사업 ${won(subTotal(true))} · 개인 ${won(subTotal(false))})</small></h4>
+    <div class="bill-form">
+      <input id="subName" placeholder="이름 (예: Claude)">
+      <input type="number" id="subAmt" inputmode="numeric" placeholder="금액">
+      <select id="subCycle"><option>월</option><option>연</option></select>
+      <input type="number" id="subDay" inputmode="numeric" min="1" max="31" placeholder="결제일" style="width:64px">
+      <select id="subBiz"><option value="1">사업</option><option value="0">개인</option></select>
+      <button type="button" id="subAdd">추가</button>
+    </div>
+    ${subRows || `<div class="cd-empty">아직 기록이 없어요</div>`}
+    <h4>지출 <small>— 카드 명세서를 for me\\지출\\명세서 에 넣으면 Claude가 분류해서 올려요</small></h4>
+    ${spendRows || `<div class="cd-empty">아직 정리된 달이 없어요</div>`}`;
+  card.querySelector("#subAdd").addEventListener("click", () =>
+    addSub(card.querySelector("#subName").value.trim(), parseInt(card.querySelector("#subAmt").value, 10) || 0,
+           card.querySelector("#subCycle").value, parseInt(card.querySelector("#subDay").value, 10) || null,
+           card.querySelector("#subBiz").value === "1"));
   card.querySelector("#billAdd").addEventListener("click", () =>
     addBill(card.querySelector("#billMonth").value, card.querySelector("#billKind").value,
             parseInt(card.querySelector("#billAmt").value, 10) || 0));

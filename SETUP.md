@@ -237,6 +237,32 @@ create policy "own life_log" on life_log for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 ```
 
+## 1-9. 구독·지출 (2026-10-06) — 추가 SQL
+
+구독은 앱에서 직접 입력(kind='sub'), 지출은 Claude 가 카드 명세서를 분류해 월별 카테고리 합계로 넣는다(kind='spend', `life_spend_set` — 토큰 해시는 1-7 과 같음).
+
+```sql
+alter table life_log add column if not exists meta jsonb;
+alter table life_log drop constraint if exists life_log_kind_check;
+alter table life_log add constraint life_log_kind_check check (kind in ('season','bill','sub','spend'));
+
+create or replace function life_spend_set(p_token text, p_month date, p_rows jsonb)
+returns integer language plpgsql security definer set search_path = public as $$
+declare uid uuid; n integer;
+begin
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> 'HASH_HERE' then return -1; end if;
+  select user_id into uid from diary order by on_date desc limit 1;
+  delete from life_log where user_id = uid and kind = 'spend' and on_date = p_month;
+  insert into life_log (user_id, on_date, kind, label, amount, meta)
+  select uid, p_month, 'spend', x.label, x.amount, jsonb_build_object('biz', coalesce(x.biz, false))
+  from jsonb_to_recordset(p_rows) as x(label text, amount integer, biz boolean);
+  get diagnostics n = row_count;
+  return n;
+end $$;
+revoke all on function life_spend_set(text, date, jsonb) from public;
+grant execute on function life_spend_set(text, date, jsonb) to anon;
+```
+
 ## 2. 프로젝트 키 확인
 
 대시보드 → **Settings → API** 에서 두 값을 복사:
