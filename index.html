@@ -155,6 +155,29 @@
     font-family: inherit;
   }
   .hair-toggle.on { border-style: solid; border-color: var(--ink); color: var(--ink); background: var(--paper-card); }
+  /* 생활 기록: 계절 칩 + 접히는 카드 */
+  .season-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .season-chip { padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; }
+  .season-chip.on { border-style: solid; border-color: var(--ink); color: var(--ink); background: var(--paper-card); }
+  .life-card { padding: 12px 17px; }
+  .life-sum { font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; list-style: none; }
+  .life-sum::-webkit-details-marker { display: none; }
+  .life-sum::before { content: "▸ "; color: var(--muted); }
+  .life-card[open] .life-sum::before { content: "▾ "; }
+  .life-sum small { font-family: inherit; font-weight: 400; font-size: 12.5px; color: var(--muted); }
+  .life-card h4 { font-family: 'Gaegu', sans-serif; font-size: 14px; margin: 12px 0 6px; }
+  .life-card h4 small { font-weight: 400; color: var(--muted); }
+  .season-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: center; }
+  .season-tbl th, .season-tbl td { padding: 4px 2px; border-bottom: 1px dashed var(--line); font-weight: 400; }
+  .season-tbl tr:first-child th { color: var(--muted); font-size: 11.5px; }
+  .bill-form { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  .bill-form input, .bill-form select { border: 1.5px solid var(--line); border-radius: 10px; background: var(--paper); padding: 5px 8px; font: inherit; font-size: 13px; min-width: 0; }
+  .bill-form input[type=number] { width: 90px; }
+  .bill-form button { border: none; border-radius: 10px; background: var(--ink); color: var(--paper); padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .bill-month { font-size: 13px; padding: 5px 0; border-bottom: 1px dashed var(--line); }
+  .bill-item { margin-right: 8px; white-space: nowrap; }
+  .bill-item button { border: none; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; }
+  .bill-sum { color: var(--muted); white-space: nowrap; }
   .gcal-bar {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     background: var(--gcal-soft); border: 1.5px solid var(--gcal); border-radius: 14px;
@@ -1818,6 +1841,91 @@ async function toggleHaircut(date) {
   toast(next ? "✂️ 이발한 날로 기록했어요" : "이발 기록을 지웠어요");
 }
 
+/* ---------- 생활 기록 (2026-10-06): 계절(에어컨·난방 켠 날/끈 날) + 공과금 — Supabase life_log 표(SETUP.md 1-8) ----------
+   계절은 달력 날짜 상세의 작은 칩으로 찍고, 해마다 비교해서 "언제부터 시원해지나"를 본다.
+   공과금은 청구월(YYYY-MM-01) + 항목 + 금액. 달력 아래 접힌 카드 하나에만 보인다. */
+const SEASON_KINDS = [
+  { k: "에어컨 켬", ico: "❄️" }, { k: "에어컨 끔", ico: "🌬️" },
+  { k: "난방 켬", ico: "🔥" }, { k: "난방 끔", ico: "🌤️" },
+];
+const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
+let lifeLog = [], lifeOpen = false;
+async function loadLifeLog() {
+  const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount").order("on_date", { ascending: false });
+  lifeLog = error ? null : (data || []);   // null = 표가 아직 없음
+}
+const seasonOn = date => (lifeLog || []).filter(r => r.kind === "season" && r.on_date === date);
+async function toggleSeason(date, label) {
+  const hit = (lifeLog || []).find(r => r.kind === "season" && r.on_date === date && r.label === label);
+  const { error } = hit ? await sb.from("life_log").delete().eq("id", hit.id)
+                        : await sb.from("life_log").insert({ on_date: date, kind: "season", label });
+  if (error) { toast("기록 실패: " + error.message); return; }
+  await loadLifeLog(); renderCalendarView();
+  toast(hit ? `${label} 기록을 지웠어요` : `${label} — 기록했어요`);
+}
+async function addBill(month, label, amount) {
+  if (!month || !amount) { toast("월과 금액을 넣어 주세요"); return; }
+  const { error } = await sb.from("life_log").insert({ on_date: month + "-01", kind: "bill", label, amount });
+  if (error) { toast("기록 실패: " + error.message); return; }
+  await loadLifeLog(); renderCalendarView();
+}
+async function deleteBill(id) {
+  const { error } = await sb.from("life_log").delete().eq("id", id);
+  if (error) { toast("삭제 실패: " + error.message); return; }
+  await loadLifeLog(); renderCalendarView();
+}
+function lifeCard() {
+  const card = document.createElement("details");
+  card.className = "cal-card life-card";
+  card.open = lifeOpen;
+  card.addEventListener("toggle", () => { lifeOpen = card.open; });
+  if (lifeLog === null) {
+    card.innerHTML = `<summary class="life-sum">생활 기록 <small>· SETUP.md 1-8 의 SQL 을 실행하면 켜져요</small></summary>`;
+    return card;
+  }
+  const md = d => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
+  const won = n => Number(n).toLocaleString() + "원";
+  const seasons = lifeLog.filter(r => r.kind === "season");
+  const bills = lifeLog.filter(r => r.kind === "bill");
+  const lastSeason = seasons[0];
+  const thisMonth = todayStr().slice(0, 7);
+  const monthSum = m => bills.filter(b => b.on_date.slice(0, 7) === m).reduce((a, b) => a + (b.amount || 0), 0);
+  const latestBillMonth = bills[0] && bills[0].on_date.slice(0, 7);
+  const sumParts = [lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "",
+                    latestBillMonth ? `${Number(latestBillMonth.slice(5))}월 공과금 ${won(monthSum(latestBillMonth))}` : ""].filter(Boolean);
+  // 계절: 연도별 한 줄 — 해마다 같은 칸을 비교한다
+  const years = [...new Set(seasons.map(s => s.on_date.slice(0, 4)))].sort().reverse();
+  const seasonRows = years.map(y => `<tr><th>${y}</th>${SEASON_KINDS.map(s => {
+      const hit = seasons.filter(r => r.label === s.k && r.on_date.slice(0, 4) === y).map(r => md(r.on_date)).sort();
+      return `<td>${hit.length ? hit.join(", ") : "—"}</td>`; }).join("")}</tr>`).join("");
+  // 공과금: 최근 6개월, 작년 같은 달 합계와 비교
+  const months = [...new Set(bills.map(b => b.on_date.slice(0, 7)))].sort().reverse().slice(0, 6);
+  const billRows = months.map(m => {
+    const items = bills.filter(b => b.on_date.slice(0, 7) === m);
+    const ly = `${Number(m.slice(0, 4)) - 1}${m.slice(4)}`, lySum = monthSum(ly);
+    return `<div class="bill-month"><b>${m.slice(2, 4)}.${m.slice(5)}</b> ${items.map(b =>
+      `<span class="bill-item">${escapeHtml(b.label)} ${won(b.amount)}<button data-del="${b.id}" title="삭제">×</button></span>`).join("")}
+      <span class="bill-sum">= ${won(monthSum(m))}${lySum ? ` <small>(작년 ${won(lySum)})</small>` : ""}</span></div>`; }).join("");
+  card.innerHTML = `
+    <summary class="life-sum">생활 기록${sumParts.length ? ` <small>· ${escapeHtml(sumParts.join(" · "))}</small>` : ""}</summary>
+    <h4>계절 <small>— 달력에서 날짜를 누르고 칩으로 기록</small></h4>
+    ${seasonRows ? `<table class="season-tbl"><tr><th></th>${SEASON_KINDS.map(s => `<th>${s.ico} ${s.k}</th>`).join("")}</tr>${seasonRows}</table>`
+                 : `<div class="cd-empty">아직 기록이 없어요</div>`}
+    <h4>공과금</h4>
+    <div class="bill-form">
+      <input type="month" id="billMonth" value="${thisMonth}">
+      <select id="billKind">${BILL_KINDS.map(k => `<option>${k}</option>`).join("")}</select>
+      <input type="number" id="billAmt" inputmode="numeric" placeholder="금액">
+      <button type="button" id="billAdd">추가</button>
+    </div>
+    ${billRows || `<div class="cd-empty">아직 기록이 없어요</div>`}`;
+  card.querySelector("#billAdd").addEventListener("click", () =>
+    addBill(card.querySelector("#billMonth").value, card.querySelector("#billKind").value,
+            parseInt(card.querySelector("#billAmt").value, 10) || 0));
+  card.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteBill(b.dataset.del)));
+  return card;
+}
+
 /* ---------- 달력 ---------- */
 async function loadCalendarData() {
   if (!calSel) calSel = todayStr();
@@ -1825,6 +1933,7 @@ async function loadCalendarData() {
   if (error) { toast("달력 로드 실패: " + error.message); calMap = {}; return; }
   calMap = {};
   (data || []).forEach(e => { calMap[e.on_date] = e; });
+  await loadLifeLog();
 }
 
 function renderCalendarView() {
@@ -1896,7 +2005,9 @@ function renderCalendarView() {
       const hasText = entry && (entry.content || entry.exercised || (entry.city_notes && entry.city_notes.length));
       const thumb = entry && entry.photos && entry.photos[0];
       const marks = (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
-                  + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "");
+                  + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "")
+                  + seasonOn(c.dateStr).map(r => { const s = SEASON_KINDS.find(x => x.k === r.label);
+                      return `<span class="day-mark" title="${r.label}">${s ? s.ico : "•"}</span>`; }).join("");
       cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${marks ? `<span class="day-marks">${marks}</span>` : ""}`;
       cell.addEventListener("click", () => {
         calSel = c.dateStr;
@@ -1982,6 +2093,20 @@ function renderCalendarView() {
     hairBtn.textContent = done ? "✂️ 이발 기록 지우기" : "✂️ 이 날 이발했어요";
     hairBtn.addEventListener("click", () => toggleHaircut(calSel));
     detail.appendChild(hairBtn);
+    if (lifeLog) {
+      const row = document.createElement("div");
+      row.className = "season-chips";
+      SEASON_KINDS.forEach(s => {
+        const on = seasonOn(calSel).some(r => r.label === s.k);
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "season-chip" + (on ? " on" : "");
+        b.textContent = `${s.ico} ${s.k}`;
+        b.addEventListener("click", () => toggleSeason(calSel, s.k));
+        row.appendChild(b);
+      });
+      detail.appendChild(row);
+    }
   }
   if (calSel === today) {
     const jump = document.createElement("button");
@@ -1990,6 +2115,7 @@ function renderCalendarView() {
     jump.addEventListener("click", () => { document.querySelector('nav button[data-view="diary"]').click(); });
     detail.appendChild(jump);
   }
+  list.appendChild(lifeCard());
 }
 
 function emptyDoodle(msg, sub) {

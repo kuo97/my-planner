@@ -218,6 +218,25 @@ revoke all on function coach_set(text, text, jsonb) from public;
 grant execute on function coach_set(text, text, jsonb) to anon;
 ```
 
+## 1-8. 생활 기록 (계절·공과금, 2026-10-06) — 추가 SQL
+
+달력 날짜 상세의 계절 칩(에어컨·난방 켬/끔)과 달력 아래 "생활 기록" 카드(공과금)가 쓰는 표.
+
+```sql
+create table if not exists life_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users,
+  on_date date not null,
+  kind text not null check (kind in ('season','bill')),
+  label text not null,
+  amount integer,
+  created_at timestamptz default now()
+);
+alter table life_log enable row level security;
+create policy "own life_log" on life_log for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+```
+
 ## 2. 프로젝트 키 확인
 
 대시보드 → **Settings → API** 에서 두 값을 복사:
