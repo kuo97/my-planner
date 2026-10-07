@@ -2544,11 +2544,19 @@ async function loadAll() {
   // 예전엔 일요일 시작 1주치만 불러와서, 보드에 보이는 지난주 월~토의 체크가
   // DB엔 있는데도 화면에선 전부 풀린 것처럼 보이는 버그가 있었다.
   const board = twoWeekDates();
-  const [t, r] = await Promise.all([
+  const query = () => Promise.all([
     sb.from("tasks").select("*").order("created_at", { ascending: true }),
     sb.from("repeat_log").select("*").gte("done_on", board[0]).lte("done_on", board[13]),
-    loadExerciseStats(),
   ]);
+  let [[t, r]] = await Promise.all([query(), loadExerciseStats()]);
+  // 앱을 다시 열 때 막 새로 받은 로그인 토큰을 DB 서버 시계가 "미래에 발급됨"으로 보거나(서버 간 몇 초 시차),
+  // 오래 쉬다 열어 토큰이 만료된 경우 — 잠깐 기다렸다(만료면 토큰 갱신 후) 한 번 더 불러온다
+  const jwtErr = e => e && /JWT (issued at future|expired)/i.test(e.message || "");
+  if (jwtErr(t.error) || jwtErr(r.error)) {
+    if (/expired/i.test((t.error || r.error).message)) { try { await sb.auth.refreshSession(); } catch {} }
+    await new Promise(ok => setTimeout(ok, 2000));
+    [t, r] = await query();
+  }
   // 네트워크/세션 오류로 조회가 실패하면 기존 화면을 비우지 않고 그대로 둔다
   // (실패했다고 tasks를 []로 덮어쓰면 프로젝트/할 일이 전부 사라진 것처럼 보임)
   if (t.error) { toast("할 일을 불러오지 못했어요: " + t.error.message); }
