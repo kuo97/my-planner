@@ -993,33 +993,28 @@ const SUPABASE_ANON_KEY = "sb_publishable_XhakCx4w4s7KRczs1kOcJQ_J8Qq11hK";
 
 const DAY_NAMES = ["일","월","화","수","목","금","토"];
 const MAX_PHOTOS = 6;
-/* 루틴별 운동 구성 (2026-09-18 상하체 분할로 재배치 — 운동 폼 가이드와 동일). w = 기본 무게(kg), step = 무게 조절 단위(kg, 생략 시 5), reps = "횟수×세트"
-   월 상체A · 화 하체A · 목 상체B · 금 하체B — 모든 부위 주 2회. 컴파운드 4~5세트, 고립 3세트(실패 1~2회 전까지). */
+/* 루틴별 운동 구성 (2026-10-07 가슴·등·다리 3분할로 재배치 — 운동 폼 가이드와 동일). w = 기본 무게(kg), step = 무게 조절 단위(kg, 생략 시 5), reps = "횟수×세트"
+   요일 고정 없이 가슴 → 등 → 다리 순서로 돌린다(주 3~4일). 어깨·팔은 밀기(가슴 날)·당기기(등 날)에 붙인다. 하루 5종목·20세트 이내. */
 const EXERCISE_ROUTINES = [
-  { key: "upperA", label: "상체A", items: [
+  { key: "chest", label: "가슴 날", items: [
     { name: "벤치프레스", w: 55, reps: "6×5", memo: "바20+원판35 · 워밍업 20×10→40×5→50×2" },
-    { name: "렛풀다운", w: 32, reps: "12×4", memo: "워밍업 20×10→25×5" },
-    { name: "시티드 덤벨 숄더프레스", w: 8, reps: "12×4", memo: "한쪽 무게 · OHP 대체", step: 1 },
-    { name: "시티드로우", w: 25, reps: "12×3" },
-    { name: "케이블이두컬", w: 25, reps: "12×3" },
-  ]},
-  { key: "lowerA", label: "하체A", items: [
-    { name: "V스쿼트 머신", w: 45, reps: "12×4", memo: "워밍업 20×10→35×5" },
-    { name: "레그프레스", w: 60, reps: "12×3", memo: "원판 기준" },
-    { name: "레그컬", w: 25, reps: "12×3" },
-    { name: "카프레이즈", w: 20, reps: "15×3", memo: "자체중~20kg" },
-  ]},
-  { key: "upperB", label: "상체B", items: [
-    { name: "티바로우", w: 17.5, reps: "10×4", memo: "첫 종목 · 무겁게", step: 2.5 },
     { name: "인클라인 덤벨프레스", w: 12, reps: "10×4", memo: "한쪽 무게 · 등받이 30도", step: 1 },
+    { name: "시티드 덤벨 숄더프레스", w: 8, reps: "12×4", memo: "한쪽 무게 · OHP 대체", step: 1 },
     { name: "사이드레터럴레이즈", w: 7, reps: "10~12×4", memo: "덤벨 · 10회에서 실패할 무게", step: 1 },
-    { name: "리버스펙덱플라이", w: 10, reps: "12×3", step: 2.5 },
     { name: "라잉트라이셉스", w: 15, reps: "12×3", memo: "장두 늘려서 · 첫 세트 가볍게" },
   ]},
-  { key: "lowerB", label: "하체B", items: [
-    // 바벨 OHP는 코어 불안정 때문에 몇 년째 20kg 정체 → 시티드 덤벨 프레스로 대체(2026-09-11). 코어(엉덩이 조이기·갈비뼈 내리기)가 잡히면 상체A로 복귀 예정.
+  { key: "back", label: "등 날", items: [
+    { name: "렛풀다운", w: 32, reps: "12×4", memo: "워밍업 20×10→25×5" },
+    { name: "티바로우", w: 17.5, reps: "10×4", memo: "무겁게", step: 2.5 },
+    { name: "시티드로우", w: 25, reps: "12×3" },
+    { name: "리버스펙덱플라이", w: 10, reps: "12×3", step: 2.5 },
+    { name: "케이블이두컬", w: 25, reps: "12×3" },
+  ]},
+  { key: "legs", label: "다리 날", items: [
+    { name: "V스쿼트 머신", w: 45, reps: "12×4", memo: "워밍업 20×10→35×5" },
+    // 바벨 OHP는 코어 불안정 때문에 몇 년째 20kg 정체 → 시티드 덤벨 프레스로 대체(2026-09-11). 코어(엉덩이 조이기·갈비뼈 내리기)가 잡히면 가슴 날로 복귀 예정.
     { name: "덤벨 RDL", w: 8, reps: "10×4", memo: "한쪽 무게 · 워밍업 빈손 힌지 10회", step: 1 },
-    { name: "레그프레스", w: 60, reps: "12×3", memo: "원판 기준 · 워밍업 40kg 12회" },
+    { name: "레그프레스", w: 60, reps: "12×3", memo: "원판 기준" },
     { name: "레그컬", w: 25, reps: "12×3" },
     { name: "카프레이즈", w: 20, reps: "15×3", memo: "자체중~20kg" },
   ]},
@@ -1931,13 +1926,13 @@ function lottoStatsEl() {
 
 /* ---------- 오늘 먹으면 좋은 것 (2026-10-07): 운동하는 날/쉬는 날 + 키위 철. 체크·입력 없이 한 줄만 ---------- */
 function foodTipEl() {
-  const today = todayStr(), dow = new Date(today + "T00:00:00").getDay(), m = Number(today.slice(5, 7));
-  const train = exerciseDays.has(today) || [1, 2, 4, 5].includes(dow);   // 월·화·목·금 = 상하체 분할 운동일
+  const today = todayStr(), m = Number(today.slice(5, 7));
+  const train = exerciseDays.has(today);   // 3분할은 요일이 고정이 아니라서, 오늘 운동을 기록했을 때만 운동한 날로 본다
   const kiwi = (m >= 11 || m <= 4) ? "지금은 국산 키위 철" : m === 10 ? "11월부터 국산 키위가 제철" : "지금 키위는 수입산이 대부분";
   const el = document.createElement("div");
   el.className = "food-tip";
-  el.innerHTML = `<span>${train ? "🍌 운동 후 바나나 1개 + 단백질 쉐이크" : "🥝 키위 2개"}</span>` +
-    `<small>${train ? "운동하는 날" : "쉬는 날"} · 하루 단백질 약 120g(70kg 기준) · ${kiwi}</small>`;
+  el.innerHTML = `<span>${train ? "🍌 운동 후 바나나 1개 + 단백질 쉐이크" : "🥝 키위 2개 — 운동한 날은 🍌 바나나 + 쉐이크 추가"}</span>` +
+    `<small>${train ? "운동한 날" : "오늘"} · 하루 단백질 약 120g(70kg 기준) · ${kiwi}</small>`;
   return el;
 }
 
