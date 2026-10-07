@@ -284,6 +284,31 @@ begin
 end $$;
 ```
 
+## 1-12. 투자 실현수익 (2026-10-07) — 추가 SQL
+
+토스증권 '수익분석'(원 기준)을 Claude 가 월별로 올린다(kind='invest'). 생활 수입·지출(남은 돈)과는 따로 본다.
+
+```sql
+alter table life_log drop constraint if exists life_log_kind_check;
+alter table life_log add constraint life_log_kind_check check (kind in ('season','bill','sub','spend','income','invest'));
+
+create or replace function life_invest_set(p_token text, p_month date, p_rows jsonb)
+returns integer language plpgsql security definer set search_path = public as $$
+declare uid uuid; n integer;
+begin
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> 'HASH_HERE' then return -1; end if;
+  select user_id into uid from diary order by on_date desc limit 1;
+  delete from life_log where user_id = uid and kind = 'invest' and on_date = p_month;
+  insert into life_log (user_id, on_date, kind, label, amount, meta)
+  select uid, p_month, 'invest', x.label, x.amount, jsonb_build_object('items', coalesce(x.items, '[]'::jsonb))
+  from jsonb_to_recordset(p_rows) as x(label text, amount integer, items jsonb);
+  get diagnostics n = row_count;
+  return n;
+end $$;
+revoke all on function life_invest_set(text, date, jsonb) from public;
+grant execute on function life_invest_set(text, date, jsonb) to anon;
+```
+
 ## 1-11. 수입 (2026-10-07) — 추가 SQL
 
 찬작스튜디오 거래원장·쿠팡 지니타임 장부(구글 시트)를 Claude 가 월별로 합쳐 올린다(kind='income').

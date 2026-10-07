@@ -234,6 +234,8 @@
   .sp-items div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
   .sp-items small { color: var(--muted); }
   .sp-items b { font-weight: 600; white-space: nowrap; }
+  .sp-items b.plus { color: var(--sage); }
+  .sp-items b.minus { color: #2a78d6; }
   .sp-col { cursor: pointer; border-radius: 6px; }
   .sp-col.on .sp-cm { color: var(--ink); font-weight: 700; }
   .life-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
@@ -1966,7 +1968,7 @@ const SEASON_KINDS = [
   { k: "난방 켬", ico: "🔥" }, { k: "난방 끔", ico: "🌤️" },
 ];
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
-let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null, lifeFlowSel = null, lifeFlowAll = false;
+let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null, lifeFlowSel = null, lifeFlowAll = false, lifeInvSel = null;
 const lifeSecOpen = { flow: true, spend: true };
 async function loadLifeLog() {
   const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta,created_at").order("on_date", { ascending: false });
@@ -2160,6 +2162,37 @@ function lifeCard() {
     return now + `<div class="sp-rank-title">달마다 <small>— 달을 누르면 자세히 나와요</small></div>` + rows + moreBtn;
   })();
 
+  /* 투자 섹션: 토스증권 실현수익(원, 판매수익·배당·이자). 생활 수입·지출(남은 돈)과 따로 본다.
+     해외주식 양도세 = (그해 해외 실현수익 − 250만) × 22%, 다음 해 5월 신고 */
+  const invests = lifeLog.filter(r => r.kind === "invest"), invYear = thisMonth.slice(0, 4);
+  const invSum = (m, label) => invests.filter(r => r.on_date.slice(0, 7) === m && (!label || r.label === label)).reduce((a, r) => a + (r.amount || 0), 0);
+  const invYearRows = invests.filter(r => r.on_date.startsWith(invYear));
+  const invYTot = invYearRows.reduce((a, r) => a + r.amount, 0), invYOver = invYearRows.filter(r => r.label === "해외주식").reduce((a, r) => a + r.amount, 0);
+  const invTax = Math.max(0, invYOver - 2500000) * 0.22;
+  const invMonths = [...new Set(invYearRows.map(r => r.on_date.slice(0, 7)))].sort().reverse();
+  const sgn = v => (v >= 0 ? "+" : "−") + man(Math.abs(v)) + "원";
+  const investBody = !invests.length ? `<div class="cd-empty">아직 기록이 없어요 — 토스증권 '수익분석'(원 기준)을 캡처해 Claude 에게 주면 올려요</div>` : (() => {
+    const imax = Math.max(1, ...invMonths.map(m => Math.abs(invSum(m))));
+    const rows = invMonths.map(m => {
+      const v = invSum(m), parts = invests.filter(r => r.on_date.slice(0, 7) === m).sort((a, b) => b.amount - a.amount), open = m === lifeInvSel;
+      const items = parts.flatMap(p => ((p.meta && p.meta.items) || []).map(it => ({ ...it, g: p.label }))).sort((a, b) => b.a - a.a);
+      return `<div class="fl-row${open ? " on" : ""}" data-inv="${m}"><div class="fl-head"><b>${items.length ? (open ? "▾ " : "▸ ") : ""}${mLabel(m)}</b>
+          <span class="fl-net ${v >= 0 ? "plus" : "minus"}">${sgn(v)}</span></div>
+        <div class="fl-bar"><i style="width:${Math.abs(v) / imax * 100}%;background:${v >= 0 ? "#1baf7a" : "#2a78d6"}"></i></div>
+        <div class="fl-src">${parts.map(p => `${escapeHtml(p.label)} ${sgn(p.amount)}`).join(" · ")}</div>
+        ${open ? `<div class="sp-items">${items.map(it => `<div><span>${escapeHtml(it.n)} <small>${escapeHtml(it.g)}${it.r != null ? ` · ${it.r}%` : ""}</small></span><b class="${it.a >= 0 ? "plus" : "minus"}">${sgn(it.a)}</b></div>`).join("")}</div>` : ""}</div>`; }).join("");
+    const past = [...new Set(invests.map(r => r.on_date.slice(0, 4)))].filter(y => y !== invYear).sort().reverse()
+      .map(y => `${y}년 ${sgn(invests.filter(r => r.on_date.startsWith(y)).reduce((a, r) => a + r.amount, 0))}`).join(" · ");
+    return `<div class="fl-now"><div class="fl-now-t"><b>${invYear}년 실현수익</b> <small>판 것 기준 · 토스증권</small></div>
+        <div class="fl-now-g">
+          <div><small>합계</small><b class="${invYTot >= 0 ? "plus" : "minus"}">${sgn(invYTot)}</b></div>
+          <div><small>그중 해외주식</small><b>${sgn(invYOver)}</b></div>
+          <div><small>양도세 예상</small><b>${invTax ? man(invTax) + "원" : "없음"}</b></div>
+        </div>
+        <div class="sp-hint">해외주식 실현수익이 250만 원을 넘으면 넘는 부분의 22% — ${Number(invYear) + 1}년 5월에 신고·납부</div></div>
+      <div class="sp-rank-title">달마다 <small>— 달을 누르면 종목별로 나와요</small></div>${rows}${past ? `<div class="sp-hint">${past}</div>` : ""}`;
+  })();
+
   /* 구독 섹션 */
   const subRows = subs.slice().sort((a, b) => ((a.meta && a.meta.day) || 99) - ((b.meta && b.meta.day) || 99)).map(s => {
     const mm = s.meta || {}, du = daysUntil(mm.day);
@@ -2204,6 +2237,7 @@ function lifeCard() {
   card.innerHTML = `
     <summary class="life-sum">생활 기록${sumParts.length ? ` <small>· ${escapeHtml(sumParts.join(" · "))}</small>` : ""}</summary>
     ${sec("flow", "수입·지출", flowMonths[0] && incomes.length ? `${mLabel(flowMonths[0])} 수입 ${man(incSum(flowMonths[0]))}원` : "", flowBody)}
+    ${sec("invest", "투자", invests.length ? `${invYear} 실현 ${sgn(invYTot)}` : "", investBody)}
     ${sec("spend", "지출", lifeSpendSel ? `${mLabel(lifeSpendSel)} ${won(spendSum(lifeSpendSel))}` : "", spendBody)}
     ${sec("sub", "구독", subs.length ? `월 ${won(subTotal())}` : "", subBody)}
     ${sec("bill", "공과금", billMonths[0] ? `${mLabel(billMonths[0])} ${won(billSum(billMonths[0]))}` : "", billBody)}
@@ -2212,6 +2246,8 @@ function lifeCard() {
   card.querySelectorAll(".life-sec").forEach(d => d.addEventListener("toggle", () => { lifeSecOpen[d.dataset.sec] = d.open; }));
   card.querySelectorAll("[data-month]").forEach(el => el.addEventListener("click", () => {
     lifeSpendSel = el.dataset.month; lifeSpendCat = null; rerenderLife(); }));
+  card.querySelectorAll("[data-inv]").forEach(el => el.addEventListener("click", () => {
+    lifeInvSel = lifeInvSel === el.dataset.inv ? null : el.dataset.inv; rerenderLife(); }));
   card.querySelectorAll("[data-flow]").forEach(el => el.addEventListener("click", ev => {
     if (ev.target.closest(".fd")) return;
     lifeFlowSel = lifeFlowSel === el.dataset.flow ? null : el.dataset.flow; rerenderLife(); }));
