@@ -2189,7 +2189,7 @@ function lifeCard() {
           <div><small>그중 해외주식</small><b>${sgn(invYOver)}</b></div>
           <div><small>양도세 예상</small><b>${invTax ? man(invTax) + "원" : "없음"}</b></div>
         </div>
-        <div class="sp-hint">해외주식 실현수익이 250만 원을 넘으면 넘는 부분의 22% — ${Number(invYear) + 1}년 5월에 신고·납부</div></div>
+        <div class="sp-hint">${invTax ? `양도세 = (해외 ${won(invYOver)} − 기본공제 250만) × 22% = 양도소득세 ${won(Math.round(invTax / 1.1))} + 지방세 ${won(Math.round(invTax / 11))}` : "해외주식 실현수익이 250만 원을 넘으면 넘는 부분의 22%"} — ${Number(invYear) + 1}년 5월 신고·납부. 국내주식(소액주주)·배당·이자는 양도세 없음(배당·이자는 이미 원천징수)</div></div>
       <div class="sp-rank-title">달마다 <small>— 달을 누르면 종목별로 나와요</small></div>${rows}${past ? `<div class="sp-hint">${past}</div>` : ""}`;
   })();
 
