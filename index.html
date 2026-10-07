@@ -266,6 +266,25 @@
   .fl-bar i { display: block; height: 9px; border-radius: 0 4px 4px 0; min-width: 2px; }
   .fl-src { font-size: 12px; color: var(--muted); margin-top: 3px; }
   .fl-src small { color: var(--muted); }
+  .fl-row[data-flow] { cursor: pointer; }
+  .fl-row.on { background: var(--paper); border-radius: 12px; padding: 8px 10px; margin: 2px -10px; border-bottom-color: transparent; }
+  .fd { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); cursor: default; }
+  .fd-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+  .fd-sum small { display: block; font-size: 11.5px; color: var(--muted); }
+  .fd-sum b { font-size: 15px; }
+  .fd-sum b.plus { color: var(--sage); }
+  .fd-sum b.minus { color: var(--danger); }
+  .fd-note { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .fd-h { font-size: 12px; font-weight: 700; color: var(--muted); margin: 10px 0 4px; }
+  .fd-line { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 2px 0; }
+  .fd-line small { color: var(--muted); font-weight: 400; }
+  .fd-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); padding: 0 0 1px 12px; }
+  .fd-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .fd-go, .fl-more { margin-top: 10px; background: none; border: 1.5px dashed var(--line); border-radius: 999px; padding: 6px 13px; font-size: 12.5px; color: var(--muted); cursor: pointer; font-family: inherit; }
+  .fl-more { display: block; margin: 12px auto 2px; }
+  .life-tbl .sub-name { cursor: pointer; }
+  .food-tip { display: flex; flex-direction: column; gap: 1px; margin: 0 0 10px; background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 13px; font-size: 13px; color: var(--ink); line-height: 1.5; }
+  .food-tip small { font-size: 11.5px; color: var(--muted); }
   .life-add > summary { cursor: pointer; font-size: 12.5px; color: var(--muted); list-style: none; margin: 8px 0 4px; }
   .life-add > summary::-webkit-details-marker { display: none; }
   .bill-form input:not([type]) { width: 120px; }
@@ -1910,6 +1929,18 @@ function lottoStatsEl() {
   return el;
 }
 
+/* ---------- 오늘 먹으면 좋은 것 (2026-10-07): 운동하는 날/쉬는 날 + 키위 철. 체크·입력 없이 한 줄만 ---------- */
+function foodTipEl() {
+  const today = todayStr(), dow = new Date(today + "T00:00:00").getDay(), m = Number(today.slice(5, 7));
+  const train = exerciseDays.has(today) || [1, 2, 4, 5].includes(dow);   // 월·화·목·금 = 상하체 분할 운동일
+  const kiwi = (m >= 11 || m <= 4) ? "지금은 국산 키위 철" : m === 10 ? "11월부터 국산 키위가 제철" : "지금 키위는 수입산이 대부분";
+  const el = document.createElement("div");
+  el.className = "food-tip";
+  el.innerHTML = `<span>${train ? "🍌 운동 후 바나나 1개 + 단백질 쉐이크" : "🥝 키위 2개"}</span>` +
+    `<small>${train ? "운동하는 날" : "쉬는 날"} · 하루 단백질 약 120g(70kg 기준) · ${kiwi}</small>`;
+  return el;
+}
+
 /* ---------- 이발 기록: 달력에서 날짜를 고르고 ✂️ 칩을 누르면 그 날 이발한 걸로 기록 ---------- */
 function lastHaircutDate() {
   const dates = Object.keys(calMap).filter(d => calMap[d].haircut && d <= todayStr()).sort();
@@ -1940,7 +1971,7 @@ const SEASON_KINDS = [
   { k: "난방 켬", ico: "🔥" }, { k: "난방 끔", ico: "🌤️" },
 ];
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
-let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null;
+let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null, lifeFlowSel = null, lifeFlowAll = false;
 const lifeSecOpen = { flow: true, spend: true };
 async function loadLifeLog() {
   const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta,created_at").order("on_date", { ascending: false });
@@ -2083,17 +2114,39 @@ function lifeCard() {
      수입원(찬작스튜디오·쿠팡 위탁·11번가…)은 label 로 쌓여서 새 수입원이 생기면 자동으로 같이 보인다. */
   const incomes = lifeLog.filter(r => r.kind === "income");
   const incSum = m => incomes.filter(r => r.on_date.slice(0, 7) === m).reduce((a, r) => a + (r.amount || 0), 0);
-  const flowMonths = [...new Set([...incomes, ...spends].map(r => r.on_date.slice(0, 7)))].sort().reverse().slice(0, 6);
+  const flowAllMonths = [...new Set([...incomes, ...spends].map(r => r.on_date.slice(0, 7)))].sort().reverse();
+  const flowMonths = lifeFlowAll ? flowAllMonths : flowAllMonths.slice(0, 6);
   const INCOME_GOAL = 5000000;   // 찬작스튜디오 대시보드의 월 목표
   const flowBody = !incomes.length ? `<div class="cd-empty">수입 기록이 아직 없어요 — Claude 가 매출 시트에서 월별로 올려요</div>` : (() => {
     const fmax = Math.max(1, ...flowMonths.map(m => Math.max(incSum(m), spendSum(m))));
+    /* 달을 누르면 펼쳐지는 상세: 수입원별 · 지출 카테고리별 · 남은 돈 · 전달 대비 */
+    const flowDetail = (m, inc, sp, net, srcs) => { try {
+      const hasSp = spends.some(s => s.on_date.slice(0, 7) === m);
+      const pm = flowAllMonths[flowAllMonths.indexOf(m) + 1], psp = pm ? spendSum(pm) : 0;
+      const rate = inc > 0 && hasSp ? Math.round(net / inc * 100) : null;
+      const diff = hasSp && psp && m !== thisMonth ? sp - psp : null;
+      const incList = srcs.map(s => `<div class="fd-line"><span>${escapeHtml(s.label)}${s.meta && s.meta.count ? ` <small>${s.meta.count}건</small>` : ""}</span><b>${won(s.amount)}</b></div>`
+        + ((s.meta && s.meta.items) || []).slice(0, 5).map(it => `<div class="fd-sub"><span>${escapeHtml(it.n)}${it.c > 1 ? ` <small>${it.c}건</small>` : ""}</span><span>${won(it.a)}</span></div>`).join("")).join("");
+      const grp = ALL_GROUPS.map(g => ({ g, v: groupSum(m, g.k) })).filter(e => e.v > 0).sort((a, b) => b.v - a.v);
+      const stack = grp.map(e => `<span class="sp-seg" style="flex:${e.v};background:${e.g.c}" title="${e.g.k} ${won(e.v)}"></span>`).join("");
+      const spList = grp.slice(0, 6).map(e => `<div class="fd-line"><span><i class="fd-dot" style="background:${e.g.c}"></i>${e.g.k}</span><b>${won(e.v)} <small>${Math.round(e.v / sp * 100)}%</small></b></div>`).join("");
+      const notes = [rate != null ? (net >= 0 ? `수입의 ${rate}%를 남겼어요` : `수입보다 ${won(-net)} 더 썼어요`) : "", diff != null ? `${mLabel(pm)}보다 지출 ${diff > 0 ? "▲" : "▼"} ${won(Math.abs(diff))}` : ""].filter(Boolean);
+      return `<div class="fd">
+        <div class="fd-sum"><div><small>수입</small><b>${won(inc)}</b></div><div><small>지출</small><b>${hasSp ? won(sp) : "미정리"}</b></div>
+          <div><small>남은 돈</small><b class="${net >= 0 ? "plus" : "minus"}">${hasSp ? (net >= 0 ? "+" : "−") + won(Math.abs(net)) : "—"}</b></div></div>
+        ${notes.length ? `<div class="fd-note">${notes.join(" · ")}</div>` : ""}
+        ${incList ? `<div class="fd-h">수입</div>${incList}` : ""}
+        ${hasSp ? `<div class="fd-h">지출 — 많이 쓴 순</div><div class="sp-bar">${stack}</div><div style="margin-top:6px">${spList}</div>
+          <button type="button" class="fd-go" data-go="${m}">${mLabel(m)} 지출 내역 자세히 ›</button>` : ""}
+      </div>`; } catch (e) { return ""; } };
     const rows = flowMonths.map(m => {
       const inc = incSum(m), sp = spendSum(m), net = inc - sp, srcs = incomes.filter(r => r.on_date.slice(0, 7) === m).sort((a, b) => b.amount - a.amount);
-      return `<div class="fl-row"><div class="fl-head"><b>${mLabel(m)}${m === thisMonth ? " <small>진행 중</small>" : ""}</b>
+      return `<div class="fl-row${m === lifeFlowSel ? " on" : ""}" data-flow="${m}"><div class="fl-head"><b>${m === lifeFlowSel ? "▾" : "▸"} ${mLabel(m)}${m === thisMonth ? " <small>진행 중</small>" : ""}</b>
           <span class="fl-net ${net >= 0 ? "plus" : "minus"}">${!spends.some(s => s.on_date.slice(0, 7) === m) ? "지출 미정리" : net >= 0 ? `+${man(net)}원 남음` : `−${man(-net)}원 모자람`}</span></div>
         <div class="fl-bar"><i style="width:${inc / fmax * 100}%;background:#1baf7a" title="수입 ${won(inc)}"></i><span>수입 ${man(inc)}</span></div>
         <div class="fl-bar"><i style="width:${sp / fmax * 100}%;background:#eb6834" title="지출 ${won(sp)}"></i><span>지출 ${man(sp)}</span></div>
-        ${srcs.length ? `<div class="fl-src">${srcs.map(s => `${escapeHtml(s.label)} ${man(s.amount)}${s.meta && s.meta.count ? ` <small>${s.meta.count}건</small>` : ""}`).join(" · ")}</div>` : ""}</div>`; }).join("");
+        ${srcs.length ? `<div class="fl-src">${srcs.map(s => `${escapeHtml(s.label)} ${man(s.amount)}${s.meta && s.meta.count ? ` <small>${s.meta.count}건</small>` : ""}`).join(" · ")}</div>` : ""}${m === lifeFlowSel ? flowDetail(m, inc, sp, net, srcs) : ""}</div>`; }).join("");
+    const moreBtn = flowAllMonths.length > 6 ? `<button type="button" class="fl-more" id="flMore">${lifeFlowAll ? "최근 6개월만 보기 ▴" : `이전 달 ${flowAllMonths.length - 6}개 더 보기 ▾`}</button>` : "";
     // 이번 달 카드: 진행 중인 달의 수입·지출·남은 돈과 목표 달성률, 아직 안 나간 월세
     const cm = thisMonth, studio = incomes.filter(r => r.on_date.slice(0, 7) === cm && r.label.startsWith("찬작")).reduce((a, r) => a + r.amount, 0);
     const cInc = incSum(cm), cSp = spendSum(cm), cNet = cInc - cSp, day = Number(todayStr().slice(8));
@@ -2109,14 +2162,14 @@ function lifeCard() {
           <span class="sp-track"><i style="width:${Math.min(100, studio / INCOME_GOAL * 100)}%;background:#1baf7a"></i></span>
           <small>${Math.round(studio / INCOME_GOAL * 100)}%</small></div>
         ${rentLeft ? `<div class="sp-hint">아직 안 나간 고정비: 월세 60만 원(14일)</div>` : ""}</div>`;
-    return now + `<div class="sp-rank-title">달마다</div>` + rows;
+    return now + `<div class="sp-rank-title">달마다 <small>— 달을 누르면 자세히 나와요</small></div>` + rows + moreBtn;
   })();
 
   /* 구독 섹션 */
   const subRows = subs.slice().sort((a, b) => ((a.meta && a.meta.day) || 99) - ((b.meta && b.meta.day) || 99)).map(s => {
     const mm = s.meta || {}, du = daysUntil(mm.day);
     return `<tr><td class="num">${mm.day ? mm.day + "일" : "—"}</td>
-      <td>${escapeHtml(s.label)}${du != null && du <= 7 ? ` <span class="soon">${du === 0 ? "오늘" : `D-${du}`}</span>` : ""}</td>
+      <td class="sub-name" data-ren="${s.id}" title="누르면 이름을 고칠 수 있어요">${escapeHtml(s.label)}${du != null && du <= 7 ? ` <span class="soon">${du === 0 ? "오늘" : `D-${du}`}</span>` : ""}</td>
       <td class="num">${mm.cycle === "연" ? `연 ${won(s.amount)}` : won(s.amount)}</td>
       <td><span class="tag ${mm.biz ? "biz" : ""}">${mm.biz ? "사업" : "개인"}</span></td>
       <td><button class="x" data-del="${s.id}" title="삭제">×</button></td></tr>`; }).join("");
@@ -2164,6 +2217,21 @@ function lifeCard() {
   card.querySelectorAll(".life-sec").forEach(d => d.addEventListener("toggle", () => { lifeSecOpen[d.dataset.sec] = d.open; }));
   card.querySelectorAll("[data-month]").forEach(el => el.addEventListener("click", () => {
     lifeSpendSel = el.dataset.month; lifeSpendCat = null; rerenderLife(); }));
+  card.querySelectorAll("[data-flow]").forEach(el => el.addEventListener("click", ev => {
+    if (ev.target.closest(".fd")) return;
+    lifeFlowSel = lifeFlowSel === el.dataset.flow ? null : el.dataset.flow; rerenderLife(); }));
+  card.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
+    lifeSpendSel = b.dataset.go; lifeSpendCat = null; lifeSecOpen.spend = true; rerenderLife();
+    const sp = document.querySelector('.life-sec[data-sec="spend"]'); if (sp) sp.scrollIntoView({ behavior: "smooth", block: "start" }); }));
+  const flMore = card.querySelector("#flMore");
+  if (flMore) flMore.addEventListener("click", () => { lifeFlowAll = !lifeFlowAll; rerenderLife(); });
+  card.querySelectorAll("[data-ren]").forEach(td => td.addEventListener("click", async () => {
+    const sub = subs.find(x => x.id === td.dataset.ren); if (!sub) return;
+    const name = (prompt("구독 이름 고치기", sub.label) || "").trim();
+    if (!name || name === sub.label) return;
+    const { error } = await sb.from("life_log").update({ label: name }).eq("id", sub.id);
+    if (error) { toast("이름 고치기 실패: " + error.message); return; }
+    await loadLifeLog(); rerenderLife(); toast("이름을 고쳤어요"); }));
   card.querySelectorAll(".sp-rank.has-items").forEach(el => el.addEventListener("click", () => {
     lifeSpendCat = lifeSpendCat === el.dataset.cat ? null : el.dataset.cat; rerenderLife(); }));
   card.querySelectorAll(".sp-chips [data-k]").forEach(b => b.addEventListener("click", () => { lifeTrend = b.dataset.k; rerenderLife(); }));
@@ -3324,6 +3392,7 @@ function render() {
     statsRow.appendChild(exerciseStatsEl());
     statsRow.appendChild(lottoStatsEl());
     list.appendChild(statsRow);
+    try { list.appendChild(foodTipEl()); } catch (e) {}
     list.appendChild(gcalBar);
   }
 
