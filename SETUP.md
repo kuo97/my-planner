@@ -284,6 +284,32 @@ begin
 end $$;
 ```
 
+## 1-11. 수입 (2026-10-07) — 추가 SQL
+
+찬작스튜디오 거래원장·쿠팡 지니타임 장부(구글 시트)를 Claude 가 월별로 합쳐 올린다(kind='income').
+
+```sql
+alter table life_log drop constraint if exists life_log_kind_check;
+alter table life_log add constraint life_log_kind_check check (kind in ('season','bill','sub','spend','income'));
+
+create or replace function life_income_set(p_token text, p_month date, p_rows jsonb)
+returns integer language plpgsql security definer set search_path = public as $$
+declare uid uuid; n integer;
+begin
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> 'HASH_HERE' then return -1; end if;
+  select user_id into uid from diary order by on_date desc limit 1;
+  delete from life_log where user_id = uid and kind = 'income' and on_date = p_month;
+  insert into life_log (user_id, on_date, kind, label, amount, meta)
+  select uid, p_month, 'income', x.label, x.amount,
+         jsonb_build_object('net', x.net, 'count', x.count, 'items', coalesce(x.items, '[]'::jsonb))
+  from jsonb_to_recordset(p_rows) as x(label text, amount integer, net integer, count integer, items jsonb);
+  get diagnostics n = row_count;
+  return n;
+end $$;
+revoke all on function life_income_set(text, date, jsonb) from public;
+grant execute on function life_income_set(text, date, jsonb) to anon;
+```
+
 ## 1-10. 구독 일괄 추가 (2026-10-07) — 추가 SQL
 
 Claude 가 명세서에서 찾은 구독을 넣는 통로. 같은 이름의 구독이 이미 있으면 건너뛴다.

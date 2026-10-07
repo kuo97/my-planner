@@ -247,6 +247,16 @@
   .life-tbl .tag { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--paper); color: var(--muted); }
   .life-tbl .tag.biz { background: #fbf0d9; color: #8a5a00; }
   .life-tbl .soon { font-size: 11px; padding: 0 6px; border-radius: 999px; background: var(--danger-soft); color: var(--danger); }
+  .fl-goal { font-size: 13px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .fl-goal small { color: var(--muted); }
+  .fl-row { padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .fl-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+  .fl-net.plus { color: var(--sage); font-weight: 600; }
+  .fl-net.minus { color: var(--danger); font-weight: 600; }
+  .fl-bar { display: flex; align-items: center; gap: 6px; height: 14px; margin: 2px 0; font-size: 11.5px; color: var(--muted); }
+  .fl-bar i { display: block; height: 9px; border-radius: 0 4px 4px 0; min-width: 2px; }
+  .fl-src { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .fl-src small { color: var(--muted); }
   .life-add > summary { cursor: pointer; font-size: 12.5px; color: var(--muted); list-style: none; margin: 8px 0 4px; }
   .life-add > summary::-webkit-details-marker { display: none; }
   .bill-form input:not([type]) { width: 120px; }
@@ -1922,7 +1932,7 @@ const SEASON_KINDS = [
 ];
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
 let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null;
-const lifeSecOpen = { spend: true };
+const lifeSecOpen = { flow: true, spend: true };
 async function loadLifeLog() {
   const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta").order("on_date", { ascending: false });
   lifeLog = error ? null : (data || []);   // null = 표가 아직 없음
@@ -2060,6 +2070,27 @@ function lifeCard() {
        <div class="sp-hint">카테고리를 누르면 어디에 썼는지 보여요</div>` + rank + `<div id="spTrend">${trend}</div>`;
   })();
 
+  /* 수입·지출 섹션: 달마다 수입(초록)과 지출(주황)을 나란히, 남은 돈 = 수입 − 지출.
+     수입원(찬작스튜디오·쿠팡 위탁·11번가…)은 label 로 쌓여서 새 수입원이 생기면 자동으로 같이 보인다. */
+  const incomes = lifeLog.filter(r => r.kind === "income");
+  const incSum = m => incomes.filter(r => r.on_date.slice(0, 7) === m).reduce((a, r) => a + (r.amount || 0), 0);
+  const flowMonths = [...new Set([...incomes, ...spends].map(r => r.on_date.slice(0, 7)))].sort().reverse().slice(0, 6);
+  const INCOME_GOAL = 5000000;   // 찬작스튜디오 대시보드의 월 목표
+  const flowBody = !incomes.length ? `<div class="cd-empty">수입 기록이 아직 없어요 — Claude 가 매출 시트에서 월별로 올려요</div>` : (() => {
+    const fmax = Math.max(1, ...flowMonths.map(m => Math.max(incSum(m), spendSum(m))));
+    const rows = flowMonths.map(m => {
+      const inc = incSum(m), sp = spendSum(m), net = inc - sp, srcs = incomes.filter(r => r.on_date.slice(0, 7) === m).sort((a, b) => b.amount - a.amount);
+      return `<div class="fl-row"><div class="fl-head"><b>${mLabel(m)}</b>
+          <span class="fl-net ${net >= 0 ? "plus" : "minus"}">${!spends.some(s => s.on_date.slice(0, 7) === m) ? "지출 미정리" : net >= 0 ? `+${man(net)}원 남음` : `−${man(-net)}원 모자람`}</span></div>
+        <div class="fl-bar"><i style="width:${inc / fmax * 100}%;background:#1baf7a" title="수입 ${won(inc)}"></i><span>수입 ${man(inc)}</span></div>
+        <div class="fl-bar"><i style="width:${sp / fmax * 100}%;background:#eb6834" title="지출 ${won(sp)}"></i><span>지출 ${man(sp)}</span></div>
+        ${srcs.length ? `<div class="fl-src">${srcs.map(s => `${escapeHtml(s.label)} ${man(s.amount)}${s.meta && s.meta.count ? ` <small>${s.meta.count}건</small>` : ""}`).join(" · ")}</div>` : ""}</div>`; }).join("");
+    const lm = flowMonths[0], studio = incomes.filter(r => r.on_date.slice(0, 7) === lm && r.label.startsWith("찬작")).reduce((a, r) => a + r.amount, 0);
+    return `<div class="fl-goal">${mLabel(lm)} 찬작 매출 <b>${won(studio)}</b> / 목표 ${man(INCOME_GOAL)}원
+        <span class="sp-track"><i style="width:${Math.min(100, studio / INCOME_GOAL * 100)}%;background:#1baf7a"></i></span>
+        <small>${Math.round(studio / INCOME_GOAL * 100)}%</small></div>` + rows;
+  })();
+
   /* 구독 섹션 */
   const subRows = subs.slice().sort((a, b) => ((a.meta && a.meta.day) || 99) - ((b.meta && b.meta.day) || 99)).map(s => {
     const mm = s.meta || {}, du = daysUntil(mm.day);
@@ -2103,6 +2134,7 @@ function lifeCard() {
 
   card.innerHTML = `
     <summary class="life-sum">생활 기록${sumParts.length ? ` <small>· ${escapeHtml(sumParts.join(" · "))}</small>` : ""}</summary>
+    ${sec("flow", "수입·지출", flowMonths[0] && incomes.length ? `${mLabel(flowMonths[0])} 수입 ${man(incSum(flowMonths[0]))}원` : "", flowBody)}
     ${sec("spend", "지출", lifeSpendSel ? `${mLabel(lifeSpendSel)} ${won(spendSum(lifeSpendSel))}` : "", spendBody)}
     ${sec("sub", "구독", subs.length ? `월 ${won(subTotal())}` : "", subBody)}
     ${sec("bill", "공과금", billMonths[0] ? `${mLabel(billMonths[0])} ${won(billSum(billMonths[0]))}` : "", billBody)}
