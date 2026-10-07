@@ -247,6 +247,15 @@
   .life-tbl .tag { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--paper); color: var(--muted); }
   .life-tbl .tag.biz { background: #fbf0d9; color: #8a5a00; }
   .life-tbl .soon { font-size: 11px; padding: 0 6px; border-radius: 999px; background: var(--danger-soft); color: var(--danger); }
+  .fl-now { border: 1.5px solid var(--ink); border-radius: 14px; padding: 10px 12px; margin-bottom: 12px; background: var(--paper); }
+  .fl-now-t { font-size: 14px; margin-bottom: 6px; }
+  .fl-now-t small { color: var(--muted); }
+  .fl-now-g { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+  .fl-now-g small { display: block; font-size: 11.5px; color: var(--muted); }
+  .fl-now-g b { font-size: 16px; }
+  .fl-now-g b.plus { color: var(--sage); }
+  .fl-now-g b.minus { color: var(--danger); }
+  .fl-head small, .sp-head b small { color: var(--muted); font-weight: 400; font-size: 11.5px; }
   .fl-goal { font-size: 13px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; margin-bottom: 10px; }
   .fl-goal small { color: var(--muted); }
   .fl-row { padding: 6px 0; border-bottom: 1px dashed var(--line); }
@@ -1934,7 +1943,7 @@ const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타
 let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null;
 const lifeSecOpen = { flow: true, spend: true };
 async function loadLifeLog() {
-  const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta").order("on_date", { ascending: false });
+  const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta,created_at").order("on_date", { ascending: false });
   lifeLog = error ? null : (data || []);   // null = 표가 아직 없음
 }
 const seasonOn = date => (lifeLog || []).filter(r => r.kind === "season" && r.on_date === date);
@@ -2035,10 +2044,10 @@ function lifeCard() {
   const spendBody = !spendMonths.length ? `<div class="cd-empty">아직 정리된 달이 없어요 — 뱅크샐러드 내보내기 파일을 for me\\지출\\명세서 에 넣고 Claude에게 "넣었어"</div>` : (() => {
     const legend = `<div class="sp-legend">${ALL_GROUPS.map(g => `<span><i style="background:${g.c}"></i>${g.k}</span>`).join("")}</div>`;
     const bars = spendMonths.slice(0, 6).map((m, i) => {
-      const tot = spendSum(m), prev = spendMonths[i + 1], diff = prev ? tot - spendSum(prev) : null;
+      const tot = spendSum(m), prev = spendMonths[i + 1], diff = prev && m !== thisMonth ? tot - spendSum(prev) : null;   // 진행 중인 달은 비교 안 함
       const segs = ALL_GROUPS.map(g => ({ g, v: groupSum(m, g.k) })).filter(e => e.v > 0).map(e =>
         `<span class="sp-seg" style="flex:${e.v};background:${e.g.c}" title="${e.g.k} ${won(e.v)} (${Math.round(e.v / tot * 100)}%)"></span>`).join("");
-      return `<div class="sp-row${m === lifeSpendSel ? " on" : ""}" data-month="${m}"><div class="sp-head"><b>${mLabel(m)}</b> ${man(tot)}원
+      return `<div class="sp-row${m === lifeSpendSel ? " on" : ""}" data-month="${m}"><div class="sp-head"><b>${mLabel(m)}${m === thisMonth ? " <small>진행 중</small>" : ""}</b> ${man(tot)}원
           ${diff != null ? `<small class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "▲" : "▼"} ${man(Math.abs(diff))}</small>` : ""}</div>
           <div class="sp-bar">${segs}</div></div>`; }).join("");
     // 선택한 달: 요약 + 카테고리 순위(누르면 가맹점 내역이 펼쳐짐)
@@ -2047,7 +2056,7 @@ function lifeCard() {
     const rank = rows.map(s => {
       const g = groupOf(s.label);
       const pv = prevM ? inMonth(prevM).find(x => x.label === s.label && !!(x.meta && x.meta.biz) === !!(s.meta && s.meta.biz)) : null;
-      const d = pv ? s.amount - pv.amount : null;
+      const d = pv && m !== thisMonth ? s.amount - pv.amount : null;
       const items = (s.meta && s.meta.items) || [];
       const key = s.label + (s.meta && s.meta.biz ? "|biz" : "");
       const open = lifeSpendCat === key;
@@ -2066,7 +2075,7 @@ function lifeCard() {
           <span class="sp-cbar" style="height:${Math.max(2, vals[i] / vmax * 70)}px;background:${tg ? tg.c : "var(--ink)"}"></span>
           <span class="sp-cm">${mLabel(mm)}</span></div>`).join("")}</div>`;
     return legend + `<div class="sp-rank-title">달을 누르면 아래에 그 달 내역이 나와요</div>` + bars +
-      `<div class="sp-sel"><b>${mLabel(m)}</b> 총 ${won(tot)} <small>· 사업 ${won(spendSum(m, true))} · 개인 ${won(spendSum(m, false))}${prevM ? ` · ${mLabel(prevM)} 대비 ${tot - spendSum(prevM) >= 0 ? "+" : ""}${won(tot - spendSum(prevM))}` : ""}</small></div>
+      `<div class="sp-sel"><b>${mLabel(m)}</b> 총 ${won(tot)} <small>· 사업 ${won(spendSum(m, true))} · 개인 ${won(spendSum(m, false))}${m === thisMonth ? " · 진행 중" : prevM ? ` · ${mLabel(prevM)} 대비 ${tot - spendSum(prevM) >= 0 ? "+" : ""}${won(tot - spendSum(prevM))}` : ""}</small></div>
        <div class="sp-hint">카테고리를 누르면 어디에 썼는지 보여요</div>` + rank + `<div id="spTrend">${trend}</div>`;
   })();
 
@@ -2080,15 +2089,27 @@ function lifeCard() {
     const fmax = Math.max(1, ...flowMonths.map(m => Math.max(incSum(m), spendSum(m))));
     const rows = flowMonths.map(m => {
       const inc = incSum(m), sp = spendSum(m), net = inc - sp, srcs = incomes.filter(r => r.on_date.slice(0, 7) === m).sort((a, b) => b.amount - a.amount);
-      return `<div class="fl-row"><div class="fl-head"><b>${mLabel(m)}</b>
+      return `<div class="fl-row"><div class="fl-head"><b>${mLabel(m)}${m === thisMonth ? " <small>진행 중</small>" : ""}</b>
           <span class="fl-net ${net >= 0 ? "plus" : "minus"}">${!spends.some(s => s.on_date.slice(0, 7) === m) ? "지출 미정리" : net >= 0 ? `+${man(net)}원 남음` : `−${man(-net)}원 모자람`}</span></div>
         <div class="fl-bar"><i style="width:${inc / fmax * 100}%;background:#1baf7a" title="수입 ${won(inc)}"></i><span>수입 ${man(inc)}</span></div>
         <div class="fl-bar"><i style="width:${sp / fmax * 100}%;background:#eb6834" title="지출 ${won(sp)}"></i><span>지출 ${man(sp)}</span></div>
         ${srcs.length ? `<div class="fl-src">${srcs.map(s => `${escapeHtml(s.label)} ${man(s.amount)}${s.meta && s.meta.count ? ` <small>${s.meta.count}건</small>` : ""}`).join(" · ")}</div>` : ""}</div>`; }).join("");
-    const lm = flowMonths[0], studio = incomes.filter(r => r.on_date.slice(0, 7) === lm && r.label.startsWith("찬작")).reduce((a, r) => a + r.amount, 0);
-    return `<div class="fl-goal">${mLabel(lm)} 찬작 매출 <b>${won(studio)}</b> / 목표 ${man(INCOME_GOAL)}원
-        <span class="sp-track"><i style="width:${Math.min(100, studio / INCOME_GOAL * 100)}%;background:#1baf7a"></i></span>
-        <small>${Math.round(studio / INCOME_GOAL * 100)}%</small></div>` + rows;
+    // 이번 달 카드: 진행 중인 달의 수입·지출·남은 돈과 목표 달성률, 아직 안 나간 월세
+    const cm = thisMonth, studio = incomes.filter(r => r.on_date.slice(0, 7) === cm && r.label.startsWith("찬작")).reduce((a, r) => a + r.amount, 0);
+    const cInc = incSum(cm), cSp = spendSum(cm), cNet = cInc - cSp, day = Number(todayStr().slice(8));
+    const asOf = spends.filter(s => s.on_date.slice(0, 7) === cm && s.created_at).map(s => s.created_at.slice(0, 10)).sort().pop();
+    const rentLeft = groupSum(cm, "주거") === 0 && spendMonths.some(m => m < cm && groupSum(m, "주거") > 0);
+    const now = `<div class="fl-now"><div class="fl-now-t"><b>이번 달</b> <small>${mLabel(cm)} · ${day}일째</small></div>
+        <div class="fl-now-g">
+          <div><small>수입</small><b>${man(cInc)}원</b></div>
+          <div><small>지출${asOf ? ` (${md(asOf)} 기준)` : ""}</small><b>${cSp ? man(cSp) + "원" : "미정리"}</b></div>
+          <div><small>지금까지 남은 돈</small><b class="${cNet >= 0 ? "plus" : "minus"}">${cNet >= 0 ? "+" : "−"}${man(Math.abs(cNet))}원</b></div>
+        </div>
+        <div class="fl-goal"><span>찬작 매출 <b>${won(studio)}</b> / 목표 ${man(INCOME_GOAL)}원</span>
+          <span class="sp-track"><i style="width:${Math.min(100, studio / INCOME_GOAL * 100)}%;background:#1baf7a"></i></span>
+          <small>${Math.round(studio / INCOME_GOAL * 100)}%</small></div>
+        ${rentLeft ? `<div class="sp-hint">아직 안 나간 고정비: 월세 60만 원(14일)</div>` : ""}</div>`;
+    return now + `<div class="sp-rank-title">달마다</div>` + rows;
   })();
 
   /* 구독 섹션 */
