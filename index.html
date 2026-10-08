@@ -41,6 +41,9 @@
     background-image: radial-gradient(circle, rgba(43,36,30,0.14) 1px, transparent 1.4px);
     background-size: 22px 22px;
   }
+  .zoom-btn { border: 1.5px solid var(--line); background: var(--paper-card); color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .zoom-btn:hover { color: var(--ink); border-color: var(--ink); }
+  .hdr-right { display: flex; align-items: center; gap: 8px; }
   .hand { font-family: 'Gaegu', 'Pretendard', sans-serif; }
 
   @media (prefers-reduced-motion: reduce) {
@@ -935,6 +938,15 @@
   .month-group[open] > .month-head::before { transform: rotate(90deg); }
   .month-group[open] > .month-head { margin-bottom: 4px; }
 </style>
+<script>
+/* 화면 크기: 저장값 > 없으면 넓은 화면(노트북)은 80%, 폰은 100%. 🔍 버튼으로 100→85→70% 순환(2026-10-08 찬진: 노트북에서 너무 크다) */
+(function () {
+  var z = "1";
+  try { var v = localStorage.getItem("pl_zoom"); z = v || (window.innerWidth >= 900 ? "0.8" : "1"); } catch (e) {}
+  document.documentElement.style.zoom = z;
+  window.__plZoom = z;
+})();
+</script>
 </head>
 <body>
 
@@ -954,7 +966,7 @@
 <div id="appView" class="app" style="display:none">
   <header>
     <h1 id="viewTitle">오늘</h1>
-    <span class="date" id="todayDate"></span>
+    <div class="hdr-right"><span class="date" id="todayDate"></span><button type="button" class="zoom-btn" id="zoomBtn" title="화면 크기 (100 → 85 → 70%)"></button></div>
   </header>
   <main>
     <div class="quick">
@@ -4048,6 +4060,22 @@ photoLightbox.addEventListener("touchend", (e) => {
 });
 
 init();
+</script>
+<script>
+(function () {
+  var steps = ["1", "0.85", "0.7"], btn = document.getElementById("zoomBtn");
+  if (!btn) return;
+  function label() { btn.textContent = "🔍 " + Math.round(parseFloat(document.documentElement.style.zoom || "1") * 100) + "%"; }
+  label();
+  btn.addEventListener("click", function () {
+    var cur = String(parseFloat(document.documentElement.style.zoom || "1"));
+    var next = steps[(Math.max(steps.indexOf(cur), -1) + 1) % steps.length];
+    if (steps.indexOf(cur) === -1) next = "1";
+    document.documentElement.style.zoom = next;
+    try { localStorage.setItem("pl_zoom", next); } catch (e) {}
+    label();
+  });
+})();
 </script>
 </body>
 </html>
