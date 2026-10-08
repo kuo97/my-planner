@@ -83,7 +83,7 @@
   <button class="icon" id="opBtn" title="흐리기 조절">◐</button>
   <button class="icon" id="reload" title="새로고침">↻</button>
   <button class="icon" id="openApp" title="마이플래너 앱 열기">↗</button>
-  <button class="icon" id="hideBtn" title="숨기기 (작업표시줄 아이콘을 누르면 다시 나와요)">—</button>
+  <button class="icon" id="hideBtn" title="내리기 (작업 표시줄에서 다시 열어요)">—</button>
 </header>
 <div id="opRow">흐리게 <input type="range" id="op" min="25" max="100" step="5"> 밝게</div>
 <main id="list"></main>
@@ -315,6 +315,8 @@ async function remove(t) {
   if (error) { msg("지우기 실패: " + error.message); refresh(); }
 }
 $("addBtn").onclick = add;
+$("addInput").addEventListener("focus", () => widget.typing(true));
+$("addInput").addEventListener("blur", () => widget.typing(false));
 $("addInput").addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) add(); });
 
 /* ---------- 새로고침: 3분마다 + 창을 눌렀을 때 (휴대폰·마이플래너에서 바꾼 것도 따라온다) ---------- */

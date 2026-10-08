@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs");
 
 if (!app.requestSingleInstanceLock()) { app.quit(); return; }
+app.setAppUserModelId("chanjin.todo-widget");   // 작업 표시줄에 '할 일 위젯'으로 따로 뜨게
 
 const STATE = path.join(app.getPath("userData"), "window.json");
 let st = { width: 300, height: 440, opacity: 0.75, onTop: true };
@@ -27,7 +28,8 @@ function createWindow() {
   win = new BrowserWindow({
     x: st.x, y: st.y, width: st.width, height: st.height,
     minWidth: 220, minHeight: 150,
-    frame: false, resizable: true, skipTaskbar: true, show: false,
+    frame: false, resizable: true, skipTaskbar: false, show: false,
+    icon: path.join(__dirname, "..", "icon.png"),
     backgroundColor: "#FFFDF8",
     webPreferences: { preload: path.join(__dirname, "preload.js") },
   });
@@ -41,7 +43,7 @@ function createWindow() {
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
 }
 
-function toggleShow() { if (win.isVisible()) win.hide(); else { win.show(); win.focus(); } }
+function toggleShow() { if (win.isVisible() && !win.isMinimized()) win.minimize(); else { win.restore(); win.show(); win.focus(); } }
 
 function autostartOn() { return app.getLoginItemSettings({ path: process.execPath, args: [__dirname] }).openAtLogin; }
 function setAutostart(on) { app.setLoginItemSettings({ openAtLogin: on, path: process.execPath, args: [__dirname] }); }
@@ -66,19 +68,21 @@ function buildTray() {
 
 // 마우스가 위젯 위에 있거나 글을 쓰는 중이면 고른 흐리기와 최대 밝기의 중간까지만 밝힌다(최대는 눈이 부심, 10-08 찬진)
 // (끌기 영역 위에선 마우스 이벤트가 안 와서 화면 쪽이 아니라 여기서 커서 위치로 판단한다)
-let previewUntil = 0;   // 흐리기 막대를 움직이는 동안은 고른 값을 바로 보여 준다
+let previewUntil = 0, typing = false;
+ipcMain.on("typing", (_e, v) => { typing = v; });   // 흐리기 막대를 움직이는 동안은 고른 값을 바로 보여 준다
 setInterval(() => {
   if (!win || !win.isVisible() || Date.now() < previewUntil) return;
   const c = screen.getCursorScreenPoint(), b = win.getBounds();
   const over = c.x >= b.x && c.x < b.x + b.width && c.y >= b.y && c.y < b.y + b.height;
-  const want = over || win.isFocused() ? (st.opacity + 1) / 2 : st.opacity;
+  // 창을 눌러 둔 상태(포커스)로는 밝히지 않는다 — 체크하고 마우스를 치우면 바로 다시 흐려지게(10-08 찬진)
+  const want = over || typing ? (st.opacity + 1) / 2 : st.opacity;
   if (Math.abs(win.getOpacity() - want) > 0.01) win.setOpacity(want);
 }, 120);
 ipcMain.on("idle-opacity", (_e, v) => {
   st.opacity = v; win.setOpacity(v); previewUntil = Date.now() + 1200;
   clearTimeout(save.t); save.t = setTimeout(save, 400);
 });
-ipcMain.on("hide", () => win && win.hide());
+ipcMain.on("hide", () => win && win.minimize());   // 작업 표시줄로 내리기
 ipcMain.handle("pin", (_e, on) => { if (on !== undefined) { st.onTop = on; win.setAlwaysOnTop(on, "floating"); save(); } return st.onTop; });
 // ↗ = 설치된 마이플래너 앱(크롬 앱 '플래너')을 연다. 없으면 브라우저로
 const PLANNER_LNK = path.join(app.getPath("appData"), "Microsoft", "Windows", "Start Menu", "Programs", "Chrome 앱", "플래너.lnk");
