@@ -788,7 +788,9 @@
 
   /* ---------- 오늘 운동 제안 ---------- */
   .wk-sg { margin-top: 10px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--paper-card); padding: 8px 12px; }
-  .wk-sg > summary { cursor: pointer; font-size: 14px; list-style: none; }
+  .wk-sg > summary { cursor: pointer; font-size: 14px; list-style: none; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .wk-sg > summary::before { content: "▸"; color: var(--muted); font-size: 12px; width: 12px; }
+  .wk-sg[open] > summary::before { content: "▾"; }
   .wk-sg > summary::-webkit-details-marker { display: none; }
   .wk-sg > summary small { color: var(--muted); font-weight: 600; margin-left: 4px; }
   .wk-why { font-size: 12.5px; color: var(--ink); line-height: 1.55; margin: 8px 0 6px; }
@@ -1669,16 +1671,17 @@ async function renderDiary() {
     if (!el || editDate !== todayStr()) return;
     try {
       const plan = planWorkout();
-      let sel = plan.rec, open = !plan.doneToday && !noteInput.value.trim();
+      let sel = plan.rec, open = false;
+      try { open = localStorage.getItem("wk_open") === "1"; } catch {}   // 접고 펴기는 기억한다(기본 접힘)
       const draw = () => {
         const v = workoutSuggestView(plan, sel, open);
         el.innerHTML = v.html;
-        el.querySelector("details").addEventListener("toggle", e => { open = e.target.open; });
+        el.querySelector("details").addEventListener("toggle", e => { open = e.target.open; try { localStorage.setItem("wk_open", open ? "1" : "0"); } catch {} });
         el.querySelectorAll(".wk-days button").forEach(b => b.addEventListener("click", () => { sel = b.dataset.k; open = true; draw(); }));
         el.querySelector(".wk-fill").addEventListener("click", () => {
           if (activeRoutine && !confirm("지금 고른 운동을 이 목록으로 바꿀까요?")) return;
           activeRoutine = { items: v.items.map(i => { const o = { name: i.name, w: i.w, reps: i.reps }; if (i.memo) o.memo = i.memo; if (i.step) o.step = i.step; return o; }) };
-          open = false; syncChips(); renderRoutineEditor(); syncRoutineNote(); draw();
+          open = false; try { localStorage.setItem("wk_open", "0"); } catch {} syncChips(); renderRoutineEditor(); syncRoutineNote(); draw();
           toast("운동 목록을 채웠어요 — 무게는 ±로 고쳐요");
         });
       };

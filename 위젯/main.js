@@ -12,6 +12,7 @@ let st = { width: 300, height: 440, opacity: 0.75, onTop: true };
 try { Object.assign(st, JSON.parse(fs.readFileSync(STATE, "utf8"))); } catch {}
 const save = () => { try { fs.writeFileSync(STATE, JSON.stringify(st)); } catch {} };
 
+const ICON_ICO = path.join(__dirname, "icon.ico"), ICON_PNG = path.join(__dirname, "icon.png");   // 코랄 바탕 흰 체크 (2026-10-08)
 let win, tray, quitting = false;
 app.on("before-quit", () => { quitting = true; });
 const alive = () => win && !win.isDestroyed();
@@ -31,11 +32,13 @@ function createWindow() {
     x: st.x, y: st.y, width: st.width, height: st.height,
     minWidth: 270, minHeight: 150,
     frame: false, resizable: true, skipTaskbar: false, show: false,
-    icon: path.join(__dirname, "..", "icon.png"),
+    icon: ICON_ICO,
     backgroundColor: "#FFFDF8",
     webPreferences: { preload: path.join(__dirname, "preload.js") },
   });
   win.setAlwaysOnTop(st.onTop, "floating");
+  win.setIcon(nativeImage.createFromPath(ICON_ICO));
+  try { win.setAppDetails({ appId: "chanjin.todo-widget", appIconPath: ICON_ICO, appIconIndex: 0 }); } catch {}   // 작업 표시줄이 Electron 기본 아이콘을 쓰지 않게
   win.setOpacity(st.opacity);
   win.loadFile("widget.html");
   win.once("ready-to-show", () => win.show());
@@ -76,7 +79,7 @@ function autostartOn() { return app.getLoginItemSettings({ path: process.execPat
 function setAutostart(on) { app.setLoginItemSettings({ openAtLogin: on, path: process.execPath, args: [__dirname] }); }
 
 function buildTray() {
-  tray = new Tray(nativeImage.createFromPath(path.join(__dirname, "..", "icon.png")).resize({ width: 16, height: 16 }));
+  tray = new Tray(nativeImage.createFromPath(ICON_PNG).resize({ width: 16, height: 16 }));
   tray.setToolTip("할 일 위젯");
   const menu = () => Menu.buildFromTemplate([
     { label: "보이기 / 숨기기", click: toggleShow },
