@@ -287,6 +287,12 @@
   .life-tbl .sub-name { cursor: pointer; }
   .food-tip { display: flex; flex-direction: column; gap: 1px; margin: 0 0 10px; background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 13px; font-size: 13px; color: var(--ink); line-height: 1.5; }
   .food-tip small { font-size: 11.5px; color: var(--muted); }
+  .bal { margin: 0 0 10px; background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 14px; padding: 9px 13px; font-size: 13px; color: var(--ink); line-height: 1.55; }
+  .bal-h { font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+  .bal-r { display: flex; gap: 7px; align-items: baseline; }
+  .bal-r i { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #9aa3a6; transform: translateY(1px); }
+  .bal-r.ok i { background: #1baf7a; } .bal-r.mid i { background: #e8a33d; } .bal-r.bad i { background: #eb6834; }
+  .bal-todo { margin-top: 5px; padding-top: 5px; border-top: 1px dashed var(--line); font-size: 12.5px; color: var(--muted); }
   .life-add > summary { cursor: pointer; font-size: 12.5px; color: var(--muted); list-style: none; margin: 8px 0 4px; }
   .life-add > summary::-webkit-details-marker { display: none; }
   .bill-form input:not([type]) { width: 120px; }
@@ -1938,6 +1944,42 @@ function foodTipEl() {
   return el;
 }
 
+/* ---------- 이번 주 균형 (2026-10-08): 입력 없이, 이미 쌓인 기록으로 운동·일기·돈을 한 줄씩.
+   한 영역이 무너지면 전체가 불합격이라는 '인생 과락' 감각(찬진 글)에서 따옴. 체크·점수 입력은 없다. ---------- */
+function balanceEl() {
+  const wk = twoWeekDates().slice(0, 7), today = todayStr();
+  const elapsed = wk.filter(d => d <= today).length, left = 7 - elapsed;
+  const rows = [];
+  const { week } = exerciseCounts();
+  const can = week + left + (exerciseDays.has(today) ? 0 : 1);
+  rows.push(week >= 3 ? ["ok", `운동 ${week}일 — 이번 주 목표(3일) 달성`]
+    : can >= 3 ? ["mid", `운동 ${week}일 — 3일까지 ${3 - week}일 더 (남은 날 ${left}일)`]
+    : ["bad", `운동 ${week}일 — 이번 주는 3일이 어려워요`]);
+  if (Object.keys(calMap || {}).length) {
+    const wrote = wk.filter(d => d <= today && calMap[d] && String(calMap[d].content || "").trim()).length;
+    rows.push(wrote * 2 >= elapsed ? ["ok", `일기 ${wrote}/${elapsed}일`]
+      : elapsed <= 2 ? ["mid", `일기 ${wrote}/${elapsed}일`]
+      : ["bad", `일기 ${wrote}/${elapsed}일 — 한 줄이라도`]);
+  }
+  try {
+    const ym = today.slice(0, 7), inMonth = k => (lifeLog || []).filter(r => r.kind === k && String(r.on_date).slice(0, 7) === ym);
+    const inc = inMonth("income").reduce((a, r) => a + (r.amount || 0), 0), sp = inMonth("spend").reduce((a, r) => a + (r.amount || 0), 0);
+    const man = n => Math.round(Math.abs(n) / 10000).toLocaleString("ko-KR") + "만 원";
+    if (inc > 0 && sp > 0) {
+      const net = inc - sp;
+      rows.push(net >= 0 ? ["ok", `돈 이번 달 수입의 ${Math.round(net / inc * 100)}% 남김 (${man(net)})`]
+        : ["bad", `돈 이번 달 수입보다 ${man(net)} 더 씀`]);
+    }
+  } catch (e) {}
+  const bad = rows.filter(r => r[0] === "bad").map(r => r[1].split(" ")[0]);
+  const el = document.createElement("div");
+  el.className = "bal";
+  el.innerHTML = `<div class="bal-h">이번 주 균형 · 입력 없이 기록으로 계산</div>` +
+    rows.map(r => `<div class="bal-r ${r[0]}"><i></i><span>${escapeHtml(r[1])}</span></div>`).join("") +
+    (bad.length ? `<div class="bal-todo">한 영역이 무너지면 전체가 흔들려요 — 이번 주 챙길 것: ${bad.join(" · ")}</div>` : "");
+  return el;
+}
+
 /* ---------- 이발 기록: 달력에서 날짜를 고르고 ✂️ 칩을 누르면 그 날 이발한 걸로 기록 ---------- */
 function lastHaircutDate() {
   const dates = Object.keys(calMap).filter(d => calMap[d].haircut && d <= todayStr()).sort();
@@ -3432,6 +3474,7 @@ function render() {
     statsRow.appendChild(lottoStatsEl());
     list.appendChild(statsRow);
     try { list.appendChild(foodTipEl()); } catch (e) {}
+    try { list.appendChild(balanceEl()); } catch (e) {}
     list.appendChild(gcalBar);
   }
 
