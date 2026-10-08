@@ -786,6 +786,26 @@
   .ex-chip:active { transform: scale(0.94); }
   .ex-chip.on { background: var(--sage); border-color: var(--sage); color: white; }
 
+  /* ---------- 오늘 운동 제안 ---------- */
+  .wk-sg { margin-top: 10px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--paper-card); padding: 8px 12px; }
+  .wk-sg > summary { cursor: pointer; font-size: 14px; list-style: none; }
+  .wk-sg > summary::-webkit-details-marker { display: none; }
+  .wk-sg > summary small { color: var(--muted); font-weight: 600; margin-left: 4px; }
+  .wk-why { font-size: 12.5px; color: var(--ink); line-height: 1.55; margin: 8px 0 6px; }
+  .wk-why .warn { color: var(--danger); font-weight: 700; }
+  .wk-days { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px; }
+  .wk-days button { padding: 5px 11px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+  .wk-days button small { font-weight: 600; opacity: 0.8; }
+  .wk-days button.on { background: var(--sage); border-color: var(--sage); color: white; }
+  .wk-row { padding: 7px 0; border-bottom: 1.5px dashed var(--line); display: grid; grid-template-columns: 1fr auto; gap: 1px 10px; align-items: baseline; }
+  .wk-row b { font-size: 13.5px; }
+  .wk-row .wk-w { font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .wk-row .wk-w.up { color: var(--sage); }
+  .wk-row small { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .wk-fill { width: 100%; margin-top: 10px; padding: 9px; border: none; border-radius: 10px; background: var(--sage); color: white; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .wk-fill:active { transform: scale(0.98); }
+  .wk-foot { font-size: 11.5px; color: var(--muted); margin-top: 7px; text-align: center; }
+
   /* ---------- 루틴 에디터 (운동별 무게 조절) ---------- */
   .routine-editor {
     margin-top: 10px; border: 1.5px solid var(--sage); border-radius: 14px;
@@ -1407,6 +1427,7 @@ async function renderDiary() {
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
     <div class="meals-ed" id="mealsEd"></div>
     <textarea id="mealsNote" hidden></textarea>
+    <div id="wkSuggest"></div>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 5km)">
     <div class="exercise-presets" id="exercisePresets">
       ${EXERCISE_CATALOG.map(c => `<button type="button" class="ex-chip" data-n="${c.name}">${c.name}</button>`).join("")}
@@ -1642,6 +1663,28 @@ async function renderDiary() {
     renderRoutineEditor();
   }
   restoreRoutineFromNote();
+  /* 오늘 운동 제안 — 일기의 운동 기록을 읽고 오늘 할 날·종목별 무게를 정해 준다 */
+  (function mountWorkoutSuggest() {
+    const el = dCard.querySelector("#wkSuggest");
+    if (!el || editDate !== todayStr()) return;
+    try {
+      const plan = planWorkout();
+      let sel = plan.rec, open = !plan.doneToday && !noteInput.value.trim();
+      const draw = () => {
+        const v = workoutSuggestView(plan, sel, open);
+        el.innerHTML = v.html;
+        el.querySelector("details").addEventListener("toggle", e => { open = e.target.open; });
+        el.querySelectorAll(".wk-days button").forEach(b => b.addEventListener("click", () => { sel = b.dataset.k; open = true; draw(); }));
+        el.querySelector(".wk-fill").addEventListener("click", () => {
+          if (activeRoutine && !confirm("지금 고른 운동을 이 목록으로 바꿀까요?")) return;
+          activeRoutine = { items: v.items.map(i => { const o = { name: i.name, w: i.w, reps: i.reps }; if (i.memo) o.memo = i.memo; if (i.step) o.step = i.step; return o; }) };
+          open = false; syncChips(); renderRoutineEditor(); syncRoutineNote(); draw();
+          toast("운동 목록을 채웠어요 — 무게는 ±로 고쳐요");
+        });
+      };
+      draw();
+    } catch (e) { console.warn("운동 제안", e); }
+  })();
   // 텍스트를 직접 고쳤을 때도(입력 끝난 시점) 편집기를 다시 맞춰준다
   noteInput.addEventListener("change", restoreRoutineFromNote);
 
@@ -1886,6 +1929,7 @@ async function removePhoto(photo) {
 /* ---------- 운동 통계: 이번 주(월~일)·이번 달에 운동한 날 수 ---------- */
 let exerciseDays = new Set(); // 운동한 날짜 "YYYY-MM-DD" (이번 달 1일 또는 이번 주 월요일 중 빠른 날부터)
 async function loadExerciseStats() {
+  await loadWorkoutLog();
   const wk = twoWeekDates();
   const monthStart = todayStr().slice(0, 8) + "01";
   const from = wk[0] < monthStart ? wk[0] : monthStart;
@@ -1908,6 +1952,103 @@ function exerciseStatsEl() {
   el.className = "ex-stats";
   el.innerHTML = `<span class="ex-icon">🏃</span><span>이번 주 <b>${week}</b>일</span><span class="ex-sep">·</span><span>이번 달 <b>${month}</b>일</span>`;
   return el;
+}
+
+/* ---------- 오늘 운동 제안 ----------
+   일기의 운동 기록(exercise_note: "벤치프레스 55kg 6×5, 렛풀다운 32kg 12×4 + 러닝 5km")을 읽어서
+   ① 가장 오래 안 한 날(가슴→등→다리 순서) ② 종목별 무게(같은 무게로 3번 쌓았으면 한 단계 올리기,
+   한 달 넘게 쉬었으면 한 단계 낮추기)를 정한다. 판단 규칙은 모두 여기 있어서 Claude 없이 바로 나온다. */
+let workoutLog = []; // [{d, note}] 최근 60일, 날짜 오름차순
+async function loadWorkoutLog() {
+  try {
+    const from = dateStr(new Date(Date.now() - 60 * 864e5));
+    const { data, error } = await sb.from("diary").select("on_date,exercise_note").gte("on_date", from).order("on_date", { ascending: true });
+    if (error) return;
+    workoutLog = (data || []).filter(r => (r.exercise_note || "").trim()).map(r => ({ d: r.on_date, note: r.exercise_note }));
+  } catch {}
+}
+const DAY_LABEL = { chest: "가슴 날", back: "등 날", legs: "다리 날" };
+const DAY_ORDER = ["chest", "back", "legs"];
+function dayKeyOf(name) {
+  const hit = EXERCISE_ROUTINES.find(r => r.items.some(i => i.name === name));
+  if (hit) return hit.key;
+  if (EXTRA_EXERCISES.some(e => e.name === name)) return "chest";
+  if (/스쿼트|레그|RDL|카프|런지|힙/.test(name)) return "legs";
+  if (/풀다운|풀업|로우|컬|이두|리버스|랫/.test(name)) return "back";
+  if (/벤치|프레스|플라이|펙덱|푸쉬|푸시|트라이셉|레이즈|딥스/.test(name)) return "chest";
+  return null;
+}
+function parseWorkoutNote(note) {
+  let body = (note || "").trim(), run = null;
+  const m = body.match(/(?:^|\s\+\s)러닝\s+([\d.]+)\s*km\s*$/);
+  if (m) { run = Number(m[1]); body = body.slice(0, m.index).trim(); }
+  const dash = body.indexOf(" — "); if (dash >= 0) body = body.slice(dash + 3).trim();
+  const items = [];
+  for (const part of body.split(",")) {
+    const mm = part.trim().match(/^(.+?)\s+([\d.]+)kg\s+(\S+)$/);
+    if (mm) items.push({ name: mm[1].trim(), w: Number(mm[2]), reps: mm[3] });
+  }
+  return { items, run };
+}
+const dayDiff = (a, b) => Math.round((new Date(a + "T00:00") - new Date(b + "T00:00")) / 864e5);
+const agoText = n => n <= 0 ? "오늘" : n === 1 ? "어제" : n + "일 전";
+function workoutSessions() {
+  return workoutLog.map(r => {
+    const { items, run } = parseWorkoutNote(r.note), cnt = {};
+    items.forEach(i => { const k = dayKeyOf(i.name); if (k) cnt[k] = (cnt[k] || 0) + 1; });
+    const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+    return { d: r.d, items, run, key: top && (top[1] >= 2 || items.length <= 2) ? top[0] : null };
+  });
+}
+function planWorkout() {
+  const today = todayStr(), ss = workoutSessions(), lifted = ss.filter(s => s.key), last = {};
+  lifted.forEach(s => { last[s.key] = s.d; });
+  const doneToday = lifted.find(s => s.d === today) || null;
+  const prev = lifted.filter(s => s.d !== today).slice(-1)[0] || null;
+  const base = doneToday || prev, from = base ? DAY_ORDER.indexOf(base.key) : -1;
+  const dist = k => ((DAY_ORDER.indexOf(k) - from + 3) % 3) || 3;   // 직전 날 다음 순서일수록 작다
+  const rec = DAY_ORDER.slice().sort((a, b) => (last[a] || "").localeCompare(last[b] || "") || dist(a) - dist(b))[0];
+  const days = new Set(ss.map(s => s.d));
+  let streak = 0; const cur = new Date(); if (!days.has(today)) cur.setDate(cur.getDate() - 1);
+  while (days.has(dateStr(cur))) { streak++; cur.setDate(cur.getDate() - 1); }
+  const lines = [];
+  if (streak >= 3) lines.push(`<span class="warn">${streak}일 연속 운동했어요</span> — ${doneToday ? "내일은" : "오늘은"} 쉬거나 가볍게 걷기도 좋아요. 근육은 쉴 때 자라요.`);
+  if (!lifted.length) lines.push("아직 웨이트 기록이 없어요. 이 목록으로 시작하고, 기록이 쌓이면 지난 무게를 기준으로 올릴 때를 알려줘요.");
+  else {
+    if (prev) lines.push(`직전 운동은 ${DAY_LABEL[prev.key]}(${agoText(dayDiff(today, prev.d))}) → 다음 차례는 <b>${DAY_LABEL[rec]}</b>${last[rec] ? ` (마지막 ${agoText(dayDiff(today, last[rec]))})` : " (기록 없음)"}.`);
+    const lg = last.legs ? dayDiff(today, last.legs) : null;
+    if (rec !== "legs" && lifted.length >= 3 && (lg == null || lg >= 9)) lines.push(`다리 날이 ${lg == null ? "아직 한 번도 없어요" : lg + "일째 비었어요"} — 하체는 빠지기 쉬우니 다음엔 꼭.`);
+  }
+  const { week } = exerciseCounts();
+  lines.push(`이번 주 ${week}일째 (목표 3~4일).`);
+  return { ss, last, doneToday, prev, rec, streak, lines };
+}
+function suggestItem(item, ss) {
+  const today = todayStr(), step = item.step || 5;
+  const hist = ss.filter(s => s.d !== today).flatMap(s => s.items.filter(i => i.name === item.name).map(i => ({ d: s.d, w: i.w, reps: i.reps }))).reverse(); // 최신순
+  if (!hist.length) return { ...item, tip: "기록이 없어서 기본 무게로 시작해요" };
+  const l = hist[0], ago = dayDiff(today, l.d);
+  let streak = 0; for (const h of hist) { if (h.w === l.w && h.reps === l.reps) streak++; else break; }
+  const out = { ...item, w: l.w, reps: l.reps, prev: `지난번 ${l.w}kg ${l.reps} · ${agoText(ago)}` };
+  if (ago >= 28) { out.w = Math.max(0, l.w - step); out.tip = `${Math.round(ago / 7)}주 만이라 한 단계 낮춰서 감 되찾기`; }
+  else if (streak >= 3) { out.w = l.w + step; out.up = true; out.tip = `같은 무게 ${streak}번째 → 이번엔 +${step}kg 도전 (힘들면 같은 무게로 1회 더)`; }
+  else if (streak === 2) out.tip = "같은 무게 2번째 — 한 번 더 쌓고 다음에 올려요";
+  else { const p = hist[1]; out.tip = p && p.w > l.w ? "지난번에 낮췄어요 — 이 무게로 자세 안정시키기" : p && p.w < l.w ? "지난번에 올렸어요 — 이 무게로 자리 잡기" : "같은 무게로 한 번 더"; }
+  out.w = Math.round(out.w * 2) / 2;
+  return out;
+}
+function workoutSuggestView(plan, sel, open) {
+  const routine = EXERCISE_ROUTINES.find(r => r.key === sel);
+  const items = routine.items.map(i => suggestItem(i, plan.ss));
+  const head = plan.doneToday ? `오늘 ${DAY_LABEL[plan.doneToday.key]} 완료 ✅ · 다음은 ${DAY_LABEL[plan.rec]}` : `${DAY_LABEL[plan.rec]} 차례`;
+  const today = todayStr();
+  const html = `<details class="wk-sg"${open ? " open" : ""}><summary>💪 <b>오늘 운동 제안</b> <small>${head}</small></summary>
+    <div class="wk-why">${plan.lines.join("<br>")}</div>
+    <div class="wk-days">${DAY_ORDER.map(k => `<button type="button" data-k="${k}" class="${k === sel ? "on" : ""}">${DAY_LABEL[k]}${k === plan.rec ? " ★" : ""}${plan.last[k] ? ` <small>${agoText(dayDiff(today, plan.last[k]))}</small>` : ""}</button>`).join("")}</div>
+    ${items.map(i => `<div class="wk-row"><b>${escapeHtml(i.name)}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small></div>`).join("")}
+    <button type="button" class="wk-fill">이대로 일기에 채우기</button>
+    <div class="wk-foot">마지막 세트는 1~2회 남기고 끝내기 · 끝나면 단백질 20g 이상</div></details>`;
+  return { html, items };
 }
 
 /* ---------- 로또 번호 추천 (6/45) ----------
