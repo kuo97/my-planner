@@ -54,6 +54,8 @@
   .t { flex: 1; word-break: keep-all; overflow-wrap: anywhere; }
   .t small { color: var(--muted); margin-left: 4px; }
   .over { color: var(--coral); font-size: 10.5px; margin-left: 4px; }
+  .nxt { visibility: hidden; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 12px; }
+  .item:hover .nxt { visibility: visible; }
   .del { visibility: hidden; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 13px; }
   .item:hover .del { visibility: visible; }
   .ev .chk { border-color: #9DB8EC; }
@@ -125,6 +127,14 @@ const label = (s) => { const d = new Date(s + "T00:00:00"); return `${DAY[d.getD
 /* ---------- 흐리기: 평소엔 고른 값, 마우스를 올리면 선명하게 ---------- */
 $("op").value = localStorage.getItem("idleOpacity") || 75;
 $("op").addEventListener("input", (e) => { localStorage.setItem("idleOpacity", e.target.value); widget.previewOpacity(e.target.value / 100); });
+// 클릭을 시작하면 최대 밝기(main 이 1.5초 유지). 흐리기 막대를 잡고 있을 땐 밝히지 않고 고른 값을 그대로 보여 준다
+const onSlider = (e) => e.target && e.target.id === "op";
+document.addEventListener("pointerdown", (e) => { if (onSlider(e)) widget.slide(true); else widget.press(); }, true);
+document.addEventListener("pointermove", (e) => { if (e.buttons && !onSlider(e) && !sliderHeld) widget.press(); }, true);
+let sliderHeld = false;
+document.addEventListener("pointerdown", (e) => { sliderHeld = onSlider(e); }, true);
+document.addEventListener("pointerup", () => { if (sliderHeld) { widget.slide(false); sliderHeld = false; } }, true);
+window.addEventListener("blur", () => { if (sliderHeld) { widget.slide(false); sliderHeld = false; } });
 $("opBtn").onclick = () => $("opRow").classList.toggle("show");
 $("hideBtn").onclick = () => widget.hide();
 $("openApp").onclick = () => widget.openPlanner();
@@ -236,10 +246,12 @@ function itemEl(t, d) {
   const over = !isRepeat(t) && !done && t.due && t.due < today() ? `<span class="over">${Number(t.due.slice(5,7))}/${Number(t.due.slice(8))} 지남</span>` : "";
   const cnt = sub ? `<small>${subDone(t, d).length}/${t.sub_total}</small>` : "";
   el.innerHTML = `<div class="chk">${done ? "✓" : ""}</div><div class="t">${esc(t.title)}${cnt}${over}</div>` +
-    (isRepeat(t) ? "" : `<button class="del" title="지우기">×</button>`);
+    (isRepeat(t) ? "" : `<button class="nxt" title="내일로 미루기">→내일</button><button class="del" title="지우기">×</button>`);
   // 편수 체크리스트(여러 편 올리는 배치)는 번호별로 체크해야 해서 마이플래너에서 연다
   el.querySelector(".chk").onclick = () => sub ? widget.openPlanner() : toggle(t, d);
   el.querySelector(".t").ondblclick = () => widget.openPlanner();
+  const nxt = el.querySelector(".nxt");
+  if (nxt) nxt.onclick = () => postpone(t);
   const del = el.querySelector(".del");
   if (del) del.onclick = () => remove(t);
   return el;
@@ -316,6 +328,12 @@ async function add() {
   if (error) return msg("추가 실패: " + error.message);
   tasks.push(data); render();
 }
+async function postpone(t) {
+  const d = new Date(); d.setDate(d.getDate() + 1); const due = ds(d);
+  t.due = due; render();
+  const { error } = await sb.from("tasks").update({ due }).eq("id", t.id);
+  if (error) { msg("미루기 실패: " + error.message); refresh(true); } else msg("내일(" + label(due) + ")로 옮겼어요");
+}
 async function remove(t) {
   if (!confirm(`'${t.title}' 지울까요?`)) return;
   tasks = tasks.filter(x => x.id !== t.id); render();
@@ -338,6 +356,18 @@ async function refresh(force) {
     if (await loadTasks()) { await loadEvents(); last = Date.now(); render(); }
   } finally { busy = false; }
 }
+async function pullInbox() {
+  let items = []; try { items = await widget.inbox(); } catch {}
+  if (!items.length) return;
+  const { data: { session } } = await sb.auth.getSession(); if (!session) return;
+  for (const it of items) {
+    if (!it || !it.title) continue;
+    const { data, error } = await sb.from("tasks").insert({ title: String(it.title), due: it.due || today() }).select().single();
+    if (!error) tasks.push(data); else msg("우편함 추가 실패: " + error.message);
+  }
+  render();
+}
+setInterval(pullInbox, 6000); setTimeout(pullInbox, 2500);
 window.addEventListener("focus", () => refresh());
 setInterval(() => refresh(true), 180000);
 refresh(true);

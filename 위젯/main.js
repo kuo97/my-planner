@@ -100,21 +100,25 @@ function buildTray() {
   tray.on("right-click", () => tray.popUpContextMenu(menu()));
 }
 
-// 마우스가 위젯 위에 있거나 글을 쓰는 중이면 고른 흐리기와 최대 밝기의 중간까지만 밝힌다(최대는 눈이 부심, 10-08 찬진)
-// (끌기 영역 위에선 마우스 이벤트가 안 와서 화면 쪽이 아니라 여기서 커서 위치로 판단한다)
-let previewUntil = 0, typing = false;
-ipcMain.on("typing", (_e, v) => { typing = v; });   // 흐리기 막대를 움직이는 동안은 고른 값을 바로 보여 준다
+// 흐리기: 평소(마우스를 올려도)엔 고른 값 그대로, **클릭을 시작하면 최대 밝기**, 손을 떼고 1.5초 뒤 다시 흐려진다 (10-09 찬진).
+// 글을 쓰는 동안(입력칸 포커스)도 밝게. 흐리기 막대를 움직이는 동안은 고른 값을 그대로 보여 준다(막대와 화면이 일치).
+let pressedUntil = 0, typing = false, sliding = false;
+ipcMain.on("typing", (_e, v) => { typing = v; });
+ipcMain.on("press", () => { pressedUntil = Date.now() + 1500; });
+ipcMain.on("slide", (_e, v) => { sliding = v; if (!v) pressedUntil = 0; });
 setInterval(() => {
-  if (!alive() || !win.isVisible() || Date.now() < previewUntil) return;
-  const c = screen.getCursorScreenPoint(), b = win.getBounds();
-  const over = c.x >= b.x && c.x < b.x + b.width && c.y >= b.y && c.y < b.y + b.height;
-  // 창을 눌러 둔 상태(포커스)로는 밝히지 않는다 — 체크하고 마우스를 치우면 바로 다시 흐려지게(10-08 찬진)
-  const want = over || typing ? (st.opacity + 1) / 2 : st.opacity;
+  if (!alive() || !win.isVisible() || sliding) return;
+  const want = (Date.now() < pressedUntil || typing) ? 1 : st.opacity;
   if (Math.abs(win.getOpacity() - want) > 0.01) win.setOpacity(want);
-}, 120);
+}, 100);
 ipcMain.on("idle-opacity", (_e, v) => {
-  st.opacity = v; if (alive()) win.setOpacity(v); previewUntil = Date.now() + 1200;
+  st.opacity = v; if (alive()) win.setOpacity(v);
   clearTimeout(save.t); save.t = setTimeout(save, 400);
+});
+// Claude 가 할 일을 넣어 두는 우편함: %APPDATA%\todo-widget\inbox.json = [{"title":"…","due":"YYYY-MM-DD"}] (읽으면 지운다)
+ipcMain.handle("inbox", () => {
+  const f = path.join(app.getPath("userData"), "inbox.json");
+  try { const t = JSON.parse(fs.readFileSync(f, "utf8")); fs.unlinkSync(f); return Array.isArray(t) ? t : []; } catch { return []; }
 });
 ipcMain.on("hide", () => alive() && win.minimize());   // 작업 표시줄로 내리기
 ipcMain.handle("lock", (_e, on) => {
