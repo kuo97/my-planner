@@ -254,7 +254,6 @@ function dayBlock(d, box, showHead) {
   if (!showHead && !list.length && !evs.length) box.innerHTML = `<div class="empty">오늘 할 일이 없어요 🙂</div>`;
 }
 function render() {
-  if (!$("list") || $("login")) return;
   document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
   const box = document.createElement("div");
   if (tab === "today") dayBlock(today(), box, false);
