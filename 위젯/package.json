@@ -1,0 +1,13 @@
+{
+  "name": "todo-widget",
+  "version": "1.0.0",
+  "description": "마이플래너 오늘·이번 주 할 일 위젯",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^44.7.0"
+  }
+}
