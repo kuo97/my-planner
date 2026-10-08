@@ -38,7 +38,10 @@ function createWindow() {
   });
   win.setAlwaysOnTop(st.onTop, "floating");
   win.setIcon(nativeImage.createFromPath(ICON_ICO));
-  try { win.setAppDetails({ appId: "chanjin.todo-widget", appIconPath: ICON_ICO, appIconIndex: 0 }); } catch {}   // 작업 표시줄이 Electron 기본 아이콘을 쓰지 않게
+  try {
+    win.setAppDetails({ appId: "chanjin.todo-widget", appIconPath: ICON_ICO, appIconIndex: 0,
+      relaunchCommand: `"${process.execPath}" "${__dirname}"`, relaunchDisplayName: "할 일 위젯" });
+  } catch {}   // 작업 표시줄이 Electron 기본 아이콘을 쓰지 않게
   win.setOpacity(st.opacity);
   win.loadFile("widget.html");
   win.once("ready-to-show", () => win.show());
