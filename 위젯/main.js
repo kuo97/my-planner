@@ -1,4 +1,4 @@
-// 마이플래너 할 일 위젯 — 화면에 떠 있는 작은 메모지 (2026-10-08)
+﻿// 마이플래너 할 일 위젯 — 화면에 떠 있는 작은 메모지 (2026-10-08)
 // 테두리 없음 · 항상 위 · 끌어서 아무 데나 · 크기 조절 · 투명도(마우스 올리면 선명) · 위치 기억
 const { app, BrowserWindow, ipcMain, shell, Tray, Menu, screen, nativeImage } = require("electron");
 const path = require("path");
@@ -68,14 +68,18 @@ function buildTray() {
 
 // 마우스가 위젯 위에 있거나 글을 쓰는 중이면 선명하게, 아니면 고른 흐리기로
 // (끌기 영역 위에선 마우스 이벤트가 안 와서 화면 쪽이 아니라 여기서 커서 위치로 판단한다)
+let previewUntil = 0;   // 흐리기 막대를 움직이는 동안은 고른 값을 바로 보여 준다
 setInterval(() => {
-  if (!win || !win.isVisible()) return;
+  if (!win || !win.isVisible() || Date.now() < previewUntil) return;
   const c = screen.getCursorScreenPoint(), b = win.getBounds();
   const over = c.x >= b.x && c.x < b.x + b.width && c.y >= b.y && c.y < b.y + b.height;
   const want = over || win.isFocused() ? 1 : st.opacity;
   if (Math.abs(win.getOpacity() - want) > 0.01) win.setOpacity(want);
-}, 250);
-ipcMain.on("idle-opacity", (_e, v) => { st.opacity = v; save(); });
+}, 120);
+ipcMain.on("idle-opacity", (_e, v) => {
+  st.opacity = v; win.setOpacity(v); previewUntil = Date.now() + 1200;
+  clearTimeout(save.t); save.t = setTimeout(save, 400);
+});
 ipcMain.on("hide", () => win && win.hide());
 ipcMain.on("open", (_e, url) => shell.openExternal(url));
 

@@ -51,7 +51,8 @@
   .over { color: var(--coral); font-size: 10.5px; margin-left: 4px; }
   .del { visibility: hidden; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 13px; }
   .item:hover .del { visibility: visible; }
-  .ev .dot { flex: none; width: 15px; text-align: center; color: var(--gcal); font-size: 10px; margin-top: 2px; }
+  .ev .chk { border-color: #9DB8EC; }
+  .ev.done .chk { background: var(--gcal); border-color: var(--gcal); }
   .ev .t { color: #2F5DB5; cursor: pointer; }
   .empty { color: var(--muted); padding: 10px; text-align: center; font-size: 12px; }
 
@@ -81,7 +82,7 @@
   <button class="icon" id="openApp" title="마이플래너 열기">↗</button>
   <button class="icon" id="hideBtn" title="숨기기 (작업표시줄 아이콘을 누르면 다시 나와요)">—</button>
 </header>
-<div id="opRow">흐리게 <input type="range" id="op" min="25" max="100" step="5"> 진하게</div>
+<div id="opRow">흐리게 <input type="range" id="op" min="25" max="100" step="5"> 밝게</div>
 <main id="list"></main>
 <footer id="addBar">
   <input id="addInput" placeholder="오늘 할 일 추가">
@@ -116,7 +117,7 @@ const label = (s) => { const d = new Date(s + "T00:00:00"); return `${DAY[d.getD
 
 /* ---------- 흐리기: 평소엔 고른 값, 마우스를 올리면 선명하게 ---------- */
 $("op").value = localStorage.getItem("idleOpacity") || 75;
-$("op").addEventListener("input", (e) => { localStorage.setItem("idleOpacity", e.target.value); widget.saveIdleOpacity(e.target.value / 100); });
+$("op").addEventListener("input", (e) => { localStorage.setItem("idleOpacity", e.target.value); widget.previewOpacity(e.target.value / 100); });
 $("opBtn").onclick = () => $("opRow").classList.toggle("show");
 $("hideBtn").onclick = () => widget.hide();
 $("openApp").onclick = () => widget.open(PLANNER_URL);
@@ -188,7 +189,7 @@ async function loadEvents() {
         if (allDay || (d.getHours() === 0 && d.getMinutes() === 0)) d.setDate(d.getDate() - 1);  // 끝 날짜는 '다음 날 0시'라 하루 뺀다
         end = ds(d) < s.slice(0, 10) ? s.slice(0, 10) : ds(d);
       }
-      return { date: s.slice(0, 10), end, title: ev.summary || "(제목 없음)", link: ev.htmlLink };
+      return { id: ev.id, date: s.slice(0, 10), end, title: ev.summary || "(제목 없음)", link: ev.htmlLink };
     }).filter(Boolean);
   } catch {}
 }
@@ -229,27 +230,38 @@ function itemEl(t, d) {
   if (del) del.onclick = () => remove(t);
   return el;
 }
-function eventEl(ev) {
+/* 캘린더 일정은 읽기 전용이라 완료 표시는 이 컴퓨터에만 저장한다 (일정id|날짜) */
+let evDone = {};
+try { evDone = JSON.parse(localStorage.getItem("evDone") || "{}"); } catch {}
+(() => { const cut = ds(new Date(Date.now() - 30 * 86400000));   // 30일 지난 기록은 정리
+  for (const k in evDone) if (k.split("|")[1] < cut) delete evDone[k]; })();
+function eventEl(ev, d) {
+  const key = ev.id + "|" + d, done = !!evDone[key];
   const el = document.createElement("div");
-  el.className = "item ev";
-  el.innerHTML = `<div class="dot">●</div><div class="t">${esc(ev.title)}</div>`;
+  el.className = "item ev" + (done ? " done" : "");
+  el.innerHTML = `<div class="chk">${done ? "✓" : ""}</div><div class="t" title="누르면 구글 캘린더가 열려요">${esc(ev.title)}</div>`;
+  el.querySelector(".chk").onclick = () => {
+    if (done) delete evDone[key]; else evDone[key] = 1;
+    try { localStorage.setItem("evDone", JSON.stringify(evDone)); } catch {}
+    render();
+  };
   el.querySelector(".t").onclick = () => ev.link && widget.open(ev.link);
   return el;
 }
 function dayBlock(d, box, showHead) {
   const list = tasksOn(d).sort((a, b) => isDone(a, d) - isDone(b, d));
-  const evs = events.filter(e => e.date <= d && d <= e.end);
+  const evs = events.filter(e => e.date <= d && d <= e.end).sort((a, b) => !!evDone[a.id + "|" + d] - !!evDone[b.id + "|" + d]);
   if (showHead) {
     const h = document.createElement("div");
     const t0 = today();
     h.className = "day" + (d === t0 ? " today" : "") + (d < t0 ? " past" : "") + (target === d ? " target" : "");
-    const n = list.filter(t => isDone(t, d)).length;
-    h.innerHTML = `<b>${label(d)}${d === t0 ? " · 오늘" : ""}</b><span>${list.length ? n + "/" + list.length : ""}</span>`;
+    const n = list.filter(t => isDone(t, d)).length + evs.filter(e => evDone[e.id + "|" + d]).length, all = list.length + evs.length;
+    h.innerHTML = `<b>${label(d)}${d === t0 ? " · 오늘" : ""}</b><span>${all ? n + "/" + all : ""}</span>`;
     h.title = "누르면 이 날에 할 일을 추가해요";
     h.onclick = () => { target = target === d ? null : d; render(); $("addInput").focus(); };
     box.appendChild(h);
   }
-  evs.forEach(e => box.appendChild(eventEl(e)));
+  evs.forEach(e => box.appendChild(eventEl(e, d)));
   list.forEach(t => box.appendChild(itemEl(t, d)));
   if (!showHead && !list.length && !evs.length) box.innerHTML = `<div class="empty">오늘 할 일이 없어요 🙂</div>`;
 }
