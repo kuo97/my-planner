@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld("widget", {
   hide: () => ipcRenderer.send("hide"),
   typing: (v) => ipcRenderer.send("typing", v),
   pin: (on) => ipcRenderer.invoke("pin", on),
+  lock: (on) => ipcRenderer.invoke("lock", on),
   openPlanner: () => ipcRenderer.send("open-planner"),
   open: (url) => ipcRenderer.send("open", url),
 });

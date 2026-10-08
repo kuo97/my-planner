@@ -15,17 +15,20 @@
     font: 13px/1.4 'Pretendard', 'Malgun Gothic', sans-serif; user-select: none; overflow: hidden; }
   body { display: flex; flex-direction: column; border: 1px solid var(--line); }
 
-  header { -webkit-app-region: drag; display: flex; align-items: center; gap: 6px;
+  header { -webkit-app-region: drag; display: flex; align-items: center; gap: 2px;
     padding: 7px 8px 6px 10px; border-bottom: 1px solid var(--line); cursor: move; }
-  header .tabs { display: flex; gap: 2px; }
+  header .tabs { display: flex; gap: 2px; flex: none; }
+  header button { white-space: nowrap; flex: none; }
   header button, .tabs button { -webkit-app-region: no-drag; border: 0; background: none; cursor: pointer;
     font: inherit; color: var(--muted); padding: 2px 6px; border-radius: 6px; }
   .tabs button.on { color: var(--ink); background: var(--coral-soft); font-weight: 700; }
   header .sp { flex: 1; }
-  header .icon { font-size: 13px; padding: 2px 5px; }
+  header .icon { font-size: 13px; padding: 2px 4px; }
   header .icon:hover, .tabs button:hover { background: #F3ECDD; }
   #pinBtn { filter: grayscale(1); opacity: .45; }
   #pinBtn.on { filter: none; opacity: 1; background: var(--coral-soft); }
+  #lockBtn { opacity: .5; } #lockBtn.on { opacity: 1; background: var(--coral-soft); }
+  body.locked header { -webkit-app-region: no-drag; cursor: default; }
 
   #opRow { display: none; align-items: center; gap: 6px; padding: 5px 10px; border-bottom: 1px solid var(--line);
     color: var(--muted); font-size: 11px; }
@@ -80,6 +83,7 @@
   </div>
   <div class="sp"></div>
   <button class="icon" id="pinBtn" title="항상 위에 고정">📌</button>
+  <button class="icon" id="lockBtn" title="위치 고정">🔓</button>
   <button class="icon" id="opBtn" title="흐리기 조절">◐</button>
   <button class="icon" id="reload" title="새로고침">↻</button>
   <button class="icon" id="openApp" title="마이플래너 앱 열기">↗</button>
@@ -126,6 +130,10 @@ $("hideBtn").onclick = () => widget.hide();
 $("openApp").onclick = () => widget.openPlanner();
 const paintPin = (on) => { $("pinBtn").classList.toggle("on", on); $("pinBtn").title = on ? "항상 위에 고정됨 — 누르면 풀기" : "누르면 항상 위에 고정"; };
 widget.pin().then(paintPin);
+const paintLock = (on) => { const b = $("lockBtn"); b.classList.toggle("on", on); b.textContent = on ? "🔒" : "🔓";
+  b.title = on ? "위치 고정됨 — 누르면 풀기" : "누르면 지금 위치에 고정"; document.body.classList.toggle("locked", on); };
+widget.lock().then(paintLock);
+$("lockBtn").onclick = async () => paintLock(await widget.lock(!$("lockBtn").classList.contains("on")));
 $("pinBtn").onclick = async () => paintPin(await widget.pin(!$("pinBtn").classList.contains("on")));
 $("reload").onclick = () => refresh(true);
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { tab = b.dataset.tab; localStorage.setItem("tab", tab); target = null; render(); });

@@ -27,7 +27,7 @@ function createWindow() {
   }
   win = new BrowserWindow({
     x: st.x, y: st.y, width: st.width, height: st.height,
-    minWidth: 220, minHeight: 150,
+    minWidth: 270, minHeight: 150,
     frame: false, resizable: true, skipTaskbar: false, show: false,
     icon: path.join(__dirname, "..", "icon.png"),
     backgroundColor: "#FFFDF8",
@@ -38,9 +38,31 @@ function createWindow() {
   win.loadFile("widget.html");
   win.once("ready-to-show", () => win.show());
   const remember = () => { Object.assign(st, win.getBounds()); save(); };
-  win.on("moved", remember);
+  win.setMovable(!st.locked); win.setResizable(!st.locked);
+  win.on("moved", () => snap(remember));
   win.on("resized", remember);
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
+}
+
+// 끌어다 놓을 때 화면 가장자리 80px 안이면 가장자리(여백 12px)에 착 붙인다 — 두 변에 가까우면 모서리
+const SNAP = 80, GAP = 12;
+let animating = false;
+function snap(done) {
+  if (animating) return;
+  const b = win.getBounds(), a = screen.getDisplayMatching(b).workArea;
+  let x = b.x, y = b.y;
+  if (Math.abs(b.x - a.x) < SNAP) x = a.x + GAP;
+  else if (Math.abs(a.x + a.width - (b.x + b.width)) < SNAP) x = a.x + a.width - b.width - GAP;
+  if (Math.abs(b.y - a.y) < SNAP) y = a.y + GAP;
+  else if (Math.abs(a.y + a.height - (b.y + b.height)) < SNAP) y = a.y + a.height - b.height - GAP;
+  if (x === b.x && y === b.y) return done();
+  animating = true;
+  let i = 0; const N = 6;
+  const t = setInterval(() => {
+    i++; const k = 1 - Math.pow(1 - i / N, 3);          // 끝에서 감속 → '딱' 걸리는 느낌
+    win.setPosition(Math.round(b.x + (x - b.x) * k), Math.round(b.y + (y - b.y) * k));
+    if (i >= N) { clearInterval(t); animating = false; done(); }
+  }, 16);
 }
 
 function toggleShow() { if (win.isVisible() && !win.isMinimized()) win.minimize(); else { win.restore(); win.show(); win.focus(); } }
@@ -83,6 +105,10 @@ ipcMain.on("idle-opacity", (_e, v) => {
   clearTimeout(save.t); save.t = setTimeout(save, 400);
 });
 ipcMain.on("hide", () => win && win.minimize());   // 작업 표시줄로 내리기
+ipcMain.handle("lock", (_e, on) => {
+  if (on !== undefined) { st.locked = on; win.setMovable(!on); win.setResizable(!on); save(); }
+  return !!st.locked;
+});
 ipcMain.handle("pin", (_e, on) => { if (on !== undefined) { st.onTop = on; win.setAlwaysOnTop(on, "floating"); save(); } return st.onTop; });
 // ↗ = 설치된 마이플래너 앱(크롬 앱 '플래너')을 연다. 없으면 브라우저로
 const PLANNER_LNK = path.join(app.getPath("appData"), "Microsoft", "Windows", "Start Menu", "Programs", "Chrome 앱", "플래너.lnk");
