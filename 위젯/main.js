@@ -51,8 +51,6 @@ function buildTray() {
   tray.setToolTip("할 일 위젯");
   const menu = () => Menu.buildFromTemplate([
     { label: "보이기 / 숨기기", click: toggleShow },
-    { label: "항상 위에 두기", type: "checkbox", checked: st.onTop,
-      click: (i) => { st.onTop = i.checked; win.setAlwaysOnTop(st.onTop, "floating"); save(); } },
     { label: "컴퓨터 켤 때 자동 실행", type: "checkbox", checked: autostartOn(),
       click: (i) => setAutostart(i.checked) },
     { label: "오른쪽 위로 되돌리기", click: () => {
@@ -66,14 +64,14 @@ function buildTray() {
   tray.on("right-click", () => tray.popUpContextMenu(menu()));
 }
 
-// 마우스가 위젯 위에 있거나 글을 쓰는 중이면 선명하게, 아니면 고른 흐리기로
+// 마우스가 위젯 위에 있거나 글을 쓰는 중이면 고른 흐리기와 최대 밝기의 중간까지만 밝힌다(최대는 눈이 부심, 10-08 찬진)
 // (끌기 영역 위에선 마우스 이벤트가 안 와서 화면 쪽이 아니라 여기서 커서 위치로 판단한다)
 let previewUntil = 0;   // 흐리기 막대를 움직이는 동안은 고른 값을 바로 보여 준다
 setInterval(() => {
   if (!win || !win.isVisible() || Date.now() < previewUntil) return;
   const c = screen.getCursorScreenPoint(), b = win.getBounds();
   const over = c.x >= b.x && c.x < b.x + b.width && c.y >= b.y && c.y < b.y + b.height;
-  const want = over || win.isFocused() ? 1 : st.opacity;
+  const want = over || win.isFocused() ? (st.opacity + 1) / 2 : st.opacity;
   if (Math.abs(win.getOpacity() - want) > 0.01) win.setOpacity(want);
 }, 120);
 ipcMain.on("idle-opacity", (_e, v) => {
@@ -81,6 +79,10 @@ ipcMain.on("idle-opacity", (_e, v) => {
   clearTimeout(save.t); save.t = setTimeout(save, 400);
 });
 ipcMain.on("hide", () => win && win.hide());
+ipcMain.handle("pin", (_e, on) => { if (on !== undefined) { st.onTop = on; win.setAlwaysOnTop(on, "floating"); save(); } return st.onTop; });
+// ↗ = 설치된 마이플래너 앱(크롬 앱 '플래너')을 연다. 없으면 브라우저로
+const PLANNER_LNK = path.join(app.getPath("appData"), "Microsoft", "Windows", "Start Menu", "Programs", "Chrome 앱", "플래너.lnk");
+ipcMain.on("open-planner", () => fs.existsSync(PLANNER_LNK) ? shell.openPath(PLANNER_LNK) : shell.openExternal("https://my-planner-fawn-nine.vercel.app/"));
 ipcMain.on("open", (_e, url) => shell.openExternal(url));
 
 app.on("second-instance", () => { if (win) { win.show(); win.focus(); } });

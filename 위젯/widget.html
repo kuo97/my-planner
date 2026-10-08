@@ -24,6 +24,8 @@
   header .sp { flex: 1; }
   header .icon { font-size: 13px; padding: 2px 5px; }
   header .icon:hover, .tabs button:hover { background: #F3ECDD; }
+  #pinBtn { filter: grayscale(1); opacity: .45; }
+  #pinBtn.on { filter: none; opacity: 1; background: var(--coral-soft); }
 
   #opRow { display: none; align-items: center; gap: 6px; padding: 5px 10px; border-bottom: 1px solid var(--line);
     color: var(--muted); font-size: 11px; }
@@ -77,9 +79,10 @@
     <button data-tab="week">이번 주</button>
   </div>
   <div class="sp"></div>
+  <button class="icon" id="pinBtn" title="항상 위에 고정">📌</button>
   <button class="icon" id="opBtn" title="흐리기 조절">◐</button>
   <button class="icon" id="reload" title="새로고침">↻</button>
-  <button class="icon" id="openApp" title="마이플래너 열기">↗</button>
+  <button class="icon" id="openApp" title="마이플래너 앱 열기">↗</button>
   <button class="icon" id="hideBtn" title="숨기기 (작업표시줄 아이콘을 누르면 다시 나와요)">—</button>
 </header>
 <div id="opRow">흐리게 <input type="range" id="op" min="25" max="100" step="5"> 밝게</div>
@@ -120,7 +123,10 @@ $("op").value = localStorage.getItem("idleOpacity") || 75;
 $("op").addEventListener("input", (e) => { localStorage.setItem("idleOpacity", e.target.value); widget.previewOpacity(e.target.value / 100); });
 $("opBtn").onclick = () => $("opRow").classList.toggle("show");
 $("hideBtn").onclick = () => widget.hide();
-$("openApp").onclick = () => widget.open(PLANNER_URL);
+$("openApp").onclick = () => widget.openPlanner();
+const paintPin = (on) => { $("pinBtn").classList.toggle("on", on); $("pinBtn").title = on ? "항상 위에 고정됨 — 누르면 풀기" : "누르면 항상 위에 고정"; };
+widget.pin().then(paintPin);
+$("pinBtn").onclick = async () => paintPin(await widget.pin(!$("pinBtn").classList.contains("on")));
 $("reload").onclick = () => refresh(true);
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { tab = b.dataset.tab; localStorage.setItem("tab", tab); target = null; render(); });
 
@@ -224,8 +230,8 @@ function itemEl(t, d) {
   el.innerHTML = `<div class="chk">${done ? "✓" : ""}</div><div class="t">${esc(t.title)}${cnt}${over}</div>` +
     (isRepeat(t) ? "" : `<button class="del" title="지우기">×</button>`);
   // 편수 체크리스트(여러 편 올리는 배치)는 번호별로 체크해야 해서 마이플래너에서 연다
-  el.querySelector(".chk").onclick = () => sub ? widget.open(PLANNER_URL) : toggle(t, d);
-  el.querySelector(".t").ondblclick = () => widget.open(PLANNER_URL);
+  el.querySelector(".chk").onclick = () => sub ? widget.openPlanner() : toggle(t, d);
+  el.querySelector(".t").ondblclick = () => widget.openPlanner();
   const del = el.querySelector(".del");
   if (del) del.onclick = () => remove(t);
   return el;
