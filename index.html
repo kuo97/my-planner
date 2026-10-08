@@ -806,6 +806,9 @@
   .wk-row small { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
   .wk-fill { width: 100%; margin-top: 10px; padding: 9px; border: none; border-radius: 10px; background: var(--sage); color: white; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
   .wk-fill:active { transform: scale(0.98); }
+  .wk-row .wk-no { display: inline-block; min-width: 18px; color: var(--sage); font-weight: 700; }
+  .wk-row .wk-why { color: #8a7a62; font-style: italic; }
+  .rt-sort { display: block; width: 100%; margin: 8px 0 2px; padding: 7px; border: 1.5px dashed var(--sage); border-radius: 10px; background: transparent; color: var(--sage); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; }
   .wk-foot { font-size: 11.5px; color: var(--muted); margin-top: 7px; text-align: center; }
 
   /* ---------- 루틴 에디터 (운동별 무게 조절) ---------- */
@@ -1610,6 +1613,20 @@ async function renderDiary() {
     }
     if (!activeRoutine) return;
 
+    /* 고른 운동이 추천 순서와 다르면 한 번에 정리 */
+    if (activeRoutine.items.length >= 2) {
+      const sorted = sortExercises(activeRoutine.items);
+      if (sorted.some((x, i) => x !== activeRoutine.items[i])) {
+        const sb2 = document.createElement("button");
+        sb2.type = "button"; sb2.className = "rt-sort"; sb2.textContent = "↕ 추천 순서로 정리 (큰 운동 → 작은 운동)";
+        sb2.addEventListener("click", () => {
+          activeRoutine.items = sortExercises(activeRoutine.items).map((it, n) => ({ ...it, memo: memoForPosition(it.memo, n === 0) || undefined }));
+          renderRoutineEditor(); syncRoutineNote(); toast("추천 순서로 정리했어요");
+        });
+        editorEl.appendChild(sb2);
+      }
+    }
+
     /* 운동 추가 — 카탈로그에서 고르거나 직접 입력 */
     const addRow = document.createElement("div");
     addRow.className = "routine-add";
@@ -1995,6 +2012,36 @@ function parseWorkoutNote(note) {
 }
 const dayDiff = (a, b) => Math.round((new Date(a + "T00:00") - new Date(b + "T00:00")) / 864e5);
 const agoText = n => n <= 0 ? "오늘" : n === 1 ? "어제" : n + "일 전";
+/* 운동 순서 — 숫자가 작을수록 먼저. 원칙: ① 무겁고 큰 근육을 쓰는 복합 운동을 힘 있을 때 먼저
+   ② 작은 근육·고립 운동은 뒤 ③ 앞 운동에서 이미 많이 쓴 근육(삼두·이두·후면 어깨)은 맨 뒤 ④ 허리를 쓰는 운동은 허리가 신선할 때 */
+const EX_ORDER = {
+  "벤치프레스": [1, "가슴 날의 메인 — 가장 무거워서 힘이 있을 때 먼저"],
+  "인클라인 덤벨프레스": [2, "윗가슴 복합 운동 — 벤치 다음으로 큰 운동"],
+  "시티드 덤벨 숄더프레스": [3, "어깨 복합 — 삼두·앞 어깨가 아직 남아 있을 때"],
+  "사이드레터럴레이즈": [4, "작은 근육 고립 — 가벼워서 지친 뒤에도 괜찮아요"],
+  "펙덱플라이": [5, "가슴 고립 마무리 — 복합 운동 뒤에"],
+  "라잉트라이셉스": [6, "삼두는 위 운동에서 이미 많이 썼어요 — 맨 뒤"],
+  "케이블푸쉬다운": [7, "삼두 마무리 — 맨 뒤"],
+  "티바로우": [1, "등에서 가장 무겁고 허리를 쓰는 운동 — 허리가 신선할 때 먼저"],
+  "렛풀다운": [2, "광배를 쓰는 큰 복합 운동 — 두 번째"],
+  "시티드로우": [3, "등 중부 복합 — 무게보다 쥐어짜기"],
+  "리버스펙덱플라이": [4, "후면 어깨 고립 — 로우에서 이미 썼으니 가볍게"],
+  "케이블이두컬": [5, "이두는 등 운동에서 이미 많이 썼어요 — 맨 뒤"],
+  "V스쿼트 머신": [1, "하체에서 가장 크고 무거운 운동 — 먼저"],
+  "덤벨 RDL": [2, "햄스트링·허리 — 스쿼트 뒤, 허리 힘이 남아 있을 때 자세 위주로"],
+  "레그프레스": [3, "다리 복합이지만 안전해서 지친 뒤에도 괜찮아요"],
+  "레그컬": [4, "햄스트링 고립"],
+  "카프레이즈": [5, "종아리는 회복이 빨라 마지막에"],
+};
+const exRank = name => { const k = dayKeyOf(name); return (k ? DAY_ORDER.indexOf(k) : 3) * 10 + (EX_ORDER[name] ? EX_ORDER[name][0] : 9); };
+const sortExercises = list => list.map((x, i) => ({ x, i })).sort((a, b) => exRank(a.x.name) - exRank(b.x.name) || a.i - b.i).map(o => o.x);
+/* 순서가 바뀌면 워밍업 메모도 따라가야 한다 — 첫 운동만 워밍업, 나머지는 워밍업 문구를 뺀다 */
+function memoForPosition(memo, first) {
+  const parts = String(memo || "").split(" · ").filter(Boolean), has = parts.some(p => /^워밍업/.test(p));
+  const rest = parts.filter(p => !/^워밍업/.test(p));
+  if (!first) return rest.join(" · ");
+  return (has ? parts : [...rest, "워밍업 가볍게 10회 → 중간 무게 5회"]).join(" · ");
+}
 function workoutSessions() {
   return workoutLog.map(r => {
     const { items, run } = parseWorkoutNote(r.note), cnt = {};
@@ -2042,13 +2089,13 @@ function suggestItem(item, ss) {
 }
 function workoutSuggestView(plan, sel, open) {
   const routine = EXERCISE_ROUTINES.find(r => r.key === sel);
-  const items = routine.items.map(i => suggestItem(i, plan.ss));
+  const items = sortExercises(routine.items).map((i, n) => { const o = suggestItem(i, plan.ss); o.memo = memoForPosition(i.memo, n === 0); return o; });
   const head = plan.doneToday ? `오늘 ${DAY_LABEL[plan.doneToday.key]} 완료 ✅ · 다음은 ${DAY_LABEL[plan.rec]}` : `${DAY_LABEL[plan.rec]} 차례`;
   const today = todayStr();
   const html = `<details class="wk-sg"${open ? " open" : ""}><summary>💪 <b>오늘 운동 제안</b> <small>${head}</small></summary>
     <div class="wk-why">${plan.lines.join("<br>")}</div>
     <div class="wk-days">${DAY_ORDER.map(k => `<button type="button" data-k="${k}" class="${k === sel ? "on" : ""}">${DAY_LABEL[k]}${k === plan.rec ? " ★" : ""}${plan.last[k] ? ` <small>${agoText(dayDiff(today, plan.last[k]))}</small>` : ""}</button>`).join("")}</div>
-    ${items.map(i => `<div class="wk-row"><b>${escapeHtml(i.name)}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small></div>`).join("")}
+    ${items.map((i, n) => `<div class="wk-row"><b><span class="wk-no">${n + 1}</span>${escapeHtml(i.name)}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
     <button type="button" class="wk-fill">이대로 일기에 채우기</button>
     <div class="wk-foot">마지막 세트는 1~2회 남기고 끝내기 · 끝나면 단백질 20g 이상</div></details>`;
   return { html, items };
