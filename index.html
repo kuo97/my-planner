@@ -2031,9 +2031,9 @@ function suggestItem(item, ss) {
   const hist = ss.filter(s => s.d !== today).flatMap(s => s.items.filter(i => i.name === item.name).map(i => ({ d: s.d, w: i.w, reps: i.reps }))).reverse(); // 최신순
   if (!hist.length) return { ...item, tip: "기록이 없어서 기본 무게로 시작해요" };
   const l = hist[0], ago = dayDiff(today, l.d);
-  let streak = 0; for (const h of hist) { if (h.w === l.w && h.reps === l.reps) streak++; else break; }
-  const out = { ...item, w: l.w, reps: l.reps, prev: `지난번 ${l.w}kg ${l.reps} · ${agoText(ago)}` };
-  if (ago >= 28) { out.w = Math.max(0, l.w - step); out.tip = `${Math.round(ago / 7)}주 만이라 한 단계 낮춰서 감 되찾기`; }
+  let streak = 0; for (const h of hist) { if (h.w === l.w) streak++; else break; }   // 같은 무게를 쌓은 횟수(횟수·세트는 프로그램 값을 쓴다 — 옛 프로그램의 세트 수를 끌고 오지 않게)
+  const out = { ...item, w: l.w, prev: `지난번 ${l.w}kg ${l.reps} · ${agoText(ago)}` };
+  if (ago >= 42) { out.w = Math.max(0, l.w - step); out.tip = `${Math.round(ago / 7)}주 만이라 한 단계 낮춰서 감 되찾기`; }
   else if (streak >= 3) { out.w = l.w + step; out.up = true; out.tip = `같은 무게 ${streak}번째 → 이번엔 +${step}kg 도전 (힘들면 같은 무게로 1회 더)`; }
   else if (streak === 2) out.tip = "같은 무게 2번째 — 한 번 더 쌓고 다음에 올려요";
   else { const p = hist[1]; out.tip = p && p.w > l.w ? "지난번에 낮췄어요 — 이 무게로 자세 안정시키기" : p && p.w < l.w ? "지난번에 올렸어요 — 이 무게로 자리 잡기" : "같은 무게로 한 번 더"; }
