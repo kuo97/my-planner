@@ -766,6 +766,16 @@
   }
   .exercise-input:focus { border-color: var(--sage); }
   .meals-input { resize: vertical; line-height: 1.5; min-height: 44px; display: block; }
+  .meals-ed { margin-top: 8px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--paper); padding: 8px 10px; }
+  .meals-ed .meal-h { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+  .meal-r { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .meal-l { flex: none; width: 46px; font-size: 13px; color: var(--sage); font-weight: 600; }
+  .meal-in { flex: 1; min-width: 0; border: 0; border-bottom: 1.5px solid var(--line); background: transparent; font: inherit; font-size: 14px; color: var(--ink); padding: 4px 2px; outline: none; }
+  .meal-in:focus { border-bottom-color: var(--sage); }
+  .meal-x { flex: none; border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; cursor: pointer; padding: 2px 6px; }
+  .meal-add { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
+  .meal-add button { border: 1.5px solid var(--line); background: var(--paper-card); color: var(--ink); border-radius: 999px; padding: 2px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  .meal-add button:hover { border-color: var(--sage); }
   .exercise-input:disabled { opacity: 0.5; cursor: not-allowed; }
   .exercise-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .ex-chip {
@@ -1395,7 +1405,8 @@ async function renderDiary() {
       </div>
     </div>
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
-    <textarea class="exercise-input meals-input" id="mealsNote" rows="1" placeholder="🍚 먹은 것 (예: 아침 쉐이크 / 점심 제육덮밥 / 저녁 샐러드 / 야식 X)"></textarea>
+    <div class="meals-ed" id="mealsEd"></div>
+    <textarea id="mealsNote" hidden></textarea>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 5km)">
     <div class="exercise-presets" id="exercisePresets">
       ${EXERCISE_CATALOG.map(c => `<button type="button" class="ex-chip" data-n="${c.name}">${c.name}</button>`).join("")}
@@ -1435,6 +1446,7 @@ async function renderDiary() {
   };
   dCard.querySelector("#diaryContent").value = shown.content || "";
   dCard.querySelector("#mealsNote").value = shown.meals || "";
+  try { mealsEditor(dCard); } catch (e) { console.warn("식사 편집기", e); dCard.querySelector("#mealsNote").hidden = false; }
   dCard.querySelector("#exerciseNote").value = shown.exercise_note || "";
   dCard.querySelector("#stepsInput").value = shown.steps ?? "";
   if (draft) dCard.querySelector("#draftHint").style.display = "block";
@@ -1942,6 +1954,69 @@ function foodTipEl() {
   el.innerHTML = `<span>${train ? "🍌 운동 후 바나나 1개 + 단백질 쉐이크" : "🥝 키위 2개 — 운동한 날은 🍌 바나나 + 쉐이크 추가"}</span>` +
     `<small>${train ? "운동한 날" : "오늘"} · 하루 단백질 약 120g(70kg 기준) · ${kiwi}</small>`;
   return el;
+}
+
+/* ---------- 식사 기록 (2026-10-08): 아침·점심·저녁 칸 + '＋ 끼니 추가'(점심1·점심2…, 간식, 야식).
+   저장은 기존 meals 글자 칸 그대로 — "아침 쉐이크 / 점심1 제육덮밥 / 점심2 샐러드 / 저녁 …". 옛 기록(점심 하나)도 그대로 읽힌다. ---------- */
+const MEAL_KINDS = ["아침", "점심", "저녁", "간식", "야식"];
+function mealsParse(str) {
+  const rows = [];
+  String(str || "").split(/\s*\/\s*/).map(t => t.trim()).filter(Boolean).forEach(t => {
+    const m = t.match(/^(아침|점심|저녁|간식|야식)\d*\s*(.*)$/);
+    rows.push(m ? { kind: m[1], text: m[2] } : { kind: "기타", text: t });
+  });
+  return rows;
+}
+function mealsEditor(dCard) {
+  const ta = dCard.querySelector("#mealsNote"), box = dCard.querySelector("#mealsEd");
+  if (!ta || !box) return;
+  let rows = [];
+  const order = k => { const i = MEAL_KINDS.indexOf(k); return i < 0 ? 99 : i; };
+  const normalize = () => {
+    ["아침", "점심", "저녁"].forEach(k => { if (!rows.some(r => r.kind === k)) rows.push({ kind: k, text: "" }); });
+    rows = rows.map((r, i) => ({ r, i })).sort((a, b) => order(a.r.kind) - order(b.r.kind) || a.i - b.i).map(x => x.r);
+  };
+  const label = r => {
+    if (r.kind === "기타") return "";
+    const same = rows.filter(x => x.kind === r.kind);
+    return same.length > 1 ? r.kind + (same.indexOf(r) + 1) : r.kind;
+  };
+  const sync = () => {
+    const v = rows.filter(r => r.text.trim()).map(r => (label(r) ? label(r) + " " : "") + r.text.trim()).join(" / ");
+    if (ta.value !== v) { ta.value = v; ta.dispatchEvent(new Event("input", { bubbles: true })); }
+  };
+  const draw = focusRow => {
+    normalize();
+    box.textContent = "";
+    const h = document.createElement("div"); h.className = "meal-h"; h.textContent = "🍚 먹은 것";
+    box.append(h);
+    rows.forEach(r => {
+      const row = document.createElement("div"); row.className = "meal-r";
+      const lb = document.createElement("span"); lb.className = "meal-l"; lb.textContent = label(r) || "기타";
+      const inp = document.createElement("input"); inp.className = "meal-in"; inp.placeholder = "먹은 것"; inp.value = r.text;
+      inp.addEventListener("input", () => { r.text = inp.value; sync(); });
+      row.append(lb, inp);
+      const removable = r.kind === "기타" || !["아침", "점심", "저녁"].includes(r.kind) || rows.filter(x => x.kind === r.kind).length > 1;
+      if (removable) {
+        const x = document.createElement("button"); x.type = "button"; x.className = "meal-x"; x.textContent = "×"; x.title = "이 끼니 지우기";
+        x.addEventListener("click", () => { rows.splice(rows.indexOf(r), 1); draw(); sync(); });
+        row.append(x);
+      }
+      box.append(row);
+      if (r === focusRow) setTimeout(() => inp.focus(), 0);
+    });
+    const add = document.createElement("div"); add.className = "meal-add";
+    const t = document.createElement("span"); t.textContent = "＋ 끼니 추가";
+    add.append(t);
+    MEAL_KINDS.forEach(k => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = k;
+      b.addEventListener("click", () => { const nr = { kind: k, text: "" }; rows.push(nr); draw(nr); });
+      add.append(b);
+    });
+    box.append(add);
+  };
+  rows = mealsParse(ta.value);
+  draw();
 }
 
 /* ---------- 이번 주 균형 (2026-10-08): 입력 없이, 이미 쌓인 기록으로 운동·일기·돈을 한 줄씩.
