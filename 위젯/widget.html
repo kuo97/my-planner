@@ -72,6 +72,9 @@
   .chip:hover { background: #F3ECDD; }
   .selhead { padding: 6px 10px 2px; font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; }
   .selhead b { color: var(--ink); }
+  .num { flex: none; width: 17px; margin-top: 1px; text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); border-radius: 5px; cursor: text; height: 17px; line-height: 17px; }
+  .num:hover { background: var(--coral-soft); color: var(--coral); }
+  .num-in { flex: none; width: 30px; height: 19px; margin-top: 0; padding: 0 2px; border: 1px solid var(--coral); border-radius: 5px; font: inherit; font-size: 12px; text-align: center; outline: none; background: #fff; }
   .item[draggable="true"] { cursor: grab; }
   .item.dragging { opacity: .4; }
   .item.dropbefore { box-shadow: 0 -2px 0 var(--coral) inset; }
@@ -260,17 +263,34 @@ try { taskOrder = JSON.parse(localStorage.getItem("taskOrder") || "{}"); } catch
 (() => { const cut = ds(new Date(Date.now() - 30 * 86400000)); for (const k in taskOrder) if (k < cut) delete taskOrder[k]; })();
 const saveOrder = () => { try { localStorage.setItem("taskOrder", JSON.stringify(taskOrder)); } catch {} };
 let dragId = null;
-function itemEl(t, d) {
+function itemEl(t, d, num) {
   const done = isDone(t, d), sub = t.sub_total > 0;
   const el = document.createElement("div");
   el.className = "item" + (done ? " done" : "");
   const over = !isRepeat(t) && !done && t.due && t.due < today() ? `<span class="over">${Number(t.due.slice(5,7))}/${Number(t.due.slice(8))} 지남</span>` : "";
   const cnt = sub ? `<small>${subDone(t, d).length}/${t.sub_total}</small>` : "";
-  el.innerHTML = `<div class="chk">${done ? "✓" : ""}</div><div class="t">${esc(t.title)}${cnt}${over}</div>` +
+  el.innerHTML = `<div class="num" title="숫자를 쓰면 그 순서로 옮겨요">${num || ""}</div><div class="chk">${done ? "✓" : ""}</div><div class="t">${esc(t.title)}${cnt}${over}</div>` +
     (isRepeat(t) ? "" : `<button class="nxt" title="내일로 미루기">→내일</button><button class="del" title="지우기">×</button>`);
   // 편수 체크리스트(여러 편 올리는 배치)는 번호별로 체크해야 해서 마이플래너에서 연다
   el.querySelector(".chk").onclick = () => sub ? widget.openPlanner() : toggle(t, d);
   el.querySelector(".t").ondblclick = () => widget.openPlanner();
+  const numEl = el.querySelector(".num");
+  if (num) numEl.onclick = () => {                       // 숫자를 눌러 순서를 직접 쓴다
+    const inp = document.createElement("input");
+    inp.type = "number"; inp.className = "num-in"; inp.min = 1; inp.value = num;
+    numEl.replaceWith(inp); inp.focus(); inp.select();
+    let done_ = false;
+    const apply = () => {
+      if (done_) return; done_ = true;
+      const n = parseInt(inp.value, 10), k = tasksOn(d).filter(x => !isDone(x, d)).length;
+      if (!n || n === num) return render();
+      const ids = tasksOn(d).sort(byOrder(d)).map(x => x.id).filter(id => id !== t.id);
+      ids.splice(Math.min(Math.max(n, 1), k) - 1, 0, t.id);
+      taskOrder[d] = ids; saveOrder(); render();
+    };
+    inp.onkeydown = (e) => { if (e.key === "Enter") apply(); else if (e.key === "Escape") { done_ = true; render(); } };
+    inp.onblur = apply;
+  };
   const nxt = el.querySelector(".nxt");
   if (nxt) nxt.onclick = () => postpone(t);
   const del = el.querySelector(".del");
@@ -305,7 +325,7 @@ function eventEl(ev, d) {
   const key = ev.id + "|" + d, done = !!evDone[key];
   const el = document.createElement("div");
   el.className = "item ev" + (done ? " done" : "");
-  el.innerHTML = `<div class="chk">${done ? "✓" : ""}</div><div class="t" title="누르면 구글 캘린더가 열려요">${esc(ev.title)}</div>`;
+  el.innerHTML = `<div class="num"></div><div class="chk">${done ? "✓" : ""}</div><div class="t" title="누르면 구글 캘린더가 열려요">${esc(ev.title)}</div>`;
   el.querySelector(".chk").onclick = () => {
     if (done) delete evDone[key]; else evDone[key] = 1;
     try { localStorage.setItem("evDone", JSON.stringify(evDone)); } catch {}
@@ -332,7 +352,8 @@ function dayBlock(d, box, showHead) {
     box.appendChild(h);
   }
   evs.forEach(e => box.appendChild(eventEl(e, d)));
-  list.forEach(t => box.appendChild(itemEl(t, d)));
+  let n = 0;
+  list.forEach(t => box.appendChild(itemEl(t, d, isDone(t, d) ? 0 : ++n)));
   if (!showHead && !list.length && !evs.length) box.insertAdjacentHTML("beforeend", `<div class="empty">${d === today() ? "오늘" : label(d)} 할 일이 없어요 🙂</div>`);
 }
 function render() {
