@@ -1766,6 +1766,7 @@ async function renderDiary() {
   dCard.querySelector("#mealsNote").value = shown.meals || "";
   const paintDiet = () => {
     const row = dCard.querySelector("#dietRow"); if (!row || lifeLog === null) return;
+    if (editDate < DIET_START) { row.innerHTML = ""; return; }
     row.innerHTML = DIET_KINDS.map(d => `<button type="button" class="season-chip${dietOn(editDate, d.k) ? " on" : ""}" data-k="${d.k}" title="누르면 이 날 기록, 다시 누르면 취소">${d.ico} ${d.k}</button>`).join("");
     row.querySelectorAll("button").forEach(b => b.onclick = async () => { b.disabled = true; await toggleDiet(editDate, b.dataset.k); paintDiet(); });
   };
@@ -2610,6 +2611,7 @@ const SEASON_KINDS = [
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
 /* 술·몸에 안 좋은 음식(치킨·피자·야식·단 것…)을 한 날 — season 과 같은 life_log 표에 label 만 달리 쓴다(표 변경 없음) */
 const DIET_KINDS = [{ k: "술 마심", ico: "🍺", c: "#eb6834" }, { k: "몸에 안 좋은 음식", ico: "🍗", c: "#eda100" }];
+const DIET_START = "2026-10-09";   // 찬진 지시(10-09): 술·음식은 오늘부터 새로 센다 — 그 전 기록은 제대로 안 남겼으니 무시
 let lifeLoaded = false, lifeDietYear = new Date().getFullYear();
 const dietOn = (date, label) => (lifeLog || []).some(r => r.kind === "season" && r.on_date === date && r.label === label);
 async function toggleDiet(date, label) {                     // 일기 탭에서 쓰는 가벼운 토글(달력은 다시 그리지 않는다)
@@ -2888,18 +2890,19 @@ function lifeCard() {
 
   /* 술·음식 섹션: 올해 며칠, 달별 막대, 작년과 비교, 마지막으로 한 지 며칠 */
   const nowY = new Date().getFullYear(), curM = new Date().getMonth() + 1;
-  const dietDays = (label, y) => lifeLog.filter(r => r.kind === "season" && r.label === label && r.on_date.startsWith(String(y))).map(r => r.on_date);
+  const dietDays = (label, y) => lifeLog.filter(r => r.kind === "season" && r.label === label && r.on_date >= DIET_START && r.on_date.startsWith(String(y))).map(r => r.on_date);
   const dietCard = d => {
     const cur = dietDays(d.k, lifeDietYear), prev = dietDays(d.k, lifeDietYear - 1);
-    const done = lifeLog.filter(r => r.kind === "season" && r.label === d.k && r.on_date <= todayStr()).map(r => r.on_date).sort();
+    const done = lifeLog.filter(r => r.kind === "season" && r.label === d.k && r.on_date >= DIET_START && r.on_date <= todayStr()).map(r => r.on_date).sort();
     const last = done[done.length - 1] || null, n = last ? daysSince(last) : null;
     const per = Array.from({ length: 12 }, (_, i) => cur.filter(x => Number(x.slice(5, 7)) === i + 1).length), mx = Math.max(1, ...per);
-    const avg = Math.round(cur.length / (lifeDietYear === nowY ? curM : 12) * 10) / 10;
+    const startY = Number(DIET_START.slice(0, 4)), spanDays = lifeDietYear === startY ? Math.max(1, daysSince(DIET_START) + 1) : (lifeDietYear === nowY ? Math.max(1, daysSince(lifeDietYear + "-01-01") + 1) : 365);
+    const avg = Math.round(cur.length / Math.min(12, Math.max(1, spanDays / 30.4)) * 10) / 10, showPrev = lifeDietYear - 1 >= startY;
     return `<div class="dt"><div class="dt-top"><b>${d.ico} ${d.k}</b><span class="dt-n">${cur.length}<small>일</small></span></div>
-      <div class="dt-sub">${lifeDietYear - 1}년 ${prev.length}일 · 월 평균 ${avg}일${last ? ` · ${n === 0 ? "오늘 했어요" : `마지막 ${n}일 전(${md(last)})`}` : ""}</div>
+      <div class="dt-sub">${showPrev ? `${lifeDietYear - 1}년 ${prev.length}일${lifeDietYear - 1 === startY ? "(" + md(DIET_START) + "부터)" : ""} · ` : ""}월 평균 ${avg}일${last ? ` · ${n === 0 ? "오늘 했어요" : `마지막 ${n}일 전(${md(last)})`}` : ""}</div>
       <div class="dt-bars">${per.map((v, i) => `<span class="dt-col${lifeDietYear === nowY && i + 1 === curM ? " now" : ""}"><b>${v || ""}</b><i style="height:${v ? Math.max(5, Math.round(v / mx * 34)) : 2}px;background:${v ? d.c : "var(--line)"}"></i><em>${i + 1}</em></span>`).join("")}</div></div>`;
   };
-  const dietBody = `<div class="dt-nav"><button type="button" data-dy="-1">‹</button><b>${lifeDietYear}년</b><button type="button" data-dy="1">›</button></div>` +
+  const dietBody = `<div class="sp-hint" style="margin:0 0 6px">${DIET_START.slice(5, 7).replace(/^0/, "")}월 ${Number(DIET_START.slice(8))}일부터 새로 세요</div><div class="dt-nav"><button type="button" data-dy="-1">‹</button><b>${lifeDietYear}년</b><button type="button" data-dy="1">›</button></div>` +
     DIET_KINDS.map(dietCard).join("") +
     `<div class="sp-hint">일기 탭의 먹은 것 아래, 또는 달력 날짜의 칩으로 기록해요 · 몸에 안 좋은 음식 = 치킨·피자·야식·단 것</div>`;
   const dietSub = `${nowY}년 술 ${dietDays("술 마심", nowY).length}일 · 음식 ${dietDays("몸에 안 좋은 음식", nowY).length}일`;
@@ -3117,7 +3120,7 @@ function renderCalendarView() {
     hairBtn.addEventListener("click", () => toggleHaircut(calSel));
     detail.appendChild(hairBtn);
     if (lifeLog) {
-      [SEASON_KINDS, DIET_KINDS].forEach(kinds => {
+      [SEASON_KINDS, ...(calSel >= DIET_START ? [DIET_KINDS] : [])].forEach(kinds => {
         const row = document.createElement("div");
         row.className = "season-chips";
         kinds.forEach(s => {
