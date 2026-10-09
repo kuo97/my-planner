@@ -111,6 +111,9 @@ ipcMain.on("press", () => { pressedUntil = Date.now() + 1500; setOp(1); });
 ipcMain.on("slide", (_e, v) => { sliding = v; if (!v) pressedUntil = 0; });
 setInterval(() => {
   if (!alive() || !win.isVisible() || sliding) return;
+  // 마우스가 위젯 위에 있는 동안은 계속 최대 밝기(10-09 찬진: "만지고 있을 땐 밝아야 보기 편해"). 벗어나면 1.5초 뒤 고른 흐리기로 부드럽게 돌아간다.
+  const c = screen.getCursorScreenPoint(), b = win.getBounds();
+  if (c.x >= b.x && c.x < b.x + b.width && c.y >= b.y && c.y < b.y + b.height) pressedUntil = Math.max(pressedUntil, Date.now() + 1500);
   const want = (Date.now() < pressedUntil || typing) ? 1 : st.opacity;
   if (curOp > want + 0.005) setOp(Math.max(want, curOp - 0.1)); else if (curOp < want - 0.005) setOp(want);
 }, 50);
