@@ -180,20 +180,38 @@ function showLogin() {
     <button>로그인</button></form>`;
   $("login").onsubmit = async (e) => {
     e.preventDefault();
-    const { error } = await sb.auth.signInWithPassword({ email: $("em").value.trim(), password: $("pw").value });
+    const email = $("em").value.trim(), password = $("pw").value;
+    const { error } = await signIn(email, password);
     if (error) return msg("로그인 실패: " + error.message);
+    widget.credSave(email, password);
     $("addBar").style.display = "";
+    $("list").innerHTML = `<div class="empty">불러오는 중…</div>`;
     refresh(true);
   };
 }
 
+/* 컴퓨터를 막 켰을 때 PC 시계가 서버보다 몇 초 어긋나면 "JWT issued at future" 가 난다 — 마이플래너 앱과 같이 잠깐 기다렸다 다시 해 본다 */
+const jwtSkew = (e) => e && /JWT (issued at future|expired)/i.test(e.message || "");
+async function retrying(fn, tries = 6) {
+  let res;
+  for (let i = 0; i < tries; i++) {
+    res = await fn();
+    const err = res && (res.error || (Array.isArray(res) && res.map(x => x.error).find(Boolean)));
+    if (!jwtSkew(err)) return res;
+    if (/expired/i.test(err.message)) { try { await sb.auth.refreshSession(); } catch {} }
+    await new Promise(ok => setTimeout(ok, 2500));
+  }
+  return res;
+}
+const signIn = (email, password) => retrying(() => sb.auth.signInWithPassword({ email, password }));
+
 /* ---------- 데이터 ---------- */
 async function loadTasks() {
   const w = weekDates();
-  const [t, r] = await Promise.all([
+  const [t, r] = await retrying(() => Promise.all([
     sb.from("tasks").select("*").order("created_at", { ascending: true }),
     sb.from("repeat_log").select("*").gte("done_on", w[0]).lte("done_on", w[6]),
-  ]);
+  ]));
   if (t.error || r.error) { msg("불러오기 실패: " + (t.error || r.error).message); return false; }
   tasks = t.data || []; log = r.data || [];
   return true;
@@ -451,9 +469,20 @@ async function refresh(force) {
   if (busy || (!force && Date.now() - last < 20000)) return;
   busy = true;
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    let { data: { session } } = await sb.auth.getSession();
+    if (!session) {                                  // 로그인이 풀렸으면 저장해 둔 정보로 조용히 다시 로그인
+      const c = await widget.credLoad();
+      if (c) {
+        const { error } = await signIn(c.email, c.password);
+        if (error && /invalid login/i.test(error.message)) { widget.credClear(); showLogin(); return; }
+        if (error) { msg("로그인 재시도 중… " + error.message); setTimeout(() => refresh(true), 15000); return; }
+        ({ data: { session } } = await sb.auth.getSession());
+      }
+    }
     if (!session) { showLogin(); return; }
+    $("addBar").style.display = "";
     if (await loadTasks()) { await loadEvents(); last = Date.now(); render(); }
+    else { if ($("login")) $("list").innerHTML = `<div class="empty">불러오지 못했어요. 잠시 뒤 다시 시도해요…</div>`; setTimeout(() => refresh(true), 15000); }
   } finally { busy = false; }
 }
 async function pullInbox() {

@@ -1,6 +1,6 @@
 ﻿// 마이플래너 할 일 위젯 — 화면에 떠 있는 작은 메모지 (2026-10-08)
 // 테두리 없음 · 항상 위 · 끌어서 아무 데나 · 크기 조절 · 투명도(마우스 올리면 선명) · 위치 기억
-const { app, BrowserWindow, ipcMain, shell, Tray, Menu, screen, nativeImage } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, screen, nativeImage, safeStorage } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -120,6 +120,15 @@ ipcMain.handle("inbox", () => {
   const f = path.join(app.getPath("userData"), "inbox.json");
   try { const t = JSON.parse(fs.readFileSync(f, "utf8")); fs.unlinkSync(f); return Array.isArray(t) ? t : []; } catch { return []; }
 });
+// 로그인 정보를 이 컴퓨터에서만 풀 수 있게 암호화(Windows 계정 DPAPI)해 두고, 로그인이 풀리면 위젯이 알아서 다시 로그인한다 (10-09 찬진: "매번 로그인 안 해도 되게")
+const CRED = path.join(app.getPath("userData"), "cred.bin");
+ipcMain.handle("cred-save", (_e, email, password) => {
+  try { if (!safeStorage.isEncryptionAvailable()) return false; fs.writeFileSync(CRED, safeStorage.encryptString(JSON.stringify({ email, password }))); return true; } catch { return false; }
+});
+ipcMain.handle("cred-load", () => {
+  try { return JSON.parse(safeStorage.decryptString(fs.readFileSync(CRED))); } catch { return null; }
+});
+ipcMain.handle("cred-clear", () => { try { fs.unlinkSync(CRED); } catch {} return true; });
 ipcMain.on("hide", () => alive() && win.minimize());   // 작업 표시줄로 내리기
 ipcMain.handle("lock", (_e, on) => {
   if (on !== undefined) { st.locked = on; if (alive()) { win.setMovable(!on); win.setResizable(!on); } save(); }
