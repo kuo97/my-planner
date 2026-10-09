@@ -839,6 +839,12 @@
   .wk-row.off b, .wk-row.off .wk-w { text-decoration: line-through; }
   .wk-row .wk-no { display: inline-block; min-width: 18px; color: var(--sage); font-weight: 700; }
   .wk-row .wk-why { color: #8a7a62; font-style: italic; }
+  .rt-ord { display: inline-flex; align-items: center; gap: 2px; margin-right: 7px; vertical-align: middle; }
+  .rt-ord b { min-width: 16px; text-align: center; color: var(--sage); font-size: 14px; }
+  .rt-mv { border: 0; background: none; color: var(--muted); font-size: 10px; line-height: 1; padding: 4px 3px; cursor: pointer; }
+  .rt-mv:hover { color: var(--sage); }
+  .rt-rec { margin-left: 6px; font-size: 10.5px; color: var(--coral); font-weight: 700; white-space: nowrap; }
+  .rt-sort.ok { border-style: solid; border-color: transparent; background: transparent; color: var(--muted); cursor: default; font-weight: 600; }
   .rt-sort { display: block; width: 100%; margin: 8px 0 2px; padding: 7px; border: 1.5px dashed var(--sage); border-radius: 10px; background: transparent; color: var(--sage); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; }
   .wk-coach { margin: 8px 0 2px; padding: 8px 10px; border-radius: 10px; background: var(--sage-soft); font-size: 12.5px; line-height: 1.55; }
   .wk-row .wk-coachtag { color: var(--sage); font-weight: 700; }
@@ -1250,6 +1256,14 @@ const cwMonthEnd = (ym) => { const [y, m] = ym.split("-").map(Number); return `$
 const pad2cw = (n) => String(n).padStart(2, "0");
 const cwStats = (days) => { const v = Object.values(days); if (!v.length) return null; const avg = (k) => Math.round(v.reduce((a, x) => a + x[k], 0) / v.length * 10) / 10; return { n: v.length, hi: avg("tmax"), lo: avg("tmin"), rainDays: v.filter(x => x.rain >= 1).length, rain: Math.round(v.reduce((a, x) => a + x.rain, 0)), max: Math.max(...v.map(x => x.tmax)), min: Math.min(...v.map(x => x.tmin)) }; };
 
+/* 아직 오지 않은 달은 최근 몇 년의 같은 달 기록으로 '예상'을 보여 준다 */
+async function cwPastMonths(city, ym, n = 5) {
+  const [Y, M] = ym.split("-").map(Number), t = todayStr(), keys = [];
+  for (let y = Y - 1; y >= Y - 15 && keys.length < n; y--) { const k = `${y}-${pad2cw(M)}`; if (cwMonthEnd(k) < t) keys.push(k); }
+  const res = await Promise.all(keys.map(k => fetchDaily(city, k + "-01", cwMonthEnd(k)).then(cwStats).catch(() => null)));
+  return keys.map((k, i) => ({ y: Number(k.slice(0, 4)), st: res[i] })).filter(x => x.st);
+}
+const cwAvgOf = (arr) => { if (!arr.length) return null; const m = (f) => Math.round(arr.reduce((a, x) => a + f(x.st), 0) / arr.length * 10) / 10; return { hi: m(x => x.hi), lo: m(x => x.lo), rainDays: Math.round(m(x => x.rainDays)), n: arr.length }; };
 function cityWeatherCard() {
   const card = document.createElement("details");
   card.className = "dcard cw-card"; card.open = cwState.open;
@@ -1268,8 +1282,8 @@ function cityWeatherCard() {
     const pills = S.mode === "cmp" ? "" : `<div class="cw-pills">${cities.map(c => `<button type="button" data-c="${c.id}" class="${c.id === city.id ? "on" : ""}">${escapeHtml(c.name)}</button>`).join("")}</div>`;
     const modes = `<div class="cw-modes">${[["day", "같은 날 · 해마다"], ["month", "한 달 · 하루씩"], ["cmp", "도시 비교 · 한 달"]].map(([k, l]) => `<button type="button" data-m="${k}" class="${S.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
     const nav = S.mode === "day"
-      ? `<div class="cw-nav"><button type="button" data-d="-1">‹</button><input type="date" id="cwDate" value="${S.date}" max="${todayStr()}"><button type="button" data-d="1">›</button></div>`
-      : `<div class="cw-nav"><button type="button" data-d="-1">‹</button><input type="month" id="cwMonth" value="${S.month}" max="${todayStr().slice(0, 7)}"><button type="button" data-d="1">›</button></div>`;
+      ? `<div class="cw-nav"><button type="button" data-d="-1">‹</button><input type="date" id="cwDate" value="${S.date}"><button type="button" data-d="1">›</button></div>`
+      : `<div class="cw-nav"><button type="button" data-d="-1">‹</button><input type="month" id="cwMonth" value="${S.month}"><button type="button" data-d="1">›</button></div>`;
     body.innerHTML = modes + pills + nav + `<div class="cw-out"><div class="cw-note">불러오는 중…</div></div>`;
     body.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { S.mode = b.dataset.m; draw(); });
     body.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { S.city = b.dataset.c; draw(); });
@@ -1277,7 +1291,6 @@ function cityWeatherCard() {
       const d = Number(b.dataset.d);
       if (S.mode === "day") S.date = cwAdd(S.date, d);
       else { const [y, m] = S.month.split("-").map(Number), nd = new Date(y, m - 1 + d, 1); S.month = `${nd.getFullYear()}-${pad2cw(nd.getMonth() + 1)}`; }
-      if (S.date > todayStr()) S.date = todayStr(); if (S.month > todayStr().slice(0, 7)) S.month = todayStr().slice(0, 7);
       draw();
     });
     const di = body.querySelector("#cwDate"); if (di) di.onchange = () => { if (di.value) { S.date = di.value; draw(); } };
@@ -1295,6 +1308,11 @@ function cityWeatherCard() {
           `<div class="cw-rows">${years.map((y, i) => { const w = res[i], isSel = `${y}-${md}` === S.date; return w
             ? `<div class="cw-row${isSel ? " cur" : ""}"><span class="cw-y">${y}</span><span class="cw-ic">${wmoEmoji(w.code)}</span><span class="cw-t"><b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i></span>${cwBar(w.tmin, w.tmax, gmin, gmax)}<span class="cw-r">${w.rain >= 1 ? "💧" + Math.round(w.rain) + "mm" : ""}</span></div>`
             : `<div class="cw-row dim"><span class="cw-y">${y}</span><span class="cw-ic">·</span><span class="cw-t">기록 없음</span><span></span><span></span></div>`; }).join("")}</div>`;
+      } else if (S.mode === "month" && S.month > todayStr().slice(0, 7)) {
+        const past = await cwPastMonths(city, S.month), av = cwAvgOf(past), mm = Number(S.month.slice(5));
+        if (seq !== cwState.seq) return;
+        const gmin = Math.min(...past.map(x => x.st.lo), 0), gmax = Math.max(...past.map(x => x.st.hi), 1);
+        html = av ? `<div class="cw-sum"><b>${escapeHtml(city.name)} · ${S.month.slice(0, 4)}년 ${mm}월 (예상)</b> — 아직 오지 않은 달이라 최근 ${av.n}년 같은 달 기록으로 보여 줘요<br>평균 최고 <b>${av.hi}°</b> · 최저 <b>${av.lo}°</b> · 비 온 날 평균 ${av.rainDays}일</div><div class="cw-rows">${past.map(x => `<div class="cw-row cmp"><span class="cw-y">${x.y}</span>${cwBar(x.st.lo, x.st.hi, gmin, gmax)}<span class="cw-t"><b>${x.st.hi}°</b> <i>${x.st.lo}°</i></span><span class="cw-r">💧${x.st.rainDays}일</span></div>`).join("")}</div>` : `<div class="cw-note">비교할 지난 기록이 없어요</div>`;
       } else if (S.mode === "month") {
         const [y, m] = S.month.split("-").map(Number), last = cwMonthEnd(S.month);
         const [cur, prev] = await Promise.all([fetchDaily(city, S.month + "-01", last), fetchDaily(city, `${y - 1}-${pad2cw(m)}-01`, cwMonthEnd(`${y - 1}-${pad2cw(m)}`)).catch(() => ({}))]);
@@ -1305,10 +1323,11 @@ function cityWeatherCard() {
           `<div class="cw-rows">${days.map(d => { const w = cur[d]; return `<div class="cw-row"><span class="cw-y">${Number(d.slice(8))}일</span><span class="cw-ic">${wmoEmoji(w.code)}</span><span class="cw-t"><b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i></span>${cwBar(w.tmin, w.tmax, gmin, gmax)}<span class="cw-r">${w.rain >= 1 ? "💧" + Math.round(w.rain) + "mm" : ""}</span></div>`; }).join("")}</div>`;
       } else {
         const last = cwMonthEnd(S.month), [yy, mm] = S.month.split("-").map(Number);
-        const res = await Promise.all(cities.map(c => fetchDaily(c, S.month + "-01", last).then(cwStats).catch(() => null)));
+        const fut = S.month > todayStr().slice(0, 7);
+        const res = await Promise.all(cities.map(c => fut ? cwPastMonths(c, S.month).then(cwAvgOf).catch(() => null) : fetchDaily(c, S.month + "-01", last).then(cwStats).catch(() => null)));
         if (seq !== cwState.seq) return;
         const ok = res.filter(Boolean), gmin = Math.min(...ok.map(x => x.lo), 0), gmax = Math.max(...ok.map(x => x.hi), 1);
-        html = `<div class="cw-sum"><b>${yy}년 ${mm}월</b> — 관심 도시를 같은 달로 비교해요 (평균 최고·최저, 비 온 날)</div><div class="cw-rows">${cities.map((c, i) => { const x = res[i]; return x
+        html = `<div class="cw-sum"><b>${yy}년 ${mm}월${fut ? " (예상)" : ""}</b> — 관심 도시를 같은 달로 비교해요 (평균 최고·최저, 비 온 날)${fut ? "<br>아직 오지 않은 달이라 최근 5년 같은 달 평균이에요" : ""}</div><div class="cw-rows">${cities.map((c, i) => { const x = res[i]; return x
           ? `<div class="cw-row cmp"><span class="cw-y">${escapeHtml(c.name)}</span>${cwBar(x.lo, x.hi, gmin, gmax)}<span class="cw-t"><b>${x.hi}°</b> <i>${x.lo}°</i></span><span class="cw-r">💧${x.rainDays}일</span></div>`
           : `<div class="cw-row cmp dim"><span class="cw-y">${escapeHtml(c.name)}</span><span></span><span class="cw-t">기록 없음</span><span></span></div>`; }).join("")}</div>`;
       }
@@ -1671,12 +1690,23 @@ async function renderDiary() {
     if (!activeRoutine && runKm == null) { editorEl.style.display = "none"; editorEl.innerHTML = ""; return; }
     editorEl.style.display = "block";
     editorEl.innerHTML = "";
-    (activeRoutine ? activeRoutine.items : []).forEach((item, idx) => {
+    /* 운동 순서: 맨 위에 항상 보이는 안내줄 + 줄마다 번호·▲▼. 추천 순서와 다르면 '정리' 버튼으로 한 번에 맞춘다 */
+    const items0 = activeRoutine ? activeRoutine.items : [];
+    const recSorted = sortExercises(items0), recIdx = items0.map(it => recSorted.indexOf(it));
+    const warmFix = () => activeRoutine.items.forEach((it, n) => { const m = memoForPosition(it.memo, n === 0); if (m) it.memo = m; else delete it.memo; });
+    if (items0.length >= 2) {
+      const same = recIdx.every((r, i) => r === i), bar = document.createElement("button");
+      bar.type = "button"; bar.className = "rt-sort" + (same ? " ok" : "");
+      bar.textContent = same ? "✓ 추천 순서예요 (큰 운동 → 작은 운동) · ▲▼로 바꿀 수 있어요" : "↕ 추천 순서로 정리 (큰 운동 → 작은 운동)";
+      if (!same) bar.addEventListener("click", () => { activeRoutine.items = recSorted.slice(); warmFix(); renderRoutineEditor(); syncRoutineNote(); toast("추천 순서로 정리했어요"); });
+      editorEl.appendChild(bar);
+    }
+    items0.forEach((item, idx) => {
       const row = document.createElement("div");
       row.className = "routine-row";
       const sp = splitReps(item.reps);
       row.innerHTML = `
-        <div class="rt-name">${item.name}${item.memo ? `<span class="rt-memo">${item.memo}</span>` : ""}</div>
+        <div class="rt-name"><span class="rt-ord"><b>${idx + 1}</b><button type="button" class="rt-mv" data-mv="-1" title="위로">▲</button><button type="button" class="rt-mv" data-mv="1" title="아래로">▼</button></span>${item.name}${recIdx[idx] !== idx && EX_ORDER[item.name] ? `<span class="rt-rec" title="${escapeHtml((EX_ORDER[item.name] || [])[1] || "")}">추천 ${recIdx[idx] + 1}번째</span>` : ""}${item.memo ? `<span class="rt-memo">${item.memo}</span>` : ""}</div>
         <div class="rt-ctrl">
           <span class="rt-grp">
             <button type="button" class="rt-btn rt-wbtn" data-d="-1">−</button>
@@ -1710,6 +1740,12 @@ async function renderDiary() {
           syncRoutineNote();
         });
       });
+      row.querySelectorAll(".rt-mv").forEach(b => b.addEventListener("click", () => {
+        const to = idx + Number(b.dataset.mv), arr = activeRoutine.items;
+        if (to < 0 || to >= arr.length) return;
+        [arr[idx], arr[to]] = [arr[to], arr[idx]];
+        warmFix(); renderRoutineEditor(); syncRoutineNote();
+      }));
       row.querySelector(".rt-del").addEventListener("click", () => {
         activeRoutine.items.splice(idx, 1);
         if (!activeRoutine.items.length) activeRoutine = null;
@@ -1741,20 +1777,6 @@ async function renderDiary() {
       editorEl.appendChild(row);
     }
     if (!activeRoutine) return;
-
-    /* 고른 운동이 추천 순서와 다르면 한 번에 정리 */
-    if (activeRoutine.items.length >= 2) {
-      const sorted = sortExercises(activeRoutine.items);
-      if (sorted.some((x, i) => x !== activeRoutine.items[i])) {
-        const sb2 = document.createElement("button");
-        sb2.type = "button"; sb2.className = "rt-sort"; sb2.textContent = "↕ 추천 순서로 정리 (큰 운동 → 작은 운동)";
-        sb2.addEventListener("click", () => {
-          activeRoutine.items = sortExercises(activeRoutine.items).map((it, n) => ({ ...it, memo: memoForPosition(it.memo, n === 0) || undefined }));
-          renderRoutineEditor(); syncRoutineNote(); toast("추천 순서로 정리했어요");
-        });
-        editorEl.appendChild(sb2);
-      }
-    }
 
     /* 운동 추가 — 카탈로그에서 고르거나 직접 입력 */
     const addRow = document.createElement("div");
