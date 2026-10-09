@@ -806,6 +806,12 @@
   .wk-row small { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
   .wk-fill { width: 100%; margin-top: 10px; padding: 9px; border: none; border-radius: 10px; background: var(--sage); color: white; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
   .wk-fill:active { transform: scale(0.98); }
+  .wk-fill:disabled { opacity: .4; cursor: default; }
+  .wk-row { cursor: pointer; }
+  .wk-row .wk-ck { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-right: 6px; border: 1.5px solid var(--sage); border-radius: 5px; background: var(--sage); color: #fff; font-size: 11px; line-height: 1; vertical-align: -2px; }
+  .wk-row.off { opacity: .42; }
+  .wk-row.off .wk-ck { background: transparent; color: transparent; border-color: var(--muted); }
+  .wk-row.off b, .wk-row.off .wk-w { text-decoration: line-through; }
   .wk-row .wk-no { display: inline-block; min-width: 18px; color: var(--sage); font-weight: 700; }
   .wk-row .wk-why { color: #8a7a62; font-style: italic; }
   .rt-sort { display: block; width: 100%; margin: 8px 0 2px; padding: 7px; border: 1.5px dashed var(--sage); border-radius: 10px; background: transparent; color: var(--sage); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; }
@@ -1690,13 +1696,14 @@ async function renderDiary() {
     if (!el || editDate !== todayStr()) return;
     try {
       const plan = planWorkout();
-      let sel = plan.rec, open = false;
+      let sel = plan.rec, open = false; const skip = new Set();
       try { open = localStorage.getItem("wk_open") === "1"; } catch {}   // 접고 펴기는 기억한다(기본 접힘)
       const draw = () => {
-        const v = workoutSuggestView(plan, sel, open);
+        const v = workoutSuggestView(plan, sel, open, skip);
         el.innerHTML = v.html;
         el.querySelector("details").addEventListener("toggle", e => { open = e.target.open; try { localStorage.setItem("wk_open", open ? "1" : "0"); } catch {} });
-        el.querySelectorAll(".wk-days button").forEach(b => b.addEventListener("click", () => { sel = b.dataset.k; open = true; draw(); }));
+        el.querySelectorAll(".wk-days button").forEach(b => b.addEventListener("click", () => { sel = b.dataset.k; skip.clear(); open = true; draw(); }));
+        el.querySelectorAll(".wk-row").forEach(r => r.addEventListener("click", () => { const n = r.dataset.n; if (skip.has(n)) skip.delete(n); else skip.add(n); open = true; draw(); }));
         el.querySelector(".wk-fill").addEventListener("click", () => {
           if (activeRoutine && !confirm("지금 고른 운동을 이 목록으로 바꿀까요?")) return;
           activeRoutine = { items: v.items.map(i => { const o = { name: i.name, w: i.w, reps: i.reps }; if (i.memo) o.memo = i.memo; if (i.step) o.step = i.step; return o; }) };
@@ -2104,7 +2111,8 @@ function suggestItem(item, ss) {
   out.w = Math.round(out.w * 2) / 2;
   return out;
 }
-function workoutSuggestView(plan, sel, open) {
+function workoutSuggestView(plan, sel, open, skip) {
+  skip = skip || new Set();
   const cw = plan.cw, today = todayStr();
   const base = sel === "boost"
     ? ((cw && cw.boost) || []).map(x => { const c = EXERCISE_CATALOG.find(e => e.name === x.name); return c ? { ...c, reps: x.reps || c.reps } : null; }).filter(Boolean)
@@ -2117,16 +2125,18 @@ function workoutSuggestView(plan, sel, open) {
     if (cw && cw.hold && cw.hold.includes(i.name) && o.up) { o.w = o.w0; o.up = false; o.tip = "코칭 — 이번 주는 무게를 올리지 않고 유지"; o.coach = true; }
     return o;
   });
-  const total = items.reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
+  const chosen = items.filter(i => !skip.has(i.name));
+  const total = chosen.reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
   const head = plan.doneToday ? `오늘 ${DAY_LABEL[plan.doneToday.key]} 완료 ✅ · 다음은 ${DAY_LABEL[plan.rec]}` : `${DAY_LABEL[plan.rec]} 차례`;
   const cwHtml = cw ? `<div class="wk-coach">🎯 <b>이번 주 코칭 반영</b>${cw.focus ? " — " + escapeHtml(cw.focus) : ""}${(cw.notes || []).map(t => "<br>· " + escapeHtml(t)).join("")}</div>` : "";
   const html = `<details class="wk-sg"${open ? " open" : ""}><summary>💪 <b>오늘 운동 제안</b> <small>${head}</small></summary>
     ${cwHtml}<div class="wk-why">${plan.lines.join("<br>")}</div>
     <div class="wk-days">${plan.days.map(k => `<button type="button" data-k="${k}" class="${k === sel ? "on" : ""}">${DAY_LABEL[k]}${k === plan.rec ? " ★" : ""}${plan.last[k] ? ` <small>${agoText(dayDiff(today, plan.last[k]))}</small>` : ""}</button>`).join("")}</div>
-    ${items.map((i, n) => `<div class="wk-row"><b><span class="wk-no">${n + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
-    <button type="button" class="wk-fill">이대로 일기에 채우기</button>
+    ${items.map((i, n) => `<div class="wk-row${skip.has(i.name) ? " off" : ""}" data-n="${escapeHtml(i.name)}" title="누르면 오늘 운동에서 빼거나 다시 넣어요"><b><span class="wk-ck">✓</span><span class="wk-no">${skip.has(i.name) ? "" : chosen.indexOf(i) + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
+    <div class="wk-foot" style="margin:6px 0 0">하기 싫은 운동은 눌러서 빼세요 (${chosen.length}/${items.length}개 선택)</div>
+    <button type="button" class="wk-fill"${chosen.length ? "" : " disabled"}>${chosen.length ? `고른 ${chosen.length}개로 일기에 채우기` : "운동을 하나 이상 골라 주세요"}</button>
     <div class="wk-foot">총 ${total}세트${total > 20 ? " ⚠ 20세트가 넘어요 — 뒤쪽 고립 운동은 줄여도 돼요" : ""} · 마지막 세트는 1~2회 남기고 끝내기 · 끝나면 단백질 20g 이상</div></details>`;
-  return { html, items };
+  return { html, items: chosen };
 }
 
 /* ---------- 로또 번호 추천 (6/45) ----------
