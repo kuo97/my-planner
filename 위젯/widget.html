@@ -30,6 +30,14 @@
   #lockBtn { opacity: .5; } #lockBtn.on { opacity: 1; background: var(--coral-soft); }
   body.locked header { -webkit-app-region: no-drag; cursor: default; }
 
+  #acctRow { display: none; padding: 6px 10px 8px; border-bottom: 1px solid var(--line); background: #FBF6EA; font-size: 11.5px; }
+  #acctRow.show { display: block; }
+  #acctRow .arow { display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+  #acctRow .small { color: var(--muted); font-size: 10.5px; line-height: 1.35; }
+  #acctMail { user-select: text; color: var(--ink); word-break: break-all; }
+  #acctRow input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 6px; padding: 4px 7px; font: inherit; background: #fff; }
+  #acctRow button { border: 0; border-radius: 6px; background: var(--coral); color: #fff; padding: 4px 9px; font: inherit; font-weight: 700; cursor: pointer; }
+  #acctRow button.ghost { background: #E9E0CC; color: var(--ink); font-weight: 500; }
   #opRow { display: none; align-items: center; gap: 6px; padding: 5px 10px; border-bottom: 1px solid var(--line);
     color: var(--muted); font-size: 11px; }
   #opRow.show { display: flex; }
@@ -106,11 +114,18 @@
   <div class="sp"></div>
   <button class="icon" id="pinBtn" title="항상 위에 고정">📌</button>
   <button class="icon" id="lockBtn" title="위치 고정">🔓</button>
+  <button class="icon" id="acctBtn" title="내 계정 (이메일 확인 · 비밀번호 바꾸기)">👤</button>
   <button class="icon" id="opBtn" title="흐리기 조절">◐</button>
   <button class="icon" id="reload" title="새로고침">↻</button>
   <button class="icon" id="openApp" title="마이플래너 앱 열기">↗</button>
   <button class="icon" id="hideBtn" title="내리기 (작업 표시줄에서 다시 열어요)">—</button>
 </header>
+<div id="acctRow">
+  <div class="arow">로그인된 계정 <b id="acctMail">…</b></div>
+  <div class="arow"><input id="newPw" type="password" placeholder="새 비밀번호 (6자 이상)" autocomplete="new-password"><button id="pwBtn">바꾸기</button></div>
+  <div class="arow small">비밀번호를 몰라도 지금 로그인돼 있으면 새로 정할 수 있어요. 바꾸면 휴대폰·앱도 새 비밀번호로 로그인해요.</div>
+  <div class="arow"><button id="outBtn" class="ghost">로그아웃</button></div>
+</div>
 <div id="opRow">흐리게 <input type="range" id="op" min="25" max="100" step="5"> 밝게</div>
 <main id="list"></main>
 <footer id="addBar">
@@ -155,6 +170,29 @@ let sliderHeld = false;
 document.addEventListener("pointerdown", (e) => { sliderHeld = onSlider(e); }, true);
 document.addEventListener("pointerup", () => { if (sliderHeld) { widget.slide(false); sliderHeld = false; } }, true);
 window.addEventListener("blur", () => { if (sliderHeld) { widget.slide(false); sliderHeld = false; } });
+$("acctBtn").onclick = async () => {
+  $("acctRow").classList.toggle("show");
+  if ($("acctRow").classList.contains("show")) {
+    const { data: { session } } = await sb.auth.getSession();
+    $("acctMail").textContent = session ? session.user.email : "(로그인 안 됨)";
+  }
+};
+$("pwBtn").onclick = async () => {
+  const pw = $("newPw").value;
+  if (pw.length < 6) return msg("비밀번호는 6자 이상이에요");
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return msg("먼저 로그인해 주세요");
+  const { error } = await retrying(() => sb.auth.updateUser({ password: pw }));
+  if (error) return msg("바꾸기 실패: " + error.message);
+  widget.credSave(session.user.email, pw);
+  $("newPw").value = "";
+  msg("비밀번호를 바꿨어요. 이 컴퓨터엔 새 비밀번호가 저장됐어요");
+};
+$("outBtn").onclick = async () => {
+  if (!confirm("로그아웃할까요? 저장된 로그인 정보도 지워요.")) return;
+  await sb.auth.signOut(); widget.credClear();
+  $("acctRow").classList.remove("show"); showLogin();
+};
 $("opBtn").onclick = () => $("opRow").classList.toggle("show");
 $("hideBtn").onclick = () => widget.hide();
 $("openApp").onclick = () => widget.openPlanner();
