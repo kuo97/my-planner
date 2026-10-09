@@ -786,6 +786,31 @@
   .ex-chip:active { transform: scale(0.94); }
   .ex-chip.on { background: var(--sage); border-color: var(--sage); color: white; }
 
+  /* ---------- 도시 날씨 기록 ---------- */
+  .cw-card > summary { cursor: pointer; list-style: none; font-weight: 700; font-size: 14px; display: flex; align-items: baseline; gap: 6px; }
+  .cw-card > summary::-webkit-details-marker { display: none; }
+  .cw-card > summary::before { content: "▸"; color: var(--muted); font-size: 12px; width: 12px; }
+  .cw-card[open] > summary::before { content: "▾"; }
+  .cw-card > summary small { color: var(--muted); font-weight: 600; }
+  .cw-pills, .cw-modes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .cw-pills button, .cw-modes button, .cw-nav button { padding: 5px 11px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .cw-pills button.on, .cw-modes button.on { background: var(--sage); border-color: var(--sage); color: #fff; }
+  .cw-nav { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .cw-nav input { flex: 1; min-width: 0; padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 10px; font: inherit; font-size: 13px; background: #fff; color: var(--ink); }
+  .cw-sum { margin-top: 10px; padding: 8px 10px; border-radius: 10px; background: var(--sage-soft); font-size: 12.5px; line-height: 1.6; }
+  .cw-sum b { font-weight: 700; }
+  .cw-rows { margin-top: 8px; }
+  .cw-row { display: grid; grid-template-columns: 38px 22px 70px 1fr 50px; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .cw-row.cur { background: var(--sage-soft); border-radius: 6px; }
+  .cw-row.cmp { grid-template-columns: 64px 1fr 56px 44px; }
+  .cw-row.dim { opacity: .55; }
+  .cw-row .cw-y { font-weight: 700; }
+  .cw-row .cw-t b { color: var(--coral); font-weight: 700; } .cw-row .cw-t i { color: #5b8bc4; font-style: normal; font-weight: 700; }
+  .cw-row .cw-r { text-align: right; color: var(--muted); font-size: 11.5px; }
+  .cw-bar { position: relative; height: 8px; border-radius: 4px; background: var(--line); }
+  .cw-bar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+  .cw-note { margin-top: 8px; font-size: 11.5px; color: var(--muted); }
+
   /* ---------- 오늘 운동 제안 ---------- */
   .wk-sg { margin-top: 10px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--paper-card); padding: 8px 12px; }
   .wk-sg > summary { cursor: pointer; font-size: 14px; list-style: none; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
@@ -1198,6 +1223,102 @@ async function fetchPastWx(lat, lon, dateStr) {
     tmin: Math.round(j.daily.temperature_2m_min[0]),
   };
 }
+/* ---------- 도시 날씨 기록: 과거 자료(해마다 같은 날 · 한 달 · 도시 비교) ---------- */
+const cwCache = {};
+const cwState = { city: null, mode: "day", date: null, month: null, open: false, seq: 0 };
+const cwAdd = (s, n) => { const d = new Date(s + "T12:00:00"); d.setDate(d.getDate() + n); return dateStr(d); };
+async function fetchDaily(city, start, end) {                       // → { "YYYY-MM-DD": {code,tmax,tmin,rain} }
+  const key = city.lat + "," + city.lon + "|" + start + "|" + end;
+  if (cwCache[key]) return cwCache[key];
+  const t = todayStr(), archEnd = cwAdd(t, -6), out = {};          // 과거 자료(archive)는 며칠 늦게 올라와서 최근은 예보 API 의 지난 값으로 채운다
+  const get = async (base, a, b) => {
+    const r = await fetch(`${base}?latitude=${city.lat}&longitude=${city.lon}&start_date=${a}&end_date=${b}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`);
+    const dd = (await r.json()).daily; if (!dd || !dd.time) return;
+    dd.time.forEach((d, i) => { if (dd.temperature_2m_max[i] != null) out[d] = { code: dd.weather_code[i], tmax: Math.round(dd.temperature_2m_max[i]), tmin: Math.round(dd.temperature_2m_min[i]), rain: dd.precipitation_sum[i] || 0 }; });
+  };
+  const jobs = [];
+  if (start <= archEnd) jobs.push(get("https://archive-api.open-meteo.com/v1/archive", start, end < archEnd ? end : archEnd));
+  const fs0 = start > archEnd ? start : cwAdd(archEnd, 1), fe = end < t ? end : t;
+  if (end > archEnd && fs0 <= fe) jobs.push(get("https://api.open-meteo.com/v1/forecast", fs0, fe));
+  await Promise.all(jobs);
+  if (end < archEnd) cwCache[key] = out;                            // 확정된 옛 자료만 기억해 둔다
+  return out;
+}
+const cwColor = (t) => t <= 5 ? "#6c9bd1" : t <= 15 ? "#79b595" : t <= 25 ? "#f0b24a" : "#ff6b4a";
+const cwBar = (lo, hi, gmin, gmax) => { const sp = Math.max(1, gmax - gmin); return `<span class="cw-bar"><i style="left:${(lo - gmin) / sp * 100}%;width:${Math.max(4, (hi - lo) / sp * 100)}%;background:${cwColor(hi)}"></i></span>`; };
+const cwMonthEnd = (ym) => { const [y, m] = ym.split("-").map(Number); return `${ym}-${pad2cw(new Date(y, m, 0).getDate())}`; };
+const pad2cw = (n) => String(n).padStart(2, "0");
+const cwStats = (days) => { const v = Object.values(days); if (!v.length) return null; const avg = (k) => Math.round(v.reduce((a, x) => a + x[k], 0) / v.length * 10) / 10; return { n: v.length, hi: avg("tmax"), lo: avg("tmin"), rainDays: v.filter(x => x.rain >= 1).length, rain: Math.round(v.reduce((a, x) => a + x.rain, 0)), max: Math.max(...v.map(x => x.tmax)), min: Math.min(...v.map(x => x.tmin)) }; };
+
+function cityWeatherCard() {
+  const card = document.createElement("details");
+  card.className = "dcard cw-card"; card.open = cwState.open;
+  card.innerHTML = `<summary>🌦 도시 날씨 기록 <small>과거 날씨 보기</small></summary><div class="cw-body"></div>`;
+  card.addEventListener("toggle", () => { cwState.open = card.open; if (card.open) draw(); });
+  const body = card.querySelector(".cw-body");
+  if (!cwState.date) cwState.date = todayStr();
+  if (!cwState.month) cwState.month = todayStr().slice(0, 7);
+  if (!cities.some(c => c.id === cwState.city)) cwState.city = cities[0] ? cities[0].id : null;
+
+  async function draw() {
+    if (!card.open) return;
+    const seq = ++cwState.seq, S = cwState;
+    if (!cities.length) { body.innerHTML = `<div class="cw-note">위 '좋아하는 도시들'에서 도시를 추가하면 그 도시의 과거 날씨를 볼 수 있어요</div>`; return; }
+    const city = cities.find(c => c.id === S.city) || cities[0];
+    const pills = S.mode === "cmp" ? "" : `<div class="cw-pills">${cities.map(c => `<button type="button" data-c="${c.id}" class="${c.id === city.id ? "on" : ""}">${escapeHtml(c.name)}</button>`).join("")}</div>`;
+    const modes = `<div class="cw-modes">${[["day", "같은 날 · 해마다"], ["month", "한 달 · 하루씩"], ["cmp", "도시 비교 · 한 달"]].map(([k, l]) => `<button type="button" data-m="${k}" class="${S.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+    const nav = S.mode === "day"
+      ? `<div class="cw-nav"><button type="button" data-d="-1">‹</button><input type="date" id="cwDate" value="${S.date}" max="${todayStr()}"><button type="button" data-d="1">›</button></div>`
+      : `<div class="cw-nav"><button type="button" data-d="-1">‹</button><input type="month" id="cwMonth" value="${S.month}" max="${todayStr().slice(0, 7)}"><button type="button" data-d="1">›</button></div>`;
+    body.innerHTML = modes + pills + nav + `<div class="cw-out"><div class="cw-note">불러오는 중…</div></div>`;
+    body.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { S.mode = b.dataset.m; draw(); });
+    body.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { S.city = b.dataset.c; draw(); });
+    body.querySelectorAll(".cw-nav [data-d]").forEach(b => b.onclick = () => {
+      const d = Number(b.dataset.d);
+      if (S.mode === "day") S.date = cwAdd(S.date, d);
+      else { const [y, m] = S.month.split("-").map(Number), nd = new Date(y, m - 1 + d, 1); S.month = `${nd.getFullYear()}-${pad2cw(nd.getMonth() + 1)}`; }
+      if (S.date > todayStr()) S.date = todayStr(); if (S.month > todayStr().slice(0, 7)) S.month = todayStr().slice(0, 7);
+      draw();
+    });
+    const di = body.querySelector("#cwDate"); if (di) di.onchange = () => { if (di.value) { S.date = di.value; draw(); } };
+    const mi = body.querySelector("#cwMonth"); if (mi) mi.onchange = () => { if (mi.value) { S.month = mi.value; draw(); } };
+    const out = body.querySelector(".cw-out");
+    try {
+      let html = "";
+      if (S.mode === "day") {
+        const md = S.date.slice(5), thisY = new Date().getFullYear(), years = Array.from({ length: 8 }, (_, i) => thisY - i);
+        const res = await Promise.all(years.map(y => fetchDaily(city, `${y}-${md}`, `${y}-${md}`).then(o => o[`${y}-${md}`] || null).catch(() => null)));
+        if (seq !== cwState.seq) return;
+        const ok = res.filter(Boolean), gmin = Math.min(...ok.map(x => x.tmin), 0), gmax = Math.max(...ok.map(x => x.tmax), 1);
+        const st = ok.length ? { hi: Math.round(ok.reduce((a, x) => a + x.tmax, 0) / ok.length), lo: Math.round(ok.reduce((a, x) => a + x.tmin, 0) / ok.length), rainy: ok.filter(x => x.rain >= 1).length } : null;
+        html = (st ? `<div class="cw-sum"><b>${escapeHtml(city.name)} · ${Number(md.slice(0, 2))}월 ${Number(md.slice(3))}일</b> — ${ok.length}년 평균 최고 <b>${st.hi}°</b> · 최저 <b>${st.lo}°</b>, 비 온 해 ${st.rainy}/${ok.length}</div>` : "") +
+          `<div class="cw-rows">${years.map((y, i) => { const w = res[i], isSel = `${y}-${md}` === S.date; return w
+            ? `<div class="cw-row${isSel ? " cur" : ""}"><span class="cw-y">${y}</span><span class="cw-ic">${wmoEmoji(w.code)}</span><span class="cw-t"><b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i></span>${cwBar(w.tmin, w.tmax, gmin, gmax)}<span class="cw-r">${w.rain >= 1 ? "💧" + Math.round(w.rain) + "mm" : ""}</span></div>`
+            : `<div class="cw-row dim"><span class="cw-y">${y}</span><span class="cw-ic">·</span><span class="cw-t">기록 없음</span><span></span><span></span></div>`; }).join("")}</div>`;
+      } else if (S.mode === "month") {
+        const [y, m] = S.month.split("-").map(Number), last = cwMonthEnd(S.month);
+        const [cur, prev] = await Promise.all([fetchDaily(city, S.month + "-01", last), fetchDaily(city, `${y - 1}-${pad2cw(m)}-01`, cwMonthEnd(`${y - 1}-${pad2cw(m)}`)).catch(() => ({}))]);
+        if (seq !== cwState.seq) return;
+        const a = cwStats(cur), b = cwStats(prev), dl = (x, y2) => { const d = Math.round((x - y2) * 10) / 10; return `${d >= 0 ? "+" : "−"}${Math.abs(d)}°`; };
+        const days = Object.keys(cur).sort(), gmin = Math.min(...days.map(d => cur[d].tmin), 0), gmax = Math.max(...days.map(d => cur[d].tmax), 1);
+        html = (a ? `<div class="cw-sum"><b>${escapeHtml(city.name)} · ${y}년 ${m}월</b> (${a.n}일) — 평균 최고 <b>${a.hi}°</b> · 최저 <b>${a.lo}°</b><br>가장 더운 날 ${a.max}° · 가장 추운 날 ${a.min}° · 비 온 날 ${a.rainDays}일(${a.rain}mm)${b ? `<br>작년 같은 달 대비 최고 ${dl(a.hi, b.hi)} · 최저 ${dl(a.lo, b.lo)} · 비 온 날 ${b.rainDays}일` : ""}</div>` : `<div class="cw-note">이 달 기록이 없어요</div>`) +
+          `<div class="cw-rows">${days.map(d => { const w = cur[d]; return `<div class="cw-row"><span class="cw-y">${Number(d.slice(8))}일</span><span class="cw-ic">${wmoEmoji(w.code)}</span><span class="cw-t"><b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i></span>${cwBar(w.tmin, w.tmax, gmin, gmax)}<span class="cw-r">${w.rain >= 1 ? "💧" + Math.round(w.rain) + "mm" : ""}</span></div>`; }).join("")}</div>`;
+      } else {
+        const last = cwMonthEnd(S.month), [yy, mm] = S.month.split("-").map(Number);
+        const res = await Promise.all(cities.map(c => fetchDaily(c, S.month + "-01", last).then(cwStats).catch(() => null)));
+        if (seq !== cwState.seq) return;
+        const ok = res.filter(Boolean), gmin = Math.min(...ok.map(x => x.lo), 0), gmax = Math.max(...ok.map(x => x.hi), 1);
+        html = `<div class="cw-sum"><b>${yy}년 ${mm}월</b> — 관심 도시를 같은 달로 비교해요 (평균 최고·최저, 비 온 날)</div><div class="cw-rows">${cities.map((c, i) => { const x = res[i]; return x
+          ? `<div class="cw-row cmp"><span class="cw-y">${escapeHtml(c.name)}</span>${cwBar(x.lo, x.hi, gmin, gmax)}<span class="cw-t"><b>${x.hi}°</b> <i>${x.lo}°</i></span><span class="cw-r">💧${x.rainDays}일</span></div>`
+          : `<div class="cw-row cmp dim"><span class="cw-y">${escapeHtml(c.name)}</span><span></span><span class="cw-t">기록 없음</span><span></span></div>`; }).join("")}</div>`;
+      }
+      out.innerHTML = html + `<div class="cw-note">자료: Open-Meteo · 일 최고·최저 기온, 강수량 1mm 이상을 '비 온 날'로 셉니다</div>`;
+    } catch (e) { if (seq === cwState.seq) out.innerHTML = `<div class="cw-note">날씨를 불러오지 못했어요. 잠시 뒤 다시 눌러 주세요</div>`; }
+  }
+  if (cwState.open) draw();
+  return card;
+}
+
 /* 한국 도시는 API 검색이 부정확해서 주요 도시 좌표를 내장 */
 const KR_CITIES = {
   "서울": [37.5665,126.9780], "부산": [35.1796,129.0756], "인천": [37.4563,126.7052],
@@ -1789,6 +1910,7 @@ async function renderDiary() {
   addBtn.textContent = "+ 도시 추가";
   addBtn.addEventListener("click", addCity);
   grid.appendChild(addBtn);
+  list.appendChild(cityWeatherCard());
 
   /* 지난 일기 (월별로 묶어서, 클릭하면 펼쳐지게 표시) */
   const { data: past } = await sb.from("diary").select("*").lt("on_date", todayStr()).gte("on_date", "2000-01-01").order("on_date", { ascending: false }).limit(60);
