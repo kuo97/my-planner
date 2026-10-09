@@ -158,6 +158,23 @@
   /* 생활 기록: 계절 칩 + 접히는 카드 */
   .season-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .season-chip { padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; }
+  .diet-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .diet-row:empty { display: none; }
+  .dt { padding: 10px 0; border-top: 1px dashed var(--line); }
+  .dt:first-of-type { border-top: 0; padding-top: 4px; }
+  .dt-top { display: flex; align-items: baseline; justify-content: space-between; }
+  .dt-top b { font-size: 14px; }
+  .dt-n { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .dt-n small { font-size: 12px; color: var(--muted); font-weight: 600; margin-left: 2px; }
+  .dt-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .dt-bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; align-items: end; margin-top: 8px; }
+  .dt-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; min-width: 0; }
+  .dt-col i { display: block; width: 100%; max-width: 18px; border-radius: 3px 3px 0 0; }
+  .dt-col em { font-style: normal; font-size: 10px; color: var(--muted); }
+  .dt-col b { font-size: 10.5px; font-variant-numeric: tabular-nums; min-height: 12px; }
+  .dt-col.now em { color: var(--coral); font-weight: 700; }
+  .dt-nav { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; }
+  .dt-nav button { border: 1.5px solid var(--line); background: var(--paper); border-radius: 999px; width: 26px; height: 26px; cursor: pointer; color: var(--muted); }
   .season-chip.on { border-style: solid; border-color: var(--ink); color: var(--ink); background: var(--paper-card); }
   .life-card { padding: 12px 17px; }
   .life-sum { font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; list-style: none; }
@@ -1705,6 +1722,7 @@ async function renderDiary() {
     </div>
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
     <div class="meals-ed" id="mealsEd"></div>
+    <div class="diet-row" id="dietRow"></div>
     <textarea id="mealsNote" hidden></textarea>
     <div id="wkSuggest"></div>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 5km)">
@@ -1746,6 +1764,12 @@ async function renderDiary() {
   };
   dCard.querySelector("#diaryContent").value = shown.content || "";
   dCard.querySelector("#mealsNote").value = shown.meals || "";
+  const paintDiet = () => {
+    const row = dCard.querySelector("#dietRow"); if (!row || lifeLog === null) return;
+    row.innerHTML = DIET_KINDS.map(d => `<button type="button" class="season-chip${dietOn(editDate, d.k) ? " on" : ""}" data-k="${d.k}" title="누르면 이 날 기록, 다시 누르면 취소">${d.ico} ${d.k}</button>`).join("");
+    row.querySelectorAll("button").forEach(b => b.onclick = async () => { b.disabled = true; await toggleDiet(editDate, b.dataset.k); paintDiet(); });
+  };
+  if (lifeLoaded) paintDiet(); else loadLifeLog().then(paintDiet).catch(() => {});
   try { mealsEditor(dCard); } catch (e) { console.warn("식사 편집기", e); dCard.querySelector("#mealsNote").hidden = false; }
   dCard.querySelector("#exerciseNote").value = shown.exercise_note || "";
   dCard.querySelector("#stepsInput").value = shown.steps ?? "";
@@ -2584,11 +2608,23 @@ const SEASON_KINDS = [
   { k: "난방 켬", ico: "🔥" }, { k: "난방 끔", ico: "🌤️" },
 ];
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
+/* 술·몸에 안 좋은 음식(치킨·피자·야식·단 것…)을 한 날 — season 과 같은 life_log 표에 label 만 달리 쓴다(표 변경 없음) */
+const DIET_KINDS = [{ k: "술 마심", ico: "🍺", c: "#eb6834" }, { k: "몸에 안 좋은 음식", ico: "🍗", c: "#eda100" }];
+let lifeLoaded = false, lifeDietYear = new Date().getFullYear();
+const dietOn = (date, label) => (lifeLog || []).some(r => r.kind === "season" && r.on_date === date && r.label === label);
+async function toggleDiet(date, label) {                     // 일기 탭에서 쓰는 가벼운 토글(달력은 다시 그리지 않는다)
+  const hit = (lifeLog || []).find(r => r.kind === "season" && r.on_date === date && r.label === label);
+  const { error } = hit ? await sb.from("life_log").delete().eq("id", hit.id)
+                        : await sb.from("life_log").insert({ on_date: date, kind: "season", label });
+  if (error) { toast("기록 실패: " + error.message); return false; }
+  await loadLifeLog(); toast(hit ? `${label} 기록을 지웠어요` : `${label} — 기록했어요`); return true;
+}
 let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null, lifeFlowSel = null, lifeFlowAll = false, lifeInvSel = null;
 const lifeSecOpen = { flow: true, spend: true };
 async function loadLifeLog() {
   const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta,created_at").order("on_date", { ascending: false });
   lifeLog = error ? null : (data || []);   // null = 표가 아직 없음
+  lifeLoaded = true;
 }
 const seasonOn = date => (lifeLog || []).filter(r => r.kind === "season" && r.on_date === date);
 async function toggleSeason(date, label) {
@@ -2633,7 +2669,7 @@ function lifeCard() {
   const won = n => Number(n).toLocaleString() + "원";
   const man = n => !n ? "—" : (n / 10000).toFixed(n >= 1000000 ? 0 : 1) + "만";
   const mLabel = m => `${Number(m.slice(5))}월`;
-  const seasons = lifeLog.filter(r => r.kind === "season");
+  const seasons = lifeLog.filter(r => r.kind === "season" && SEASON_KINDS.some(s => s.k === r.label));
   const bills = lifeLog.filter(r => r.kind === "bill");
   const subs = lifeLog.filter(r => r.kind === "sub");
   const spends = lifeLog.filter(r => r.kind === "spend");
@@ -2850,6 +2886,24 @@ function lifeCard() {
         return `<td>${hit.length ? hit.join(", ") : "—"}</td>`; }).join("")}</tr>`).join("")}</table>
       <div class="sp-hint">달력에서 날짜를 누르고 칩으로 기록해요</div>` : `<div class="cd-empty">달력에서 날짜를 누르고 칩으로 기록해요</div>`;
 
+  /* 술·음식 섹션: 올해 며칠, 달별 막대, 작년과 비교, 마지막으로 한 지 며칠 */
+  const nowY = new Date().getFullYear(), curM = new Date().getMonth() + 1;
+  const dietDays = (label, y) => lifeLog.filter(r => r.kind === "season" && r.label === label && r.on_date.startsWith(String(y))).map(r => r.on_date);
+  const dietCard = d => {
+    const cur = dietDays(d.k, lifeDietYear), prev = dietDays(d.k, lifeDietYear - 1);
+    const done = lifeLog.filter(r => r.kind === "season" && r.label === d.k && r.on_date <= todayStr()).map(r => r.on_date).sort();
+    const last = done[done.length - 1] || null, n = last ? daysSince(last) : null;
+    const per = Array.from({ length: 12 }, (_, i) => cur.filter(x => Number(x.slice(5, 7)) === i + 1).length), mx = Math.max(1, ...per);
+    const avg = Math.round(cur.length / (lifeDietYear === nowY ? curM : 12) * 10) / 10;
+    return `<div class="dt"><div class="dt-top"><b>${d.ico} ${d.k}</b><span class="dt-n">${cur.length}<small>일</small></span></div>
+      <div class="dt-sub">${lifeDietYear - 1}년 ${prev.length}일 · 월 평균 ${avg}일${last ? ` · ${n === 0 ? "오늘 했어요" : `마지막 ${n}일 전(${md(last)})`}` : ""}</div>
+      <div class="dt-bars">${per.map((v, i) => `<span class="dt-col${lifeDietYear === nowY && i + 1 === curM ? " now" : ""}"><b>${v || ""}</b><i style="height:${v ? Math.max(5, Math.round(v / mx * 34)) : 2}px;background:${v ? d.c : "var(--line)"}"></i><em>${i + 1}</em></span>`).join("")}</div></div>`;
+  };
+  const dietBody = `<div class="dt-nav"><button type="button" data-dy="-1">‹</button><b>${lifeDietYear}년</b><button type="button" data-dy="1">›</button></div>` +
+    DIET_KINDS.map(dietCard).join("") +
+    `<div class="sp-hint">일기 탭의 먹은 것 아래, 또는 달력 날짜의 칩으로 기록해요 · 몸에 안 좋은 음식 = 치킨·피자·야식·단 것</div>`;
+  const dietSub = `${nowY}년 술 ${dietDays("술 마심", nowY).length}일 · 음식 ${dietDays("몸에 안 좋은 음식", nowY).length}일`;
+
   card.innerHTML = `
     <summary class="life-sum">생활 기록${sumParts.length ? ` <small>· ${escapeHtml(sumParts.join(" · "))}</small>` : ""}</summary>
     ${sec("flow", "수입·지출", flowMonths[0] && incomes.length ? `${mLabel(flowMonths[0])} 수입 ${man(incSum(flowMonths[0]))}원` : "", flowBody)}
@@ -2857,11 +2911,13 @@ function lifeCard() {
     ${sec("spend", "지출", lifeSpendSel ? `${mLabel(lifeSpendSel)} ${won(spendSum(lifeSpendSel))}` : "", spendBody)}
     ${sec("sub", "구독", subs.length ? `월 ${won(subTotal())}` : "", subBody)}
     ${sec("bill", "공과금", billMonths[0] ? `${mLabel(billMonths[0])} ${won(billSum(billMonths[0]))}` : "", billBody)}
+    ${sec("diet", "술·음식", dietSub, dietBody)}
     ${sec("season", "계절", lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "", seasonBody)}`;
 
   card.querySelectorAll(".life-sec").forEach(d => d.addEventListener("toggle", () => { lifeSecOpen[d.dataset.sec] = d.open; }));
   card.querySelectorAll("[data-month]").forEach(el => el.addEventListener("click", () => {
     lifeSpendSel = el.dataset.month; lifeSpendCat = null; rerenderLife(); }));
+  card.querySelectorAll("[data-dy]").forEach(b => b.addEventListener("click", () => { lifeDietYear += Number(b.dataset.dy); rerenderLife(); }));
   card.querySelectorAll("[data-inv]").forEach(el => el.addEventListener("click", () => {
     lifeInvSel = lifeInvSel === el.dataset.inv ? null : el.dataset.inv; rerenderLife(); }));
   card.querySelectorAll("[data-flow]").forEach(el => el.addEventListener("click", ev => {
@@ -2973,7 +3029,7 @@ function renderCalendarView() {
       const thumb = entry && entry.photos && entry.photos[0];
       const marks = (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
                   + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "")
-                  + seasonOn(c.dateStr).map(r => { const s = SEASON_KINDS.find(x => x.k === r.label);
+                  + seasonOn(c.dateStr).map(r => { const s = [...SEASON_KINDS, ...DIET_KINDS].find(x => x.k === r.label);
                       return `<span class="day-mark" title="${r.label}">${s ? s.ico : "•"}</span>`; }).join("");
       cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${marks ? `<span class="day-marks">${marks}</span>` : ""}`;
       cell.addEventListener("click", () => {
@@ -3061,18 +3117,20 @@ function renderCalendarView() {
     hairBtn.addEventListener("click", () => toggleHaircut(calSel));
     detail.appendChild(hairBtn);
     if (lifeLog) {
-      const row = document.createElement("div");
-      row.className = "season-chips";
-      SEASON_KINDS.forEach(s => {
-        const on = seasonOn(calSel).some(r => r.label === s.k);
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "season-chip" + (on ? " on" : "");
-        b.textContent = `${s.ico} ${s.k}`;
-        b.addEventListener("click", () => toggleSeason(calSel, s.k));
-        row.appendChild(b);
+      [SEASON_KINDS, DIET_KINDS].forEach(kinds => {
+        const row = document.createElement("div");
+        row.className = "season-chips";
+        kinds.forEach(s => {
+          const on = seasonOn(calSel).some(r => r.label === s.k);
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "season-chip" + (on ? " on" : "");
+          b.textContent = `${s.ico} ${s.k}`;
+          b.addEventListener("click", () => toggleSeason(calSel, s.k));
+          row.appendChild(b);
+        });
+        detail.appendChild(row);
       });
-      detail.appendChild(row);
     }
   }
   if (calSel === today) {
