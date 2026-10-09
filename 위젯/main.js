@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs");
 
 if (!app.requestSingleInstanceLock()) { app.quit(); return; }
+app.disableHardwareAcceleration();   // 작은 메모지라 GPU 가 필요 없고, 투명도(레이어 창)+GPU 조합이 클릭 반응을 둔하게 만든다(10-09)
 app.setAppUserModelId("chanjin.todo-widget");   // 작업 표시줄에 '할 일 위젯'으로 따로 뜨게
 
 const STATE = path.join(app.getPath("userData"), "window.json");
@@ -102,17 +103,19 @@ function buildTray() {
 
 // 흐리기: 평소(마우스를 올려도)엔 고른 값 그대로, **클릭을 시작하면 최대 밝기**, 손을 떼고 1.5초 뒤 다시 흐려진다 (10-09 찬진).
 // 글을 쓰는 동안(입력칸 포커스)도 밝게. 흐리기 막대를 움직이는 동안은 고른 값을 그대로 보여 준다(막대와 화면이 일치).
-let pressedUntil = 0, typing = false, sliding = false;
-ipcMain.on("typing", (_e, v) => { typing = v; });
-ipcMain.on("press", () => { pressedUntil = Date.now() + 1500; });
+// 밝아질 땐 클릭 즉시(타이머를 기다리지 않음), 흐려질 땐 0.1씩 부드럽게. 현재 값을 직접 기억해 매번 창에 묻지 않는다.
+let pressedUntil = 0, typing = false, sliding = false, curOp = st.opacity;
+function setOp(v) { if (!alive() || Math.abs(curOp - v) < 0.005) return; curOp = v; win.setOpacity(v); }
+ipcMain.on("typing", (_e, v) => { typing = v; if (v) setOp(1); });
+ipcMain.on("press", () => { pressedUntil = Date.now() + 1500; setOp(1); });
 ipcMain.on("slide", (_e, v) => { sliding = v; if (!v) pressedUntil = 0; });
 setInterval(() => {
   if (!alive() || !win.isVisible() || sliding) return;
   const want = (Date.now() < pressedUntil || typing) ? 1 : st.opacity;
-  if (Math.abs(win.getOpacity() - want) > 0.01) win.setOpacity(want);
-}, 100);
+  if (curOp > want + 0.005) setOp(Math.max(want, curOp - 0.1)); else if (curOp < want - 0.005) setOp(want);
+}, 50);
 ipcMain.on("idle-opacity", (_e, v) => {
-  st.opacity = v; if (alive()) win.setOpacity(v);
+  st.opacity = v; curOp = v; if (alive()) win.setOpacity(v);
   clearTimeout(save.t); save.t = setTimeout(save, 400);
 });
 // Claude 가 할 일을 넣어 두는 우편함: %APPDATA%\todo-widget\inbox.json = [{"title":"…","due":"YYYY-MM-DD"}] (읽으면 지운다)

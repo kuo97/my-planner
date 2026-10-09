@@ -149,8 +149,10 @@ $("op").value = localStorage.getItem("idleOpacity") || 75;
 $("op").addEventListener("input", (e) => { localStorage.setItem("idleOpacity", e.target.value); widget.previewOpacity(e.target.value / 100); });
 // 클릭을 시작하면 최대 밝기(main 이 1.5초 유지). 흐리기 막대를 잡고 있을 땐 밝히지 않고 고른 값을 그대로 보여 준다
 const onSlider = (e) => e.target && e.target.id === "op";
-document.addEventListener("pointerdown", (e) => { if (onSlider(e)) widget.slide(true); else widget.press(); }, true);
-document.addEventListener("pointermove", (e) => { if (e.buttons && !onSlider(e) && !sliderHeld) widget.press(); }, true);
+let lastPress = 0;   // 누르고 있는 동안 pointermove 마다 보내면 IPC 가 쏟아져 렉이 난다 — 0.3초에 한 번만
+const press = () => { const n = performance.now(); if (n - lastPress > 300) { lastPress = n; widget.press(); } };
+document.addEventListener("pointerdown", (e) => { if (onSlider(e)) widget.slide(true); else { lastPress = 0; press(); } }, true);
+document.addEventListener("pointermove", (e) => { if (e.buttons && !onSlider(e) && !sliderHeld) press(); }, true);
 let sliderHeld = false;
 document.addEventListener("pointerdown", (e) => { sliderHeld = onSlider(e); }, true);
 document.addEventListener("pointerup", () => { if (sliderHeld) { widget.slide(false); sliderHeld = false; } }, true);
@@ -464,7 +466,7 @@ $("addInput").addEventListener("blur", () => widget.typing(false));
 $("addInput").addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) add(); });
 
 /* ---------- 새로고침: 3분마다 + 창을 눌렀을 때 (휴대폰·마이플래너에서 바꾼 것도 따라온다) ---------- */
-let busy = false, last = 0;
+let busy = false, last = 0, lastSig = "";
 async function refresh(force) {
   if (busy || (!force && Date.now() - last < 20000)) return;
   busy = true;
@@ -481,7 +483,12 @@ async function refresh(force) {
     }
     if (!session) { showLogin(); return; }
     $("addBar").style.display = "";
-    if (await loadTasks()) { await loadEvents(); last = Date.now(); render(); }
+    if (await loadTasks()) {
+      await loadEvents(); last = Date.now();
+      // 바뀐 게 없으면 화면을 다시 그리지 않는다 — 클릭하는 순간 목록이 통째로 교체돼서 클릭이 씹히고 깜빡이던 원인
+      const sig = JSON.stringify([tasks, log, events]);
+      if (sig !== lastSig || $("login") || !$("list").firstChild) { lastSig = sig; render(); }
+    }
     else { if ($("login")) $("list").innerHTML = `<div class="empty">불러오지 못했어요. 잠시 뒤 다시 시도해요…</div>`; setTimeout(() => refresh(true), 15000); }
   } finally { busy = false; }
 }
