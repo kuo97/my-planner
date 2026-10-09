@@ -284,6 +284,41 @@ begin
 end $$;
 ```
 
+## 1-13. 내 날씨 캡처 (2026-10-09) — 추가 SQL
+
+아이폰 날씨 앱 캡처 등을 도시·날짜별로 보관해 일기 탭 '도시 날씨 기록'에서 과거 날씨와 같이 본다.
+앱 안의 '＋ 추가'로 직접 올릴 수 있고, Claude 는 `wxshot_add`(토큰) 로 한꺼번에 올린다. 이미지는 줄인 JPEG 데이터 주소(장당 100~200KB)로 표에 저장.
+
+```sql
+create table if not exists wx_shots (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid(),
+  city text not null,
+  on_date date not null,
+  note text,
+  thumb text,
+  img text,
+  created_at timestamptz not null default now()
+);
+create index if not exists wx_shots_user_date on wx_shots (user_id, on_date desc);
+alter table wx_shots enable row level security;
+create policy "wx_shots select own" on wx_shots for select using (auth.uid() = user_id);
+create policy "wx_shots insert own" on wx_shots for insert with check (auth.uid() = user_id);
+create policy "wx_shots delete own" on wx_shots for delete using (auth.uid() = user_id);
+
+create or replace function wxshot_add(p_token text, p_city text, p_date date, p_note text, p_thumb text, p_img text)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare uid uuid; nid uuid;
+begin
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> 'HASH_HERE' then return null; end if;
+  select user_id into uid from diary order by on_date desc limit 1;
+  insert into wx_shots (user_id, city, on_date, note, thumb, img) values (uid, p_city, p_date, p_note, p_thumb, p_img) returning id into nid;
+  return nid;
+end $$;
+revoke all on function wxshot_add(text, text, date, text, text, text) from public;
+grant execute on function wxshot_add(text, text, date, text, text, text) to anon;
+```
+
 ## 1-12. 투자 실현수익 (2026-10-07) — 추가 SQL
 
 토스증권 '수익분석'(원 기준)을 Claude 가 월별로 올린다(kind='invest'). 생활 수입·지출(남은 돈)과는 따로 본다.

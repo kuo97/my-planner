@@ -800,7 +800,7 @@
   .cw-sum { margin-top: 10px; padding: 8px 10px; border-radius: 10px; background: var(--sage-soft); font-size: 12.5px; line-height: 1.6; }
   .cw-sum b { font-weight: 700; }
   .cw-rows { margin-top: 8px; }
-  .cw-row { display: grid; grid-template-columns: 38px 22px 70px 1fr 50px; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .cw-row { display: grid; grid-template-columns: 38px 22px 70px 1fr auto; min-height: 26px; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; font-variant-numeric: tabular-nums; }
   .cw-row.cur { background: var(--sage-soft); border-radius: 6px; }
   .cw-row.cmp { grid-template-columns: 64px 1fr 56px 44px; }
   .cw-row.dim { opacity: .55; }
@@ -809,6 +809,27 @@
   .cw-row .cw-r { text-align: right; color: var(--muted); font-size: 11.5px; }
   .cw-bar { position: relative; height: 8px; border-radius: 4px; background: var(--line); }
   .cw-bar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+  .cw-shot { border: 0; background: none; padding: 0 3px 0 0; font-size: 13px; cursor: pointer; }
+  .cw-sh { margin-top: 12px; padding-top: 10px; border-top: 1.5px dashed var(--line); }
+  .cw-sh-h { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+  .cw-sh-h small { color: var(--muted); font-weight: 600; }
+  .cw-add { margin-left: auto; padding: 4px 10px; border: 1.5px dashed var(--sage); border-radius: 999px; background: none; color: var(--sage); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 12.5px; cursor: pointer; }
+  .cw-ths { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .cw-th { position: relative; width: 66px; padding: 0; border: 1.5px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; cursor: pointer; }
+  .cw-th img { display: block; width: 100%; height: 92px; object-fit: cover; object-position: top; }
+  .cw-th span { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(43, 36, 30, .62); color: #fff; font-size: 10px; padding: 1px 0; text-align: center; }
+  .cw-form { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--sage-soft); display: grid; gap: 6px; }
+  .cw-form[hidden] { display: none; }
+  .cw-form input, .cw-form select { min-width: 0; padding: 6px 8px; border: 1.5px solid var(--line); border-radius: 8px; font: inherit; font-size: 13px; background: #fff; color: var(--ink); }
+  .cw-form button { padding: 8px; border: 0; border-radius: 8px; background: var(--sage); color: #fff; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .cw-form button:disabled { opacity: .5; }
+  .cw-lb { position: fixed; inset: 0; z-index: 200; background: rgba(20, 16, 12, .78); display: grid; place-items: center; padding: 16px; }
+  .cw-lb-in { max-width: min(92vw, 460px); max-height: 92vh; display: flex; flex-direction: column; gap: 8px; }
+  .cw-lb-in img { max-width: 100%; max-height: 74vh; object-fit: contain; border-radius: 12px; background: #fff; }
+  .cw-lb-cap { color: #fff; font-size: 13px; text-align: center; }
+  .cw-lb-btns { display: flex; gap: 8px; justify-content: center; }
+  .cw-lb-btns button { padding: 6px 16px; border: 0; border-radius: 999px; background: #fff; color: var(--ink); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .cw-lb-btns button[data-x="del"] { background: transparent; color: #ffb4a3; border: 1.5px solid #ffb4a3; }
   .cw-note { margin-top: 8px; font-size: 11.5px; color: var(--muted); }
 
   /* ---------- 오늘 운동 제안 ---------- */
@@ -1256,6 +1277,55 @@ const cwMonthEnd = (ym) => { const [y, m] = ym.split("-").map(Number); return `$
 const pad2cw = (n) => String(n).padStart(2, "0");
 const cwStats = (days) => { const v = Object.values(days); if (!v.length) return null; const avg = (k) => Math.round(v.reduce((a, x) => a + x[k], 0) / v.length * 10) / 10; return { n: v.length, hi: avg("tmax"), lo: avg("tmin"), rainDays: v.filter(x => x.rain >= 1).length, rain: Math.round(v.reduce((a, x) => a + x.rain, 0)), max: Math.max(...v.map(x => x.tmax)), min: Math.min(...v.map(x => x.tmin)) }; };
 
+/* ---------- 내 날씨 캡처 (아이폰 날씨 앱 화면 등) — 도시·날짜별로 모아 과거 날씨와 같이 본다 ---------- */
+let wxShots = [], wxLoaded = false, wxMissing = false;
+const wxNorm = (s) => String(s || "").replace(/\s+/g, "").replace(/(시|市)$/, "");
+const wxSame = (a, b) => wxNorm(a) === wxNorm(b);
+async function loadWxShots() {
+  try {
+    const { data, error } = await sb.from("wx_shots").select("id,city,on_date,note,thumb").order("on_date", { ascending: false });
+    if (error) { wxMissing = true; wxShots = []; }
+    else { wxMissing = false; wxShots = data || []; }
+  } catch { wxMissing = true; }
+  wxLoaded = true;
+}
+const wxBtn = (city, date) => { const x = wxFind(city.name, date); return x ? `<button type="button" class="cw-shot" data-id="${x.id}" title="내 캡처 보기">📷</button>` : ""; };
+const wxFind = (cityName, date) => wxShots.find(x => wxSame(x.city, cityName) && x.on_date === date);
+/* 이미지를 작게 줄여 JPEG 데이터 주소로 (캡처 한 장이 100~200KB 가 되게) */
+function wxResize(file, maxW, q) {
+  return new Promise((ok, no) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, maxW / im.width), c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", q));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); no(new Error("이미지를 읽지 못했어요")); };
+    im.src = url;
+  });
+}
+async function wxOpenViewer(id) {
+  const meta = wxShots.find(x => x.id === id); if (!meta) return;
+  const lb = document.createElement("div"); lb.className = "cw-lb";
+  lb.innerHTML = `<div class="cw-lb-in"><img alt="" src="${meta.thumb || ""}"><div class="cw-lb-cap"><b>${escapeHtml(meta.city)}</b> · ${meta.on_date}${meta.note ? " · " + escapeHtml(meta.note) : ""}</div>
+    <div class="cw-lb-btns"><button type="button" data-x="del">삭제</button><button type="button" data-x="close">닫기</button></div></div>`;
+  document.body.appendChild(lb);
+  const close = () => lb.remove();
+  lb.addEventListener("click", (e) => { if (e.target === lb || e.target.dataset.x === "close") close(); });
+  lb.querySelector('[data-x="del"]').addEventListener("click", async (e) => {
+    const b = e.target;
+    if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "정말 삭제"; return; }   // confirm() 대신 두 번 눌러 삭제
+    const { error } = await sb.from("wx_shots").delete().eq("id", id);
+    if (error) { toast("삭제 실패: " + error.message); return; }
+    wxShots = wxShots.filter(x => x.id !== id); close(); toast("지웠어요"); if (cwState.redraw) cwState.redraw();
+  });
+  try {
+    const { data } = await sb.from("wx_shots").select("img").eq("id", id).maybeSingle();
+    if (data && data.img) lb.querySelector("img").src = data.img;
+  } catch {}
+}
+
 /* 아직 오지 않은 달은 최근 몇 년의 같은 달 기록으로 '예상'을 보여 준다 */
 async function cwPastMonths(city, ym, n = 5) {
   const [Y, M] = ym.split("-").map(Number), t = todayStr(), keys = [];
@@ -1264,6 +1334,41 @@ async function cwPastMonths(city, ym, n = 5) {
   return keys.map((k, i) => ({ y: Number(k.slice(0, 4)), st: res[i] })).filter(x => x.st);
 }
 const cwAvgOf = (arr) => { if (!arr.length) return null; const m = (f) => Math.round(arr.reduce((a, x) => a + f(x.st), 0) / arr.length * 10) / 10; return { hi: m(x => x.hi), lo: m(x => x.lo), rainDays: Math.round(m(x => x.rainDays)), n: arr.length }; };
+function wxSection(city) {
+  const S = cwState;
+  if (S.mode === "cmp") return "";
+  if (wxMissing) return `<div class="cw-note">📷 캡처 보관함은 SETUP.md 1-13 SQL을 한 번 실행하면 켜져요</div>`;
+  const list = wxShots.filter(x => wxSame(x.city, city.name) && (S.mode !== "month" || x.on_date.startsWith(S.month))).slice(0, 24);
+  const defDate = S.mode === "day" && S.date <= todayStr() ? S.date : todayStr();
+  return `<div class="cw-sh"><div class="cw-sh-h">📷 내 캡처 · ${escapeHtml(city.name)}${S.mode === "month" ? " · " + Number(S.month.slice(5)) + "월" : ""} <small>${list.length}장</small><button type="button" class="cw-add">＋ 추가</button></div>
+    <div class="cw-ths">${list.map(x => `<button type="button" class="cw-th" data-id="${x.id}" title="${escapeHtml(x.note || "")}"><img src="${x.thumb || ""}" alt=""><span>${x.on_date.slice(2)}</span></button>`).join("") || `<div class="cw-note">아직 없어요 — 아이폰 날씨 캡처를 올려 두면 여기서 과거 날씨와 같이 볼 수 있어요</div>`}</div>
+    <form class="cw-form" hidden>
+      <input type="file" id="cwFile" accept="image/*">
+      <select id="cwShotCity">${cities.map(c => `<option value="${escapeHtml(c.name)}"${c.id === city.id ? " selected" : ""}>${escapeHtml(c.name)}</option>`).join("")}</select>
+      <input type="date" id="cwShotDate" value="${defDate}">
+      <input type="text" id="cwShotNote" placeholder="메모 (선택)" maxlength="60">
+      <button type="submit">저장</button>
+    </form></div>`;
+}
+function wxBind(out, city, redraw) {
+  out.querySelectorAll(".cw-shot, .cw-th").forEach(b => b.onclick = () => wxOpenViewer(b.dataset.id));
+  const addB = out.querySelector(".cw-add"), form = out.querySelector(".cw-form");
+  if (addB && form) addB.onclick = () => { form.hidden = !form.hidden; };
+  if (!form) return;
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const f = form.querySelector("#cwFile").files[0], btn = form.querySelector("button[type=submit]");
+    if (!f) { toast("캡처 파일을 골라 주세요"); return; }
+    const date = form.querySelector("#cwShotDate").value; if (!date) { toast("날짜를 골라 주세요"); return; }
+    btn.disabled = true; btn.textContent = "올리는 중…";
+    try {
+      const [thumb, img] = await Promise.all([wxResize(f, 220, 0.6), wxResize(f, 1000, 0.72)]);
+      const { error } = await sb.from("wx_shots").insert({ city: form.querySelector("#cwShotCity").value, on_date: date, note: form.querySelector("#cwShotNote").value.trim() || null, thumb, img });
+      if (error) throw error;
+      await loadWxShots(); toast("캡처를 저장했어요"); redraw();
+    } catch (err) { toast("저장 실패: " + (err.message || err)); btn.disabled = false; btn.textContent = "저장"; }
+  };
+}
 function cityWeatherCard() {
   const card = document.createElement("details");
   card.className = "dcard cw-card"; card.open = cwState.open;
@@ -1276,9 +1381,11 @@ function cityWeatherCard() {
 
   async function draw() {
     if (!card.open) return;
+    cwState.redraw = draw;
     const seq = ++cwState.seq, S = cwState;
     if (!cities.length) { body.innerHTML = `<div class="cw-note">위 '좋아하는 도시들'에서 도시를 추가하면 그 도시의 과거 날씨를 볼 수 있어요</div>`; return; }
     const city = cities.find(c => c.id === S.city) || cities[0];
+    if (!wxLoaded) { await loadWxShots(); if (seq !== cwState.seq) return; }
     const pills = S.mode === "cmp" ? "" : `<div class="cw-pills">${cities.map(c => `<button type="button" data-c="${c.id}" class="${c.id === city.id ? "on" : ""}">${escapeHtml(c.name)}</button>`).join("")}</div>`;
     const modes = `<div class="cw-modes">${[["day", "같은 날 · 해마다"], ["month", "한 달 · 하루씩"], ["cmp", "도시 비교 · 한 달"]].map(([k, l]) => `<button type="button" data-m="${k}" class="${S.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
     const nav = S.mode === "day"
@@ -1306,7 +1413,7 @@ function cityWeatherCard() {
         const st = ok.length ? { hi: Math.round(ok.reduce((a, x) => a + x.tmax, 0) / ok.length), lo: Math.round(ok.reduce((a, x) => a + x.tmin, 0) / ok.length), rainy: ok.filter(x => x.rain >= 1).length } : null;
         html = (st ? `<div class="cw-sum"><b>${escapeHtml(city.name)} · ${Number(md.slice(0, 2))}월 ${Number(md.slice(3))}일</b> — ${ok.length}년 평균 최고 <b>${st.hi}°</b> · 최저 <b>${st.lo}°</b>, 비 온 해 ${st.rainy}/${ok.length}</div>` : "") +
           `<div class="cw-rows">${years.map((y, i) => { const w = res[i], isSel = `${y}-${md}` === S.date; return w
-            ? `<div class="cw-row${isSel ? " cur" : ""}"><span class="cw-y">${y}</span><span class="cw-ic">${wmoEmoji(w.code)}</span><span class="cw-t"><b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i></span>${cwBar(w.tmin, w.tmax, gmin, gmax)}<span class="cw-r">${w.rain >= 1 ? "💧" + Math.round(w.rain) + "mm" : ""}</span></div>`
+            ? `<div class="cw-row${isSel ? " cur" : ""}"><span class="cw-y">${y}</span><span class="cw-ic">${wmoEmoji(w.code)}</span><span class="cw-t"><b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i></span>${cwBar(w.tmin, w.tmax, gmin, gmax)}<span class="cw-r">${wxBtn(city, `${y}-${md}`)}${w.rain >= 1 ? "💧" + Math.round(w.rain) + "mm" : ""}</span></div>`
             : `<div class="cw-row dim"><span class="cw-y">${y}</span><span class="cw-ic">·</span><span class="cw-t">기록 없음</span><span></span><span></span></div>`; }).join("")}</div>`;
       } else if (S.mode === "month" && S.month > todayStr().slice(0, 7)) {
         const past = await cwPastMonths(city, S.month), av = cwAvgOf(past), mm = Number(S.month.slice(5));
@@ -1320,7 +1427,7 @@ function cityWeatherCard() {
         const a = cwStats(cur), b = cwStats(prev), dl = (x, y2) => { const d = Math.round((x - y2) * 10) / 10; return `${d >= 0 ? "+" : "−"}${Math.abs(d)}°`; };
         const days = Object.keys(cur).sort(), gmin = Math.min(...days.map(d => cur[d].tmin), 0), gmax = Math.max(...days.map(d => cur[d].tmax), 1);
         html = (a ? `<div class="cw-sum"><b>${escapeHtml(city.name)} · ${y}년 ${m}월</b> (${a.n}일) — 평균 최고 <b>${a.hi}°</b> · 최저 <b>${a.lo}°</b><br>가장 더운 날 ${a.max}° · 가장 추운 날 ${a.min}° · 비 온 날 ${a.rainDays}일(${a.rain}mm)${b ? `<br>작년 같은 달 대비 최고 ${dl(a.hi, b.hi)} · 최저 ${dl(a.lo, b.lo)} · 비 온 날 ${b.rainDays}일` : ""}</div>` : `<div class="cw-note">이 달 기록이 없어요</div>`) +
-          `<div class="cw-rows">${days.map(d => { const w = cur[d]; return `<div class="cw-row"><span class="cw-y">${Number(d.slice(8))}일</span><span class="cw-ic">${wmoEmoji(w.code)}</span><span class="cw-t"><b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i></span>${cwBar(w.tmin, w.tmax, gmin, gmax)}<span class="cw-r">${w.rain >= 1 ? "💧" + Math.round(w.rain) + "mm" : ""}</span></div>`; }).join("")}</div>`;
+          `<div class="cw-rows">${days.map(d => { const w = cur[d]; return `<div class="cw-row"><span class="cw-y">${Number(d.slice(8))}일</span><span class="cw-ic">${wmoEmoji(w.code)}</span><span class="cw-t"><b>↑${w.tmax}°</b> <i>↓${w.tmin}°</i></span>${cwBar(w.tmin, w.tmax, gmin, gmax)}<span class="cw-r">${wxBtn(city, d)}${w.rain >= 1 ? "💧" + Math.round(w.rain) + "mm" : ""}</span></div>`; }).join("")}</div>`;
       } else {
         const last = cwMonthEnd(S.month), [yy, mm] = S.month.split("-").map(Number);
         const fut = S.month > todayStr().slice(0, 7);
@@ -1331,7 +1438,8 @@ function cityWeatherCard() {
           ? `<div class="cw-row cmp"><span class="cw-y">${escapeHtml(c.name)}</span>${cwBar(x.lo, x.hi, gmin, gmax)}<span class="cw-t"><b>${x.hi}°</b> <i>${x.lo}°</i></span><span class="cw-r">💧${x.rainDays}일</span></div>`
           : `<div class="cw-row cmp dim"><span class="cw-y">${escapeHtml(c.name)}</span><span></span><span class="cw-t">기록 없음</span><span></span></div>`; }).join("")}</div>`;
       }
-      out.innerHTML = html + `<div class="cw-note">자료: Open-Meteo · 일 최고·최저 기온, 강수량 1mm 이상을 '비 온 날'로 셉니다</div>`;
+      out.innerHTML = html + wxSection(city) + `<div class="cw-note">자료: Open-Meteo · 일 최고·최저 기온, 강수량 1mm 이상을 '비 온 날'로 셉니다</div>`;
+      wxBind(out, city, draw);
     } catch (e) { if (seq === cwState.seq) out.innerHTML = `<div class="cw-note">날씨를 불러오지 못했어요. 잠시 뒤 다시 눌러 주세요</div>`; }
   }
   if (cwState.open) draw();
