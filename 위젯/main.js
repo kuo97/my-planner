@@ -79,8 +79,14 @@ function snap(done) {
 
 function toggleShow() { if (!alive()) return; if (win.isVisible() && !win.isMinimized()) win.minimize(); else { win.restore(); win.show(); win.focus(); } }
 
-function autostartOn() { return app.getLoginItemSettings({ path: process.execPath, args: [__dirname] }).openAtLogin; }
-function setAutostart(on) { app.setLoginItemSettings({ openAtLogin: on, path: process.execPath, args: [__dirname] }); }
+// 컴퓨터를 켤 때 자동 실행 = 작업 스케줄러 '할 일 위젯 시작'(위젯 폴더의 widget_start.ps1). 시작 프로그램 항목(Run)으로 켜면
+// 윈도우 '스마트 앱 컨트롤'이 서명 없는 electron.exe 를 막아서 이쪽으로 바꿨다(10-10).
+const TASK = "할 일 위젯 시작";
+const { execFileSync } = require("child_process");
+function autostartOn() {
+  try { return !/Disabled|사용 안 함/i.test(execFileSync("schtasks", ["/Query", "/TN", TASK, "/FO", "CSV", "/NH"], { encoding: "utf8", windowsHide: true })); } catch { return false; }
+}
+function setAutostart(on) { try { execFileSync("schtasks", ["/Change", "/TN", TASK, on ? "/ENABLE" : "/DISABLE"], { windowsHide: true }); } catch {} }
 
 function buildTray() {
   tray = new Tray(nativeImage.createFromPath(ICON_PNG).resize({ width: 16, height: 16 }));
@@ -148,7 +154,6 @@ ipcMain.on("open", (_e, url) => shell.openExternal(url));
 
 app.on("second-instance", () => { if (alive()) { win.show(); win.focus(); } });
 app.whenReady().then(() => {
-  if (st.autostartSet === undefined) { setAutostart(true); st.autostartSet = true; save(); }  // 처음 한 번만 자동 실행 켬
   createWindow();
   buildTray();
 });
