@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-07T12:23+09:00",
+ "updated": "2026-10-10T20:58+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -870,7 +870,7 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/2omsdLsxtAs",
      "publishAt": "2026-10-07T10:00:00Z",
      "due": "2026-10-07T19:00:00+09:00",
@@ -878,7 +878,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/BXnRR_dyRq0",
      "publishAt": "2026-10-07T10:00:00Z",
      "due": "2026-10-07T19:00:00+09:00",
@@ -887,20 +887,22 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-07T21:02:26+09:00",
      "due": "2026-10-07T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-07T21:02:26+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-07T21:03:35+09:00",
      "due": "2026-10-07T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-07T21:03:35+09:00"
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
+     "url": "https://blog.naver.com/chanjakstudio/224431438638",
+     "at": "2026-10-07T19:00:00+09:00",
      "due": "2026-10-07T19:00:00+09:00",
      "ready": false
     },
@@ -925,7 +927,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/0O3NMQkgN88",
      "publishAt": "2026-10-08T10:00:00Z",
      "due": "2026-10-08T19:00:00+09:00",
@@ -934,16 +936,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-08T21:02:02+09:00",
      "due": "2026-10-08T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-08T21:02:02+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-08T21:03:12+09:00",
      "due": "2026-10-08T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-08T21:03:12+09:00"
+     "ready": true
     }
    }
   },
@@ -966,7 +968,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
+     "url": "https://blog.naver.com/chanjakstudio/224431803623",
+     "at": "2026-10-08T19:10:00+09:00",
      "due": "2026-10-08T19:00:00+09:00",
      "ready": false
     }
@@ -985,7 +989,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/flv_5MTzndE",
      "publishAt": "2026-10-09T10:00:00Z",
      "due": "2026-10-09T19:00:00+09:00",
@@ -994,16 +998,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-09T21:02:23+09:00",
      "due": "2026-10-09T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-09T21:02:23+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-09T21:03:34+09:00",
      "due": "2026-10-09T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-09T21:03:34+09:00"
+     "ready": true
     }
    }
   },
@@ -1036,7 +1040,7 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/QBdcSQ-HxuQ",
      "publishAt": "2026-10-10T10:00:00Z",
      "due": "2026-10-10T19:00:00+09:00",
@@ -1044,7 +1048,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/46Zt3cR8r7k",
      "publishAt": "2026-10-10T10:00:00Z",
      "due": "2026-10-10T19:00:00+09:00",
@@ -1064,7 +1068,9 @@
     },
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
+     "url": "https://blog.naver.com/chanjakstudio/224431449819",
+     "at": "2026-10-10T19:30:00+09:00",
      "due": "2026-10-10T19:00:00+09:00",
      "ready": false
     },
@@ -1129,9 +1135,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-07T12:33:19+09:00",
      "due": "2026-10-07T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-10-07T12:33:19+09:00"
+     "ready": true
     }
    }
   },
@@ -1149,9 +1155,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-08T12:34:02+09:00",
      "due": "2026-10-08T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-10-08T12:34:02+09:00"
+     "ready": true
     }
    }
   },
@@ -1169,9 +1175,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-09T12:33:55+09:00",
      "due": "2026-10-09T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-10-09T12:33:55+09:00"
+     "ready": true
     }
    }
   },
@@ -1189,9 +1195,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-10T12:33:44+09:00",
      "due": "2026-10-10T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-10-10T12:33:44+09:00"
+     "ready": true
     }
    }
   },
