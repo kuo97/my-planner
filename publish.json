@@ -1698,9 +1698,9 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-18T12:30:00+09:00",
-     "ready": false
+     "ready": true
     }
    }
   },
