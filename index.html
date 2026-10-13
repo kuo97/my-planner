@@ -1154,6 +1154,7 @@ const EXERCISE_ROUTINES = [
 const EXTRA_EXERCISES = [
   { name: "펙덱플라이", w: 32, reps: "12×3", memo: "선택 · 가슴 정체 시 1순위" },
   { name: "케이블푸쉬다운", w: 15, reps: "12×3", memo: "선택 · 라잉 뒤에 · 9/19 기록 15kg" },
+  { name: "덤벨풀오버", w: 10, reps: "12×3", memo: "보강 날 · 벤치에 가로로 누워 덤벨 한 개를 머리 뒤로 · 가볍게 시작 · 가슴·등 앞뒤 두께", step: 2 },
 ];
 /* 일기의 운동 선택 칩 = 루틴에 들어 있는 모든 운동 + 선택 종목, 이름 중복 없이 루틴 순서대로.
    (2026-09-19) 루틴 단위로 고르던 걸 종목 단위로 바꿈 — 그날 한 운동만 골라 무게·세트를 맞추는 게 더 간편해서.
@@ -2311,7 +2312,7 @@ async function loadWorkoutLog() {
 }
 const DAY_LABEL = { chest: "가슴 날", back: "등 날", legs: "다리 날", boost: "보강 날" };
 /* 보강 날(4일째) — 매주 코칭이 정한 보강 종목만 모은 가벼운 날. 이 종목들로만 이뤄진 기록은 가슴→등→다리 순환에 넣지 않는다 */
-const BOOST_POOL = ["펙덱플라이", "케이블푸쉬다운", "사이드레터럴레이즈", "리버스펙덱플라이", "케이블이두컬", "라잉트라이셉스"];
+const BOOST_POOL = ["덤벨풀오버", "펙덱플라이", "케이블푸쉬다운", "사이드레터럴레이즈", "리버스펙덱플라이", "케이블이두컬", "라잉트라이셉스"];
 const DAY_ORDER = ["chest", "back", "legs"];
 function dayKeyOf(name) {
   const hit = EXERCISE_ROUTINES.find(r => r.items.some(i => i.name === name));
@@ -2343,6 +2344,7 @@ const EX_ORDER = {
   "인클라인 덤벨프레스": [2, "윗가슴 복합 운동 — 벤치 다음으로 큰 운동"],
   "시티드 덤벨 숄더프레스": [3, "어깨 복합 — 삼두·앞 어깨가 아직 남아 있을 때"],
   "사이드레터럴레이즈": [4, "작은 근육 고립 — 가벼워서 지친 뒤에도 괜찮아요"],
+  "덤벨풀오버": [2, "가슴·광배·전거근을 길게 늘리는 큰 동작 — 보강 날 첫 운동으로 (몸통 앞뒤 두께)"],
   "펙덱플라이": [5, "가슴 고립 마무리 — 복합 운동 뒤에"],
   "라잉트라이셉스": [5, "등 날엔 당기는 운동이라 삼두가 쉬어 있어요 — 마지막에"],
   "케이블푸쉬다운": [7, "삼두 마무리 — 맨 뒤"],
@@ -2379,7 +2381,7 @@ function workoutSessions() {
    { from, to, focus, notes[], setDelta:{종목:±세트}, boost:[{name,reps}], hold:[종목] } */
 function coachWorkout() {
   const w = growthCoach && growthCoach.workout, t = todayStr();
-  return w && w.from && w.to && w.from <= t && t <= w.to ? w : null;
+  return w && w.from && w.from <= t ? w : null;   // 만료일 없이, 코칭이 새 조정을 올릴 때까지 유지(찬진 10-13: 1주일 기준이 아니라 전체 흐름으로)
 }
 function planWorkout() {
   const today = todayStr(), ss = workoutSessions(), cw = coachWorkout();
@@ -2390,24 +2392,24 @@ function planWorkout() {
   const base = (doneToday && doneToday.key !== "boost" ? doneToday : null) || prev, from = base ? DAY_ORDER.indexOf(base.key) : -1;
   const dist = k => ((DAY_ORDER.indexOf(k) - from + 3) % 3) || 3;   // 직전 날 다음 순서일수록 작다
   const rec = DAY_ORDER.slice().sort((a, b) => (last[a] || "").localeCompare(last[b] || "") || dist(a) - dist(b))[0];
-  const monday = twoWeekDates()[0];
   const hasBoost = !!(cw && cw.boost && cw.boost.length);
-  const boostRec = hasBoost && rot.filter(s => s.d >= monday).length >= 3 && !lifted.some(s => s.key === "boost" && s.d >= monday);
+  const sinceBoost = rot.filter(s => s.d > (last.boost || "")).length;            // 마지막 보강 날 뒤로 한 운동 횟수
+  const boostRec = hasBoost && sinceBoost > 0 && sinceBoost % 3 === 0;              // 가슴·등·다리를 세 번 할 때마다 한 번 권한다(요일·주 단위가 아님)
   const dayList = hasBoost ? [...DAY_ORDER, "boost"] : DAY_ORDER;
   const days = new Set(ss.map(s => s.d));
   let streak = 0; const cur = new Date(); if (!days.has(today)) cur.setDate(cur.getDate() - 1);
   while (days.has(dateStr(cur))) { streak++; cur.setDate(cur.getDate() - 1); }
   const lines = [];
   if (streak >= 3) lines.push(`<span class="warn">${streak}일 연속 운동했어요</span> — ${doneToday ? "내일은" : "오늘은"} 쉬거나 가볍게 걷기도 좋아요. 근육은 쉴 때 자라요.`);
-  if (boostRec) lines.push("이번 주 3일을 채웠어요 → 4일째는 <b>보강 날</b>(코칭이 정한 보강 종목, 가볍게).");
+  if (boostRec) lines.push("가슴·등·다리를 한 바퀴 돌았어요 → 다음은 <b>보강 날</b>(코칭이 정한 보강 종목, 가볍게).");
   if (!lifted.length) lines.push("아직 웨이트 기록이 없어요. 이 목록으로 시작하고, 기록이 쌓이면 지난 무게를 기준으로 올릴 때를 알려줘요.");
   else {
     if (prev) lines.push(`직전 운동은 ${DAY_LABEL[prev.key]}(${agoText(dayDiff(today, prev.d))}) → 다음 차례는 <b>${DAY_LABEL[rec]}</b>${last[rec] ? ` (마지막 ${agoText(dayDiff(today, last[rec]))})` : " (기록 없음)"}.`);
     const lg = last.legs ? dayDiff(today, last.legs) : null;
     if (rec !== "legs" && lifted.length >= 3 && (lg == null || lg >= 9)) lines.push(`다리 날이 ${lg == null ? "아직 한 번도 없어요" : lg + "일째 비었어요"} — 하체는 빠지기 쉬우니 다음엔 꼭.`);
   }
-  const { week } = exerciseCounts();
-  lines.push(`이번 주 ${week}일째 (목표 3~4일).`);
+  const recent = ss.filter(x => dayDiff(today, x.d) <= 13).length;
+  lines.push(`최근 2주에 ${recent}일 운동했어요.`);
   return { ss, last, doneToday, prev, rec: boostRec ? "boost" : rec, days: dayList, cw, streak, lines };
 }
 function suggestItem(item, ss) {
