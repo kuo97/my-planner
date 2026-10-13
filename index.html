@@ -1953,8 +1953,13 @@ async function renderDiary() {
       const name = addInput.value.trim();
       if (!name) return;
       if (activeRoutine.items.some(i => i.name === name)) { toast("이미 목록에 있어요"); return; }
-      const known = EXERCISE_CATALOG.find(c => c.name === name);
-      activeRoutine.items.push(known ? { ...known } : { name, w: 20, reps: "12×5" });
+      /* 이름이 정확히 같지 않아도(예: '이두컬' → '케이블이두컬') 목록에서 비슷한 종목을 찾아 프로그램의 무게·세트를 쓴다.
+         목록에 없는 종목만 기본값(20kg 12×3) — 예전 기본값 12×5 는 세트가 많아 보여서 3세트로 낮췄다 */
+      const nm = (x) => String(x).replace(/s/g, "").toLowerCase();
+      const cands = EXERCISE_CATALOG.filter(c => !activeRoutine.items.some(i => i.name === c.name) && (nm(c.name) === nm(name) || nm(c.name).includes(nm(name)) || nm(name).includes(nm(c.name))));
+      const known = EXERCISE_CATALOG.find(c => c.name === name) || (cands.length === 1 ? cands[0] : null);
+      activeRoutine.items.push(known ? { ...known } : { name, w: 20, reps: "12×3" });
+      if (known && known.name !== name) toast(`'${name}' → '${known.name}'(프로그램 값)으로 넣었어요`);
       syncChips();
       renderRoutineEditor();
       syncRoutineNote();
