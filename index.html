@@ -1162,6 +1162,10 @@ function splitReps(reps) {
 }
 let sb = null, user = null, tasks = [], repeatLog = [], view = "today", editing = null;
 let taskTab = "today";
+/* 새로고침해도 보던 탭에 그대로 머문다(같은 창 안에서만 — 앱을 완전히 닫았다 열면 '오늘'부터) */
+const VIEWS = ["today", "diary", "calendar", "publish"];
+const keepNav = () => { try { sessionStorage.setItem("planner_nav", JSON.stringify({ view, taskTab })); } catch {} };
+try { const sv = JSON.parse(sessionStorage.getItem("planner_nav") || "null"); if (sv && VIEWS.includes(sv.view)) { view = sv.view; if (sv.taskTab === "inbox") taskTab = "inbox"; } } catch {}
 let calY = new Date().getFullYear(), calM = new Date().getMonth(), calSel = null, calMap = {};
 
 const $ = (id) => document.getElementById(id);
@@ -4085,7 +4089,7 @@ function render() {
     <button type="button" data-t="today" class="${taskTab === "today" ? "on" : ""}">오늘</button>
     <button type="button" data-t="inbox" class="${taskTab === "inbox" ? "on" : ""}">메모함</button>`;
   subNav.querySelectorAll("button").forEach(b => {
-    b.addEventListener("click", () => { taskTab = b.dataset.t; render(); });
+    b.addEventListener("click", () => { taskTab = b.dataset.t; keepNav(); render(); });
   });
   list.appendChild(subNav);
 
@@ -4454,9 +4458,11 @@ document.querySelectorAll("nav button").forEach(b => {
     view = b.dataset.view;
     if (view === "diary") editDate = todayStr();
     if (view === "today") taskTab = "today";
+    keepNav();
     render();
   });
 });
+document.querySelectorAll("nav button").forEach(x => x.classList.toggle("active", x.dataset.view === view));   // 새로고침 뒤 보던 탭 표시 복원
 
 $("quickBtn").addEventListener("click", () => {
   const v = $("quickInput").value.trim();
