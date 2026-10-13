@@ -896,6 +896,7 @@
   .rt-sort { display: block; width: 100%; margin: 8px 0 2px; padding: 7px; border: 1.5px dashed var(--sage); border-radius: 10px; background: transparent; color: var(--sage); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; }
   .wk-coach { margin: 8px 0 2px; padding: 8px 10px; border-radius: 10px; background: var(--sage-soft); font-size: 12.5px; line-height: 1.55; }
   .wk-row .wk-coachtag { color: var(--sage); font-weight: 700; }
+  .wk-row small.wk-warn { color: var(--danger); font-weight: 600; }
   .wk-foot { font-size: 11.5px; color: var(--muted); margin-top: 7px; text-align: center; }
 
   /* ---------- 루틴 에디터 (운동별 무게 조절) ---------- */
@@ -2006,12 +2007,14 @@ async function renderDiary() {
     try {
       const plan = planWorkout();
       let sel = plan.rec, open = false; const skip = new Set();
+      const autoSkip = () => { skip.clear(); try { fatigueSkips(workoutSuggestView(plan, sel, false, new Set()).items).names.forEach(n => skip.add(n)); } catch {} };
+      autoSkip();
       try { open = localStorage.getItem("wk_open") === "1"; } catch {}   // 접고 펴기는 기억한다(기본 접힘)
       const draw = () => {
         const v = workoutSuggestView(plan, sel, open, skip);
         el.innerHTML = v.html;
         el.querySelector("details").addEventListener("toggle", e => { open = e.target.open; try { localStorage.setItem("wk_open", open ? "1" : "0"); } catch {} });
-        el.querySelectorAll(".wk-days button").forEach(b => b.addEventListener("click", () => { sel = b.dataset.k; skip.clear(); open = true; draw(); }));
+        el.querySelectorAll(".wk-days button").forEach(b => b.addEventListener("click", () => { sel = b.dataset.k; autoSkip(); open = true; draw(); }));
         el.querySelectorAll(".wk-row").forEach(r => r.addEventListener("click", () => { const n = r.dataset.n; if (skip.has(n)) skip.delete(n); else skip.add(n); open = true; draw(); }));
         el.querySelector(".wk-fill").addEventListener("click", () => {
           if (activeRoutine && !confirm("지금 고른 운동을 이 목록으로 바꿀까요?")) return;
@@ -2421,6 +2424,14 @@ function suggestItem(item, ss) {
   out.w = Math.round(out.w * 2) / 2;
   return out;
 }
+/* 같은 날 앞 운동이 근육을 이미 털었으면 그 근육의 고립 운동은 기본으로 빼 준다(찬진 10-13: 벤치·인클라인을 하면 삼두가 다 털려서 라잉 트라이셉스는 그날 못 함).
+   프레스류(벤치·인클라인·숄더프레스) 합계 10세트 이상이면 삼두 고립 운동을 '생략 추천'. 눌러서 다시 넣을 수 있다. */
+const PRESS_FOR_TRI = ["벤치프레스", "인클라인 덤벨프레스", "시티드 덤벨 숄더프레스"], TRI_ISO = ["라잉트라이셉스", "케이블푸쉬다운"];
+function fatigueSkips(items) {
+  const sets = items.filter(i => PRESS_FOR_TRI.includes(i.name)).reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
+  const why = {}; if (sets >= 10) items.filter(i => TRI_ISO.includes(i.name)).forEach(i => { why[i.name] = `삼두는 프레스 ${sets}세트에서 이미 털렸어요 — 오늘은 생략 추천 (주간 삼두는 프레스로 충분, 필요하면 눌러서 넣기)`; });
+  return { why, names: Object.keys(why) };
+}
 function workoutSuggestView(plan, sel, open, skip) {
   skip = skip || new Set();
   const cw = plan.cw, today = todayStr();
@@ -2435,6 +2446,7 @@ function workoutSuggestView(plan, sel, open, skip) {
     if (cw && cw.hold && cw.hold.includes(i.name) && o.up) { o.w = o.w0; o.up = false; o.tip = "코칭 — 이번 주는 무게를 올리지 않고 유지"; o.coach = true; }
     return o;
   });
+  const fat = fatigueSkips(items);
   const chosen = items.filter(i => !skip.has(i.name));
   const total = chosen.reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
   const head = plan.doneToday ? `오늘 ${DAY_LABEL[plan.doneToday.key]} 완료 ✅ · 다음은 ${DAY_LABEL[plan.rec]}` : `${DAY_LABEL[plan.rec]} 차례`;
@@ -2442,7 +2454,7 @@ function workoutSuggestView(plan, sel, open, skip) {
   const html = `<details class="wk-sg"${open ? " open" : ""}><summary>💪 <b>오늘 운동 제안</b> <small>${head}</small></summary>
     ${cwHtml}<div class="wk-why">${plan.lines.join("<br>")}</div>
     <div class="wk-days">${plan.days.map(k => `<button type="button" data-k="${k}" class="${k === sel ? "on" : ""}">${DAY_LABEL[k]}${k === plan.rec ? " ★" : ""}${plan.last[k] ? ` <small>${agoText(dayDiff(today, plan.last[k]))}</small>` : ""}</button>`).join("")}</div>
-    ${items.map((i, n) => `<div class="wk-row${skip.has(i.name) ? " off" : ""}" data-n="${escapeHtml(i.name)}" title="누르면 오늘 운동에서 빼거나 다시 넣어요"><b><span class="wk-ck">✓</span><span class="wk-no">${skip.has(i.name) ? "" : chosen.indexOf(i) + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
+    ${items.map((i, n) => `<div class="wk-row${skip.has(i.name) ? " off" : ""}" data-n="${escapeHtml(i.name)}" title="누르면 오늘 운동에서 빼거나 다시 넣어요"><b><span class="wk-ck">✓</span><span class="wk-no">${skip.has(i.name) ? "" : chosen.indexOf(i) + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${fat.why[i.name] ? `<small class="wk-warn">⚠ ${escapeHtml(fat.why[i.name])}</small>` : ""}${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
     <div class="wk-foot" style="margin:6px 0 0">하기 싫은 운동은 눌러서 빼세요 (${chosen.length}/${items.length}개 선택)</div>
     <button type="button" class="wk-fill"${chosen.length ? "" : " disabled"}>${chosen.length ? `고른 ${chosen.length}개로 일기에 채우기` : "운동을 하나 이상 골라 주세요"}</button>
     <div class="wk-foot">총 ${total}세트${total > 20 ? " ⚠ 20세트가 넘어요 — 뒤쪽 고립 운동은 줄여도 돼요" : ""} · 마지막 세트는 1~2회 남기고 끝내기 · 끝나면 단백질 20g 이상</div></details>`;
