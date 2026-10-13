@@ -156,6 +156,12 @@
   }
   .hair-toggle.on { border-style: solid; border-color: var(--ink); color: var(--ink); background: var(--paper-card); }
   /* 생활 기록: 계절 칩 + 접히는 카드 */
+  .daily-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+  .ds-label { font-size: 12px; color: var(--muted); font-weight: 700; margin-right: 2px; }
+  .ds-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 7px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper-card); font-family: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
+  .ds-chip i { display: inline-grid; place-items: center; width: 17px; height: 17px; border: 1.5px solid #CFC3AD; border-radius: 50%; font-style: normal; font-size: 10px; color: #fff; }
+  .ds-chip.on { color: var(--muted); }
+  .ds-chip.on i { background: var(--sage); border-color: var(--sage); }
   .season-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .season-chip { padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; }
   .diet-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -4137,6 +4143,25 @@ function render() {
       taskList.appendChild(banner);
     }
 
+    /* 매일(7요일 전부) 반복하는 할 일은 14칸에 똑같이 깔지 않고 위에 한 줄 칩으로 모은다 — 오늘 체크만 */
+    const isDaily = t => t.repeat_days && t.repeat_days.length === 7 && !(t.sub_total > 0);
+    const dailies = tasks.filter(isDaily);
+    if (dailies.length) {
+      const strip = document.createElement("div");
+      strip.className = "daily-strip";
+      strip.innerHTML = `<span class="ds-label">매일</span>`;
+      dailies.forEach(t => {
+        const done = repeatLog.some(r => r.task_id === t.id && r.done_on === today);
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "ds-chip" + (done ? " on" : "");
+        b.innerHTML = `<i>${done ? "✓" : ""}</i>${escapeHtml(t.title)}`;
+        b.title = "누르면 오늘 한 걸로 체크 · 오른쪽 클릭으로 수정";
+        b.addEventListener("click", () => applyRepeatLogState(t.id, !done, { on: today }));
+        b.addEventListener("contextmenu", (e) => { e.preventDefault(); openTaskCtxMenu(e.clientX, e.clientY, t); });
+        strip.appendChild(b);
+      });
+      taskList.appendChild(strip);
+    }
     const week2 = twoWeekDates(); // 이번 주 월~일(0~6) 다음 다음 주 월~일(7~13), 순서 그대로 날짜순
     const wrap = document.createElement("div");
     wrap.className = "week-board-wrap";
@@ -4149,7 +4174,7 @@ function render() {
       const i = dow;
       const dTasks = tasks.filter(t => {
         const isRepeat = t.repeat_days && t.repeat_days.length;
-        if (isRepeat) return t.repeat_days.includes(i);
+        if (isRepeat) return t.repeat_days.includes(i) && !isDaily(t);
         if (!t.due) return false;
         // 마감 지난(오늘 포함) 미완료 할 일은 원래 요일이 아니라 '오늘' 칸에 모아 보여준다
         if (!t.done_at && t.due <= today) return d === today;
