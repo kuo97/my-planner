@@ -1132,14 +1132,14 @@ const EXERCISE_ROUTINES = [
     { name: "인클라인 덤벨프레스", w: 9, reps: "10×4", memo: "한쪽 무게 · 등받이 30도", step: 1 },
     { name: "시티드 덤벨 숄더프레스", w: 8, reps: "12×4", memo: "한쪽 무게 · OHP 대체", step: 1 },
     { name: "사이드레터럴레이즈", w: 7, reps: "10~12×4", memo: "덤벨 · 10회에서 실패할 무게", step: 1 },
-    { name: "라잉트라이셉스", w: 15, reps: "12×3", memo: "장두 늘려서 · 첫 세트 가볍게" },
+    { name: "케이블이두컬", w: 25, reps: "12×3", memo: "가슴 날엔 이두가 쉬어서 여기서 · 10/13 교차 배치" },
   ]},
   { key: "back", label: "등 날", items: [
     { name: "렛풀다운", w: 32, reps: "12×4", memo: "워밍업 20×10→25×5" },
     { name: "티바로우", w: 17.5, reps: "10×4", memo: "무겁게", step: 2.5 },
     { name: "시티드로우", w: 25, reps: "12×3" },
     { name: "리버스펙덱플라이", w: 10, reps: "12×3", step: 2.5 },
-    { name: "케이블이두컬", w: 25, reps: "12×3" },
+    { name: "라잉트라이셉스", w: 15, reps: "12×3", memo: "등 날엔 삼두가 쉬어서 여기서 · 장두 늘려서 · 첫 세트 가볍게" },
   ]},
   { key: "legs", label: "다리 날", items: [
     { name: "V스쿼트 머신", w: 45, reps: "12×4", memo: "워밍업 20×10→35×5" },
@@ -2344,13 +2344,13 @@ const EX_ORDER = {
   "시티드 덤벨 숄더프레스": [3, "어깨 복합 — 삼두·앞 어깨가 아직 남아 있을 때"],
   "사이드레터럴레이즈": [4, "작은 근육 고립 — 가벼워서 지친 뒤에도 괜찮아요"],
   "펙덱플라이": [5, "가슴 고립 마무리 — 복합 운동 뒤에"],
-  "라잉트라이셉스": [6, "삼두는 위 운동에서 이미 많이 썼어요 — 맨 뒤"],
+  "라잉트라이셉스": [5, "등 날엔 당기는 운동이라 삼두가 쉬어 있어요 — 마지막에"],
   "케이블푸쉬다운": [7, "삼두 마무리 — 맨 뒤"],
   "티바로우": [1, "등에서 가장 무겁고 허리를 쓰는 운동 — 허리가 신선할 때 먼저"],
   "렛풀다운": [2, "광배를 쓰는 큰 복합 운동 — 두 번째"],
   "시티드로우": [3, "등 중부 복합 — 무게보다 쥐어짜기"],
   "리버스펙덱플라이": [4, "후면 어깨 고립 — 로우에서 이미 썼으니 가볍게"],
-  "케이블이두컬": [5, "이두는 등 운동에서 이미 많이 썼어요 — 맨 뒤"],
+  "케이블이두컬": [5, "가슴 날엔 미는 운동이라 이두가 쉬어 있어요 — 마지막에"],
   "V스쿼트 머신": [1, "하체에서 가장 크고 무거운 운동 — 먼저"],
   "덤벨 RDL": [2, "햄스트링·허리 — 스쿼트 뒤, 허리 힘이 남아 있을 때 자세 위주로"],
   "레그프레스": [3, "다리 복합이지만 안전해서 지친 뒤에도 괜찮아요"],
@@ -2427,9 +2427,12 @@ function suggestItem(item, ss) {
 /* 같은 날 앞 운동이 근육을 이미 털었으면 그 근육의 고립 운동은 기본으로 빼 준다(찬진 10-13: 벤치·인클라인을 하면 삼두가 다 털려서 라잉 트라이셉스는 그날 못 함).
    프레스류(벤치·인클라인·숄더프레스) 합계 10세트 이상이면 삼두 고립 운동을 '생략 추천'. 눌러서 다시 넣을 수 있다. */
 const PRESS_FOR_TRI = ["벤치프레스", "인클라인 덤벨프레스", "시티드 덤벨 숄더프레스"], TRI_ISO = ["라잉트라이셉스", "케이블푸쉬다운"];
+const PULL_FOR_BI = ["렛풀다운", "티바로우", "시티드로우"], BI_ISO = ["케이블이두컬"];
 function fatigueSkips(items) {
-  const sets = items.filter(i => PRESS_FOR_TRI.includes(i.name)).reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
-  const why = {}; if (sets >= 10) items.filter(i => TRI_ISO.includes(i.name)).forEach(i => { why[i.name] = `삼두는 프레스 ${sets}세트에서 이미 털렸어요 — 오늘은 생략 추천 (주간 삼두는 프레스로 충분, 필요하면 눌러서 넣기)`; });
+  const sum = (names) => items.filter(i => names.includes(i.name)).reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
+  const why = {}, tri = sum(PRESS_FOR_TRI), bi = sum(PULL_FOR_BI);
+  if (tri >= 10) items.filter(i => TRI_ISO.includes(i.name)).forEach(i => { why[i.name] = `삼두는 프레스 ${tri}세트에서 이미 털렸어요 — 오늘은 생략 추천 (삼두는 등 날에 해요, 필요하면 눌러서 넣기)`; });
+  if (bi >= 10) items.filter(i => BI_ISO.includes(i.name)).forEach(i => { why[i.name] = `이두는 당기기 ${bi}세트에서 이미 털렸어요 — 오늘은 생략 추천 (이두는 가슴 날에 해요, 필요하면 눌러서 넣기)`; });
   return { why, names: Object.keys(why) };
 }
 function workoutSuggestView(plan, sel, open, skip) {
