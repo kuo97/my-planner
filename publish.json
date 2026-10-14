@@ -1801,13 +1801,13 @@
     },
     "instagram": {
      "who": "session",
-     "status": "pending",
+     "status": "scheduled",
      "due": "2026-10-23T21:00:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "pending",
+     "status": "scheduled",
      "due": "2026-10-23T21:00:00+09:00",
      "ready": true
     },

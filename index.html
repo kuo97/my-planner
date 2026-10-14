@@ -449,6 +449,39 @@
   .pub-legend .lg.s-published { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); }
 
   .pub-legend { font-size: 11.5px; color: var(--muted); margin: 4px 0 2px; line-height: 1.6; }
+  /* 발행 탭 v3 (2026-10-14 찬진: "장황하고 눈에 안 띄어 — 잘 띄고 깔끔하게") */
+  .pv-todo { background: #FFF1EC; border: 2px solid var(--coral); border-radius: 18px; padding: 12px 14px 8px; margin: 6px 0 14px; }
+  .pv-todo-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .pv-todo-h b { font-size: 16px; color: var(--coral); font-weight: 800; }
+  .pv-todo-h small { color: var(--muted); font-size: 12px; font-weight: 600; }
+  .pv-row { display: grid; grid-template-columns: 54px 1fr auto; align-items: center; gap: 4px 10px; padding: 10px 0; border-top: 1.5px dashed rgba(255, 107, 74, .3); }
+  .pv-row:first-of-type { border-top: 0; }
+  .pv-when { font-size: 12px; font-weight: 800; color: var(--coral); line-height: 1.3; text-align: center; }
+  .pv-when i { display: block; font-style: normal; font-size: 11px; color: var(--muted); font-weight: 700; }
+  .pv-title { min-width: 0; font-size: 14.5px; font-weight: 800; line-height: 1.35; }
+  .pv-title small { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 2px; }
+  .pv-btn { appearance: none; border: 2px solid var(--coral); background: #fff; color: var(--coral); border-radius: 999px; padding: 6px 12px; font-family: inherit; font-weight: 800; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+  .pv-btn.s-scheduled { border-color: var(--gcal); color: var(--gcal); background: var(--gcal-soft); }
+  .pv-btn.s-published { border-color: var(--sage); color: var(--sage); background: var(--sage-soft); }
+  .pv-allok { padding: 14px; text-align: center; color: var(--sage); font-weight: 800; background: var(--sage-soft); border-radius: 16px; margin: 6px 0 14px; }
+  .pv-day { display: flex; align-items: baseline; gap: 8px; margin: 18px 0 6px; }
+  .pv-day .d { font-weight: 800; font-size: 15px; }
+  .pv-day.today .d { color: var(--coral); }
+  .pv-day .w { font-size: 12px; font-weight: 800; color: var(--coral); }
+  .pv-day .n { margin-left: auto; font-size: 11.5px; color: var(--muted); font-weight: 700; }
+  .pv-card { background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 7px; }
+  .pv-card.done { background: #F5F2EA; }
+  .pv-card .tt { display: flex; align-items: baseline; gap: 7px; font-size: 14.5px; font-weight: 800; line-height: 1.4; }
+  .pv-card .tt .kind { flex: none; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: #EFE9DA; color: var(--muted); }
+  .pv-card .me { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+  .pv-card details.auto { margin-top: 6px; }
+  .pv-card details.auto > summary { cursor: pointer; list-style: none; font-size: 12px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .pv-card details.auto > summary::-webkit-details-marker { display: none; }
+  .pv-card details.auto > summary::before { content: "▸"; font-size: 10px; }
+  .pv-card details.auto[open] > summary::before { content: "▾"; }
+  .pv-card .pub-ch { margin-top: 6px; }
+  .pv-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
+  .pv-dot.s-todo { background: var(--coral); } .pv-dot.s-ready, .pv-dot.s-published { background: var(--sage); } .pv-dot.s-scheduled { background: var(--gcal); }
   .pub-updated { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: 10px; }
   .pub-more { width: 100%; padding: 10px; border-radius: 12px; border: 1.5px dashed var(--line); background: transparent; color: var(--muted); font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 6px; }
 
@@ -4345,7 +4378,7 @@ const PUBLISH_URL = "./publish.json";
 const PUB_CH = { youtube: "유튜브", shorts: "쇼츠", instagram: "인스타", threads: "쓰레드", blog: "블로그", clip: "클립", kakao: "카카오" };
 const PUB_ST = { todo: "대기", scheduled: "예약됨", published: "발행됨", skip: "안 올림" };
 const PUB_CYCLE = ["todo", "scheduled", "published"];
-let publishData = null, publishStatus = {}, publishShowPast = false;
+let publishData = null, publishStatus = {}, publishShowPast = false, publishShowFar = false;
 
 async function loadPublish() {
   try {
@@ -4403,11 +4436,15 @@ function renderPublish() {
   if (!publishData) { list.innerHTML = '<div class="empty">publish.json 을 못 읽었어요. 세션이 아직 push 하지 않았거나 오프라인이에요.</div>'; return; }
   const today = todayStr();
   const slots = (publishData.slots || []).slice().sort(function (x, y) { return (x.date + x.time).localeCompare(y.date + y.time); });
+  const dayDiff2 = function (ds) { return Math.round((new Date(ds + "T00:00:00") - new Date(today + "T00:00:00")) / 86400000); };
+  const dayLabel = function (ds) { const d = new Date(ds + "T00:00:00"), n = dayDiff2(ds); return n === 0 ? "오늘" : n === 1 ? "내일" : (d.getMonth() + 1) + "/" + d.getDate() + " " + DAY_NAMES[d.getDay()]; };
+  const mineOf = function (slot) { return Object.entries(slot.channels || {}).filter(function (e) { return e[1].who === "chanjin"; }); };
+  const autoOf = function (slot) { return Object.entries(slot.channels || {}).filter(function (e) { return e[1].who !== "chanjin"; }); };
 
+  /* 1) 납기(있을 때만) */
   const dls = (publishData.deadlines || []).filter(function (x) { return x.status !== "done"; }).sort(function (x, y) { return x.due.localeCompare(y.due); });
   dls.forEach(function (x) {
-    const dd = Math.round((new Date(x.due + "T00:00:00") - new Date(today + "T00:00:00")) / 86400000);
-    const d = new Date(x.due + "T00:00:00");
+    const dd = dayDiff2(x.due), d = new Date(x.due + "T00:00:00");
     const card = document.createElement("div"); card.className = "pub-deadline" + (dd <= 2 ? " urgent" : "");
     card.innerHTML = '<div class="dday">' + (dd < 0 ? "D+" + (-dd) : dd === 0 ? "D-DAY" : "D-" + dd) + '</div>'
       + '<div class="body"><div class="k">' + (x.kind || "납기") + ' · ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + DAY_NAMES[d.getDay()] + '</div>'
@@ -4415,73 +4452,103 @@ function renderPublish() {
     list.appendChild(card);
   });
 
-  const lg = document.createElement("div"); lg.className = "pub-legend";
-  lg.innerHTML = '<span class="bar"></span> 왼쪽 빨간 선 = <b>내가 아직 안 올린 것</b>'
-    + ' &nbsp;·&nbsp; <span class="lg s-todo">대기</span> <span class="lg s-ready">준비됨</span>'
-    + ' <span class="lg s-scheduled">예약됨</span> <span class="lg s-published">발행됨</span>'
-    + ' &nbsp;·&nbsp; 점선 = <b>자동 발행</b>';
-  list.appendChild(lg);
+  /* 2) 내가 올릴 것 — 맨 위에 크게. 아직 안 올린 것(오늘까지 밀린 것 + 앞으로 3일)만 */
+  const open = [];
+  slots.forEach(function (slot) {
+    if (slot.date > cwAdd(today, 3)) return;
+    mineOf(slot).forEach(function (e) {
+      const st = pubChipState(slot, e[0], e[1]).status;
+      if (["published", "skip"].indexOf(st) < 0) open.push({ slot: slot, ch: e[0], conf: e[1], st: st });
+    });
+  });
+  const box = document.createElement("div");
+  if (!open.length) {
+    box.className = "pv-allok"; box.textContent = "✓ 지금 올릴 게 없어요";
+  } else {
+    box.className = "pv-todo";
+    box.innerHTML = '<div class="pv-todo-h"><b>내가 올릴 것 ' + open.length + '개</b><small>버튼을 누르면 대기 → 예약함 → 발행함</small></div>';
+    open.forEach(function (o) {
+      const row = document.createElement("div"); row.className = "pv-row";
+      const late = o.slot.date < today;
+      row.innerHTML = '<div class="pv-when">' + (late ? "밀림" : dayLabel(o.slot.date)) + '<i>' + pubHM(o.conf.due, o.slot, o.ch) + '</i></div>'
+        + '<div class="pv-title">' + pubShort(o.slot) + '<small>' + (PUB_CH[o.ch] || o.ch) + '</small></div>';
+      const btn = document.createElement("button"); btn.className = "pv-btn s-" + o.st;
+      btn.textContent = PUB_ST[o.st] || o.st;
+      btn.addEventListener("click", function () { pubCycle(o.slot, o.ch, o.conf, btn); });
+      row.appendChild(btn);
+      box.appendChild(row);
+    });
+  }
+  list.appendChild(box);
 
+  /* 3) 날짜별 — 짧게: 제목 + (내 몫 칩) + 자동은 접어서 한 줄 */
   const drawDays = function (arr, isPast) {
-    let lastDate = null;
+    let lastDate = null, dayEl = null;
     arr.forEach(function (slot) {
       if (slot.date !== lastDate) {
         lastDate = slot.date;
-        const d = new Date(slot.date + "T00:00:00");
-        const dd = Math.round((d - new Date(today + "T00:00:00")) / 86400000);
-        const h = document.createElement("div");
-        h.className = "pub-day" + (dd === 0 ? " today" : "");
-        h.innerHTML = '<span class="d">' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + DAY_NAMES[d.getDay()] + '</span>'
-          + '<span class="w">' + (dd === 0 ? "오늘" : dd === 1 ? "내일" : "") + '</span>';
-        list.appendChild(h);
+        const d = new Date(slot.date + "T00:00:00"), n = dayDiff2(slot.date);
+        const cnt = arr.filter(function (x) { return x.date === slot.date; }).length;
+        dayEl = document.createElement("div");
+        dayEl.className = "pv-day" + (n === 0 ? " today" : "");
+        dayEl.innerHTML = '<span class="d">' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + DAY_NAMES[d.getDay()] + '</span>'
+          + (n === 0 ? '<span class="w">오늘</span>' : n === 1 ? '<span class="w">내일</span>' : '') + '<span class="n">' + cnt + '편</span>';
+        list.appendChild(dayEl);
       }
-      const all = Object.entries(slot.channels || {});
-      const mine = all.filter(function (e) { return e[1].who === "chanjin"; });
-      const auto = all.filter(function (e) { return e[1].who !== "chanjin"; });
+      const mine = mineOf(slot), auto = autoOf(slot);
       const needMe = mine.some(function (e) { return ["published", "skip"].indexOf(pubChipState(slot, e[0], e[1]).status) < 0; });
       const card = document.createElement("div");
-      card.className = "pub-slot" + (isPast ? " done" : needMe ? " mine" : "");
-      card.innerHTML = '<div class="t2"><span class="kind">' + (slot.kind || "") + '</span>' + pubShort(slot) + '</div>';
-
-      if (mine.length) {
-        const r1 = document.createElement("div"); r1.className = "pub-ch";
-        const lb = document.createElement("span"); lb.className = "rowlab"; lb.textContent = "내가"; r1.appendChild(lb);
+      card.className = "pv-card" + (isPast ? " done" : "");
+      card.innerHTML = '<div class="tt"><span class="kind">' + (slot.kind || "") + '</span><span>' + pubShort(slot) + '</span></div>';
+      if (mine.length && !isPast) {
+        const row = document.createElement("div"); row.className = "me";
         mine.forEach(function (e) {
           const ch = e[0], conf = e[1], st = pubChipState(slot, ch, conf);
-          const btn = document.createElement("button"); btn.className = "s-" + st.status;
-          btn.innerHTML = (PUB_CH[ch] || ch) + ' <b>' + pubHM(conf.due, slot, ch) + '</b>'
-            + ' · ' + (PUB_ST[st.status] || st.status);
+          const btn = document.createElement("button"); btn.className = "pv-btn s-" + st.status;
+          btn.innerHTML = (PUB_CH[ch] || ch) + ' ' + pubHM(conf.due, slot, ch) + ' · ' + (PUB_ST[st.status] || st.status);
           btn.addEventListener("click", function () { pubCycle(slot, ch, conf, btn); });
-          r1.appendChild(btn);
+          row.appendChild(btn);
         });
-        card.appendChild(r1);
+        card.appendChild(row);
       }
       if (auto.length) {
+        const sts = auto.map(function (e) { const st = pubChipState(slot, e[0], e[1]); return st.status === "todo" && e[1].ready ? "ready" : st.status; });
+        const cnt = function (k) { return sts.filter(function (x) { return x === k; }).length; };
+        const bits = [];
+        if (cnt("published")) bits.push('<span class="pv-dot s-published"></span>발행 ' + cnt("published"));
+        if (cnt("scheduled")) bits.push('<span class="pv-dot s-scheduled"></span>예약 ' + cnt("scheduled"));
+        if (cnt("ready")) bits.push('<span class="pv-dot s-ready"></span>준비됨 ' + cnt("ready"));
+        if (cnt("todo")) bits.push('<span class="pv-dot s-todo"></span>대기 ' + cnt("todo"));
+        const det = document.createElement("details"); det.className = "auto";
+        det.innerHTML = '<summary>자동 ' + auto.length + '건 · ' + bits.join(" · ") + '</summary>';
         const r2 = document.createElement("div"); r2.className = "pub-ch auto";
-        const lb = document.createElement("span"); lb.className = "rowlab"; lb.textContent = "자동"; r2.appendChild(lb);
         auto.forEach(function (e) {
           const ch = e[0], conf = e[1], st = pubChipState(slot, ch, conf);
-          // 아직 안 나갔지만 영상·캡션이 다 있으면 '대기' 가 아니라 '준비됨' 이다 (2026-09-24 찬진)
           const label = st.status === "todo" && conf.ready ? "준비됨" : (PUB_ST[st.status] || st.status);
           const txt = (PUB_CH[ch] || ch) + " " + pubHM(conf.due, slot, ch) + " · " + label;
           const cls = "s-" + st.status + " s-session" + (st.status === "todo" && conf.ready ? " s-ready" : "");
-          if (st.url) {
-            const a2 = document.createElement("a"); a2.href = st.url; a2.target = "_blank";
-            a2.className = cls; a2.innerHTML = txt + " ↗"; r2.appendChild(a2);
-          } else {
-            const sp = document.createElement("span"); sp.className = cls;
-            sp.textContent = txt; r2.appendChild(sp);
-          }
+          if (st.url) { const a2 = document.createElement("a"); a2.href = st.url; a2.target = "_blank"; a2.className = cls; a2.innerHTML = txt + " ↗"; r2.appendChild(a2); }
+          else { const sp = document.createElement("span"); sp.className = cls; sp.textContent = txt; r2.appendChild(sp); }
         });
-        card.appendChild(r2);
+        det.appendChild(r2);
+        card.appendChild(det);
       }
       list.appendChild(card);
     });
   };
 
+  /* 4) 앞으로 7일만 먼저, 나머지는 더 보기 */
   const upcoming = slots.filter(function (x) { return x.date >= today; });
+  const near = upcoming.filter(function (x) { return x.date <= cwAdd(today, 6); });
+  const far = upcoming.filter(function (x) { return x.date > cwAdd(today, 6); });
   if (!upcoming.length) { const e0 = document.createElement("div"); e0.className = "empty"; e0.textContent = "예정된 발행이 없어요."; list.appendChild(e0); }
-  drawDays(upcoming, false);
+  drawDays(publishShowFar ? upcoming : near, false);
+  if (far.length) {
+    const mf = document.createElement("button"); mf.className = "pub-more";
+    mf.textContent = publishShowFar ? "다음 주 이후 접기" : "다음 주 이후 " + far.length + "편 보기";
+    mf.addEventListener("click", function () { publishShowFar = !publishShowFar; renderPublish(); });
+    list.appendChild(mf);
+  }
 
   const past = slots.filter(function (x) { return x.date < today; }).reverse();
   if (past.length) {
