@@ -1668,7 +1668,11 @@ async function saveDiary() {
   if (error) { toast("저장 실패: " + error.message); return; }
   clearDiaryDraft(editDate);
   toast(editDate === todayStr() ? "오늘 일기를 저장했어요" : "어제 일기를 저장했어요");
-  await Promise.all([loadDiary(), loadExerciseStats()]); render();
+  /* 저장 뒤에도 보던 탭·스크롤 자리에 그대로 머문다 — 예전엔 목록을 비웠다가 다시 그려서 맨 위로 튀었다(찬진 10-14) */
+  const y = window.scrollY, listEl = $("list");
+  await Promise.all([loadDiary(), loadExerciseStats()]);
+  if (view === "diary") { listEl.style.minHeight = listEl.scrollHeight + "px"; await renderDiary(); listEl.style.minHeight = ""; window.scrollTo(0, y); } else render();
+  keepNav();
 }
 
 async function toggleCityNote(city) {
