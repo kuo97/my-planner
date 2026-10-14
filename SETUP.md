@@ -344,6 +344,23 @@ revoke all on function life_invest_set(text, date, jsonb) from public;
 grant execute on function life_invest_set(text, date, jsonb) to anon;
 ```
 
+## 1-13. 가볼 맛집 (2026-10-14) — 추가 SQL
+
+달력 탭 "생활 기록" 카드의 🍜 가볼 맛집 칸이 쓰는 종류(kind='place'). 이름·동네 메모를 적고, ○를 누르면 "다녀온 곳"으로 넘어간다.
+
+```sql
+alter table life_log drop constraint if exists life_log_kind_check;
+alter table life_log add constraint life_log_kind_check check (kind in ('season','bill','sub','spend','income','invest','place'));
+
+-- 처음 3곳 (사누키식 우동 비교, 아이디어함 8번)
+insert into life_log (user_id, on_date, kind, label, meta)
+select u.user_id, current_date, 'place', x.label, jsonb_build_object('area', x.area)
+from (select user_id from diary order by on_date desc limit 1) u,
+     (values ('교다이야', '합정 · 사누키 우동'),
+             ('우동명가 다카마쓰 여의도직영점', '여의도'),
+             ('마루가메제면', '김포')) as x(label, area);
+```
+
 ## 1-11. 수입 (2026-10-07) — 추가 SQL
 
 찬작스튜디오 거래원장·쿠팡 지니타임 장부(구글 시트)를 Claude 가 월별로 합쳐 올린다(kind='income').

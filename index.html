@@ -319,6 +319,16 @@
   .life-add > summary { cursor: pointer; font-size: 12.5px; color: var(--muted); list-style: none; margin: 8px 0 4px; }
   .life-add > summary::-webkit-details-marker { display: none; }
   .bill-form input:not([type]) { width: 120px; }
+  /* 가볼 맛집 */
+  .pl-list { list-style: none; margin: 0 0 6px; padding: 0; }
+  .pl-list li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px dashed var(--line); font-size: 14px; }
+  .pl-list li:first-child { border-top: 0; }
+  .pl-chk { border: 1.5px solid var(--line); background: var(--paper); border-radius: 50%; width: 22px; height: 22px; font-size: 12px; line-height: 1; cursor: pointer; color: var(--ink); flex: none; padding: 0; }
+  .pl-chk:hover { border-color: var(--ink); }
+  .pl-nm { flex: 1; min-width: 0; }
+  .pl-nm small { color: var(--muted); font-size: 12px; margin-left: 4px; }
+  .pl-list.done .pl-nm { color: var(--muted); text-decoration: line-through; }
+  .pl-list .x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 0 4px; }
   .gcal-bar {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     background: var(--gcal-soft); border: 1.5px solid var(--gcal); border-radius: 14px;
@@ -2687,7 +2697,7 @@ async function toggleDiet(date, label) {                     // 일기 탭에서
   await loadLifeLog(); toast(hit ? `${label} 기록을 지웠어요` : `${label} — 기록했어요`); return true;
 }
 let lifeLog = [], lifeOpen = false, lifeTrend = "배달", lifeSpendSel = null, lifeSpendCat = null, lifeFlowSel = null, lifeFlowAll = false, lifeInvSel = null;
-const lifeSecOpen = { flow: true, spend: true };
+const lifeSecOpen = { flow: true, spend: true, place: true };
 async function loadLifeLog() {
   const { data, error } = await sb.from("life_log").select("id,on_date,kind,label,amount,meta,created_at").order("on_date", { ascending: false });
   lifeLog = error ? null : (data || []);   // null = 표가 아직 없음
@@ -2723,6 +2733,21 @@ async function deleteBill(id) {
 }
 /* 생활 기록 카드를 다시 그릴 때 스크롤 위치를 유지한다 */
 function rerenderLife() { const y = window.scrollY; renderCalendarView(); window.scrollTo(0, y); }
+/* 가볼 맛집: life_log kind='place', label=가게 이름, meta={area:동네·메모, done:다녀옴, done_on:날짜} (SETUP.md 1-13) */
+async function addPlace(name, area) {
+  if (!name) { toast("가게 이름을 넣어 주세요"); return; }
+  const { error } = await sb.from("life_log").insert({ on_date: todayStr(), kind: "place", label: name, meta: { area: area || "" } });
+  if (error) { toast("기록 실패: " + error.message); return; }
+  await loadLifeLog(); rerenderLife();
+}
+async function togglePlace(id) {
+  const p = (lifeLog || []).find(r => r.id === id); if (!p) return;
+  const done = !(p.meta && p.meta.done);
+  const meta = { ...(p.meta || {}), done, done_on: done ? todayStr() : null };
+  const { error } = await sb.from("life_log").update({ meta }).eq("id", id);
+  if (error) { toast("기록 실패: " + error.message); return; }
+  await loadLifeLog(); rerenderLife(); toast(done ? "다녀온 곳으로 옮겼어요" : "다시 가볼 곳으로 돌렸어요");
+}
 function lifeCard() {
   const card = document.createElement("details");
   card.className = "cal-card life-card";
@@ -2972,6 +2997,17 @@ function lifeCard() {
     `<div class="sp-hint">일기 탭의 먹은 것 아래, 또는 달력 날짜의 칩으로 기록해요 · 몸에 안 좋은 음식 = 치킨·피자·야식·단 것</div>`;
   const dietSub = `${nowY}년 술 ${dietDays("술 마심", nowY).length}일 · 음식 ${dietDays("몸에 안 좋은 음식", nowY).length}일`;
 
+  /* 가볼 맛집 섹션 */
+  const places = lifeLog.filter(r => r.kind === "place").sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+  const placeTodo = places.filter(r => !(r.meta && r.meta.done)), placeDone = places.filter(r => r.meta && r.meta.done);
+  const placeRow = r => `<li><button type="button" class="pl-chk" data-pl="${r.id}" title="${r.meta && r.meta.done ? "다시 가볼 곳으로" : "가 봤어요"}">${r.meta && r.meta.done ? "✓" : ""}</button><span class="pl-nm">${escapeHtml(r.label)}${r.meta && r.meta.area ? `<small>${escapeHtml(r.meta.area)}</small>` : ""}</span><button class="x" data-del="${r.id}" title="삭제">×</button></li>`;
+  const placeBody = `${placeTodo.length ? `<ul class="pl-list">${placeTodo.map(placeRow).join("")}</ul>` : `<div class="cd-empty">가 보고 싶은 가게를 적어 두세요</div>`}
+    ${placeDone.length ? `<details class="life-add"><summary>다녀온 곳 ${placeDone.length}</summary><ul class="pl-list done">${placeDone.map(placeRow).join("")}</ul></details>` : ""}
+    <details class="life-add"><summary>+ 맛집 추가</summary><div class="bill-form">
+      <input id="plName" placeholder="가게 이름">
+      <input id="plArea" placeholder="동네·메모 (예: 합정)">
+      <button type="button" id="plAdd">추가</button></div></details>`;
+
   card.innerHTML = `
     <summary class="life-sum">생활 기록${sumParts.length ? ` <small>· ${escapeHtml(sumParts.join(" · "))}</small>` : ""}</summary>
     ${sec("flow", "수입·지출", flowMonths[0] && incomes.length ? `${mLabel(flowMonths[0])} 수입 ${man(incSum(flowMonths[0]))}원` : "", flowBody)}
@@ -2980,6 +3016,7 @@ function lifeCard() {
     ${sec("sub", "구독", subs.length ? `월 ${won(subTotal())}` : "", subBody)}
     ${sec("bill", "공과금", billMonths[0] ? `${mLabel(billMonths[0])} ${won(billSum(billMonths[0]))}` : "", billBody)}
     ${sec("diet", "술·음식", dietSub, dietBody)}
+    ${sec("place", "🍜 가볼 맛집", placeTodo.length ? `${placeTodo.length}곳` : "", placeBody)}
     ${sec("season", "계절", lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "", seasonBody)}`;
 
   card.querySelectorAll(".life-sec").forEach(d => d.addEventListener("toggle", () => { lifeSecOpen[d.dataset.sec] = d.open; }));
@@ -3013,6 +3050,8 @@ function lifeCard() {
   card.querySelector("#billAdd").addEventListener("click", () =>
     addBill(card.querySelector("#billMonth").value, card.querySelector("#billKind").value,
             parseInt(card.querySelector("#billAmt").value, 10) || 0));
+  card.querySelector("#plAdd").addEventListener("click", () => addPlace(card.querySelector("#plName").value.trim(), card.querySelector("#plArea").value.trim()));
+  card.querySelectorAll("[data-pl]").forEach(b => b.addEventListener("click", () => togglePlace(b.dataset.pl)));
   card.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", (e) => { e.stopPropagation(); deleteBill(b.dataset.del); }));
   return card;
 }
