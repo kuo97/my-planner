@@ -920,6 +920,10 @@
   .wk-row .wk-w { font-size: 14px; font-weight: 700; color: var(--ink); white-space: nowrap; }
   .wk-row .wk-w.up { color: var(--sage); }
   .wk-row small { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .wk-alts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0 2px; }
+  .wk-alts small { color: var(--muted); font-size: 11px; margin-right: 2px; }
+  .wk-alt { border: 1.5px dashed var(--line, #e6dccb); background: transparent; color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .wk-alt:hover { color: var(--text, #333); }
   .wk-fill { width: 100%; margin-top: 10px; padding: 9px; border: none; border-radius: 10px; background: var(--sage); color: white; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
   .wk-fill:active { transform: scale(0.98); }
   .wk-fill:disabled { opacity: .4; cursor: default; }
@@ -2059,6 +2063,7 @@ async function renderDiary() {
         el.innerHTML = v.html;
         el.querySelector("details").addEventListener("toggle", e => { open = e.target.open; try { localStorage.setItem("wk_open", open ? "1" : "0"); } catch {} });
         el.querySelectorAll(".wk-days button").forEach(b => b.addEventListener("click", () => { sel = b.dataset.k; autoSkip(); open = true; draw(); }));
+        el.querySelectorAll(".wk-alt").forEach(b => b.addEventListener("click", () => { skip.delete(b.dataset.n); open = true; draw(); }));
         el.querySelectorAll(".wk-row").forEach(r => r.addEventListener("click", () => { const n = r.dataset.n; if (skip.has(n)) skip.delete(n); else skip.add(n); open = true; draw(); }));
         el.querySelector(".wk-fill").addEventListener("click", () => {
           if (activeRoutine && !confirm("지금 고른 운동을 이 목록으로 바꿀까요?")) return;
@@ -2507,8 +2512,6 @@ function workoutSuggestView(plan, sel, open, skip) {
   const ord = n => EX_ORDER[n] ? EX_ORDER[n][0] : 9;   // 오늘 하는 날 안에서는 날 구분 없이 순서 숫자만으로 줄 세운다(등 날의 풀오버가 가슴 운동처럼 맨 앞에 서지 않게)
   const items = base.map((x, i) => ({ x, i })).sort((a, b) => ord(a.x.name) - ord(b.x.name) || a.i - b.i).map(o => o.x).map((i, n) => {
     const o = suggestItem(i, plan.ss); o.memo = memoForPosition(i.memo, n === 0);
-    if (picks.has(i.name)) o.tip = "보조 — 가장 오래 안 한 순서로 돌아가요 · " + o.tip;
-    else if (rest.includes(i.name)) o.tip = "보조 — 오늘은 건너뛰어요(다음에 차례) · 하고 싶으면 눌러서 넣기";
     const d = cw && cw.setDelta && cw.setDelta[i.name], sp = splitReps(o.reps);
     if (d && sp) { o.reps = `${sp.r}×${Math.min(10, Math.max(1, sp.s + d))}`; o.tip = "코칭 반영 — 세트 " + (d > 0 ? "+" : "") + d + " · " + o.tip; o.coach = true; }
     if (cw && cw.hold && cw.hold.includes(i.name) && o.up) { o.w = o.w0; o.up = false; o.tip = "코칭 — 이번 주는 무게를 올리지 않고 유지"; o.coach = true; }
@@ -2522,8 +2525,9 @@ function workoutSuggestView(plan, sel, open, skip) {
   const html = `<details class="wk-sg"${open ? " open" : ""}><summary>💪 <b>오늘 운동 제안</b> <small>${head}</small></summary>
     ${cwHtml}<div class="wk-why">${plan.lines.join("<br>")}</div>
     <div class="wk-days">${plan.days.map(k => `<button type="button" data-k="${k}" class="${k === sel ? "on" : ""}">${DAY_LABEL[k]}${k === plan.rec ? " ★" : ""}${plan.last[k] ? ` <small>${agoText(dayDiff(today, plan.last[k]))}</small>` : ""}</button>`).join("")}</div>
-    ${items.map((i, n) => `<div class="wk-row${skip.has(i.name) ? " off" : ""}" data-n="${escapeHtml(i.name)}" title="누르면 오늘 운동에서 빼거나 다시 넣어요"><b><span class="wk-ck">✓</span><span class="wk-no">${skip.has(i.name) ? "" : chosen.indexOf(i) + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${fat.why[i.name] ? `<small class="wk-warn">⚠ ${escapeHtml(fat.why[i.name])}</small>` : ""}${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
-    <div class="wk-foot" style="margin:6px 0 0">하기 싫은 운동은 눌러서 빼세요 (${chosen.length}/${items.length}개 선택)</div>
+    ${items.filter(i => !(rest.includes(i.name) && skip.has(i.name))).map((i, n) => `<div class="wk-row${skip.has(i.name) ? " off" : ""}" data-n="${escapeHtml(i.name)}" title="누르면 오늘 운동에서 빼거나 다시 넣어요"><b><span class="wk-ck">✓</span><span class="wk-no">${skip.has(i.name) ? "" : chosen.indexOf(i) + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${fat.why[i.name] ? `<small class="wk-warn">⚠ ${escapeHtml(fat.why[i.name])}</small>` : ""}${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
+    ${items.some(i => rest.includes(i.name) && skip.has(i.name)) ? `<div class="wk-alts"><small>다른 운동 하고 싶으면</small>${items.filter(i => rest.includes(i.name) && skip.has(i.name)).map(i => `<button type="button" class="wk-alt" data-n="${escapeHtml(i.name)}">+ ${escapeHtml(i.name)}</button>`).join("")}</div>` : ""}
+    <div class="wk-foot" style="margin:6px 0 0">하기 싫은 운동은 눌러서 빼세요</div>
     <button type="button" class="wk-fill"${chosen.length ? "" : " disabled"}>${chosen.length ? `고른 ${chosen.length}개로 일기에 채우기` : "운동을 하나 이상 골라 주세요"}</button>
     <div class="wk-foot">총 ${total}세트${total > 18 ? " ⚠ 18세트가 넘어요 — 뒤쪽 보조 운동은 빼도 돼요" : ""} · 마지막 세트는 1~2회 남기고 끝내기 · 끝나면 단백질 20g 이상</div></details>`;
   return { html, items: chosen, rest, fatNames: fat.names };
