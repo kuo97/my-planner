@@ -1907,6 +1907,7 @@ async function renderDiary() {
     if (items0.length >= 2) {
       const same = recIdx.every((r, i) => r === i), bar = document.createElement("button");
       bar.type = "button"; bar.className = "rt-sort" + (same ? " ok" : "");
+      bar.title = "기준: ① 크고 무거운 복합 운동 먼저 ② 작은 근육 고립 운동은 뒤 ③ 이미 쓴 근육(삼두·이두·후면 어깨)·종아리·복근은 맨 뒤";
       bar.textContent = same ? "✓ 추천 순서예요 (큰 운동 → 작은 운동) · ▲▼로 바꿀 수 있어요" : "↕ 추천 순서로 정리 (큰 운동 → 작은 운동)";
       if (!same) bar.addEventListener("click", () => { activeRoutine.items = recSorted.slice(); warmFix(); renderRoutineEditor(); syncRoutineNote(); toast("추천 순서로 정리했어요"); });
       editorEl.appendChild(bar);
@@ -1916,7 +1917,7 @@ async function renderDiary() {
       row.className = "routine-row";
       const sp = splitReps(item.reps);
       row.innerHTML = `
-        <div class="rt-name"><span class="rt-ord"><b>${idx + 1}</b><button type="button" class="rt-mv" data-mv="-1" title="위로">▲</button><button type="button" class="rt-mv" data-mv="1" title="아래로">▼</button></span>${item.name}${recIdx[idx] !== idx && EX_ORDER[item.name] ? `<span class="rt-rec" title="${escapeHtml((EX_ORDER[item.name] || [])[1] || "")}">추천 ${recIdx[idx] + 1}번째</span>` : ""}${item.memo ? `<span class="rt-memo">${item.memo}</span>` : ""}</div>
+        <div class="rt-name"><span class="rt-ord"><b>${idx + 1}</b><button type="button" class="rt-mv" data-mv="-1" title="위로">▲</button><button type="button" class="rt-mv" data-mv="1" title="아래로">▼</button></span>${item.name}${recIdx[idx] !== idx ? `<span class="rt-rec" title="${escapeHtml(exInfo(item.name).why)}">추천 ${recIdx[idx] + 1}번째</span>` : ""}${item.memo ? `<span class="rt-memo">${item.memo}</span>` : ""}</div>
         <div class="rt-ctrl">
           <span class="rt-grp">
             <button type="button" class="rt-btn rt-wbtn" data-d="-1">−</button>
@@ -2007,8 +2008,10 @@ async function renderDiary() {
       const nm = (x) => String(x).replace(/s/g, "").toLowerCase();
       const cands = EXERCISE_CATALOG.filter(c => !activeRoutine.items.some(i => i.name === c.name) && (nm(c.name) === nm(name) || nm(c.name).includes(nm(name)) || nm(name).includes(nm(c.name))));
       const known = EXERCISE_CATALOG.find(c => c.name === name) || (cands.length === 1 ? cands[0] : null);
-      activeRoutine.items.push(known ? { ...known } : { name, w: 20, reps: "12×3" });
-      if (known && known.name !== name) toast(`'${name}' → '${known.name}'(프로그램 값)으로 넣었어요`);
+      const nu = known ? { ...known } : { name, w: 20, reps: "12×3" };
+      const pos = insertAtRec(activeRoutine.items, nu), info = exInfo(nu.name);
+      warmFix();
+      toast(`${known && known.name !== name ? "'" + name + "' → '" + known.name + "'(프로그램 값) · " : ""}${nu.name}은(는) ${pos}번째가 좋아요 — ${info.why}`);
       syncChips();
       renderRoutineEditor();
       syncRoutineNote();
@@ -2030,7 +2033,7 @@ async function renderDiary() {
       if (!activeRoutine) activeRoutine = { items: [] };
       const idx = activeRoutine.items.findIndex(i => i.name === name);
       if (idx >= 0) activeRoutine.items.splice(idx, 1);            // 두 번 누르면 뺀다 (실수 클릭)
-      else activeRoutine.items.push({ ...EXERCISE_CATALOG.find(c => c.name === name) }); // 기본 무게·세트로 추가
+      else { const nu = { ...EXERCISE_CATALOG.find(c => c.name === name) }, pos = insertAtRec(activeRoutine.items, nu); toast(`${name}은(는) ${pos}번째가 좋아요 — ${exInfo(name).why}`); } activeRoutine.items.forEach((it, n) => { const m = memoForPosition(it.memo, n === 0); if (m) it.memo = m; else delete it.memo; }); // 기본 무게·세트로, 추천 자리에 추가
       if (!activeRoutine.items.length) activeRoutine = null;
       syncChips();
       renderRoutineEditor();
@@ -2416,8 +2419,25 @@ const EX_ORDER = {
   "레그컬": [4, "햄스트링 고립"],
   "카프레이즈": [5, "종아리는 회복이 빨라 마지막에"],
 };
-const exRank = name => { const k = dayKeyOf(name); return (k ? DAY_ORDER.indexOf(k) : 3) * 10 + (EX_ORDER[name] ? EX_ORDER[name][0] : 9); };
+/* 순서 기준 (찬진 10-14 "운동 순서는 어떤 기준?"): ① 크고 무거운 복합 운동 먼저 ② 작은 근육 고립 운동은 뒤 ③ 앞 운동에서 이미 쓴 근육(삼두·이두·후면 어깨)과 종아리·복근은 맨 뒤.
+   날(가슴·등·다리) 구분 없이 아래 숫자로만 줄 세운다 — 다리 날에 들어온 삼두가 스쿼트보다 앞에 서면 안 되므로. 목록에 없는 종목은 이름으로 짐작해 자리를 알려 준다. */
+function exInfo(name) {
+  if (EX_ORDER[name]) return { n: EX_ORDER[name][0], why: EX_ORDER[name][1], known: true };
+  if (/플랭크|크런치|데드s*버그|레그s*레이즈|복근|싯업|슬로우/.test(name)) return { n: 8, why: "복근·코어 운동은 마지막에 (먼저 하면 큰 운동에서 몸통이 흔들려요)", known: false };
+  if (/스쿼트|데드|벤치|로우|풀다운|풀업|턱걸이|딥스|런지|힙s*쓰러스트|프레스/.test(name) && !/레그s*프레스/.test(name)) return { n: 2, why: "큰 근육을 쓰는 복합 운동이라 힘 있을 때 앞쪽에", known: false };
+  if (/레그s*프레스/.test(name)) return { n: 3, why: "다리 복합이지만 안전해서 중간에", known: false };
+  if (/컬|레이즈|익스텐션|푸쉬s*다운|푸시s*다운|킥백|플라이|펙덱|시러그|카프/.test(name)) return { n: 5, why: "작은 근육 고립 운동이라 큰 운동 뒤에", known: false };
+  return { n: 4, why: "어떤 운동인지 몰라 중간에 뒀어요 — ▲▼로 옮겨도 돼요", known: false };
+}
+const exRank = name => { const k = dayKeyOf(name); return exInfo(name).n * 10 + (k ? DAY_ORDER.indexOf(k) : 3); };
 const sortExercises = list => list.map((x, i) => ({ x, i })).sort((a, b) => exRank(a.x.name) - exRank(b.x.name) || a.i - b.i).map(o => o.x);
+/* 새 운동은 추천 자리에 끼워 넣는다(이미 정렬해 둔 순서는 건드리지 않음). 넣은 자리(1부터)를 돌려준다. */
+function insertAtRec(items, item) {
+  const r = exRank(item.name); let at = items.findIndex(x => exRank(x.name) > r);
+  if (at < 0) at = items.length;
+  items.splice(at, 0, item);
+  return at + 1;
+}
 /* 순서가 바뀌면 워밍업 메모도 따라가야 한다 — 첫 운동만 워밍업, 나머지는 워밍업 문구를 뺀다 */
 function memoForPosition(memo, first) {
   const parts = String(memo || "").split(" · ").filter(Boolean), has = parts.some(p => /^워밍업/.test(p));
