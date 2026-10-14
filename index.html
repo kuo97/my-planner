@@ -4452,13 +4452,13 @@ function renderPublish() {
     list.appendChild(card);
   });
 
-  /* 2) 내가 올릴 것 — 맨 위에 크게. 아직 안 올린 것(오늘까지 밀린 것 + 앞으로 3일)만 */
+  /* 2) 내가 올릴 것 — 맨 위에 크게. '대기'(아직 손 안 댄 것)만: 최근 7일 밀린 것 + 앞으로 3일. 예약됨은 이미 올려 둔 것이라 날짜 카드에서만 보인다 */
   const open = [];
   slots.forEach(function (slot) {
-    if (slot.date > cwAdd(today, 3)) return;
+    if (slot.date > cwAdd(today, 3) || slot.date < cwAdd(today, -7)) return;
     mineOf(slot).forEach(function (e) {
       const st = pubChipState(slot, e[0], e[1]).status;
-      if (["published", "skip"].indexOf(st) < 0) open.push({ slot: slot, ch: e[0], conf: e[1], st: st });
+      if (st === "todo") open.push({ slot: slot, ch: e[0], conf: e[1], st: st });
     });
   });
   const box = document.createElement("div");
