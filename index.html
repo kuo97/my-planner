@@ -1179,14 +1179,14 @@ const EXERCISE_ROUTINES = [
     { name: "인클라인 덤벨프레스", w: 9, reps: "10×4", memo: "한쪽 무게 · 등받이 30도", step: 1 },
     { name: "시티드 덤벨 숄더프레스", w: 8, reps: "12×4", memo: "한쪽 무게 · OHP 대체", step: 1 },
     { name: "사이드레터럴레이즈", w: 7, reps: "10~12×4", memo: "덤벨 · 10회에서 실패할 무게", step: 1 },
-    { name: "케이블이두컬", w: 25, reps: "12×3", memo: "가슴 날엔 이두가 쉬어서 여기서 · 10/13 교차 배치" },
+    { name: "케이블이두컬", w: 25, reps: "12×3", memo: "이두가 쉬는 날(가슴·다리 날)에 · 10/13 교차 배치" },
   ]},
   { key: "back", label: "등 날", items: [
     { name: "렛풀다운", w: 32, reps: "12×4", memo: "워밍업 20×10→25×5" },
     { name: "티바로우", w: 17.5, reps: "10×4", memo: "무겁게", step: 2.5 },
     { name: "시티드로우", w: 25, reps: "12×3" },
     { name: "리버스펙덱플라이", w: 10, reps: "12×3", step: 2.5 },
-    { name: "라잉트라이셉스", w: 15, reps: "12×3", memo: "등 날엔 삼두가 쉬어서 여기서 · 장두 늘려서 · 첫 세트 가볍게" },
+    { name: "라잉트라이셉스", w: 15, reps: "12×3", memo: "삼두가 쉬는 날(등·다리 날)에 · 장두 늘려서 · 첫 세트 가볍게", step: 2.5 },
   ]},
   { key: "legs", label: "다리 날", items: [
     { name: "V스쿼트 머신", w: 45, reps: "12×4", memo: "워밍업 20×10→35×5" },
@@ -1200,7 +1200,7 @@ const EXERCISE_ROUTINES = [
 /* 선택 종목 — 기본 루틴엔 없고 "운동 추가"에서 고를 수 있다. 힘·시간이 남는 날 하나만. */
 const EXTRA_EXERCISES = [
   { name: "펙덱플라이", w: 32, reps: "12×3", memo: "선택 · 가슴 정체 시 1순위" },
-  { name: "케이블푸쉬다운", w: 15, reps: "12×3", memo: "선택 · 라잉 뒤에 · 9/19 기록 15kg" },
+  { name: "케이블푸쉬다운", w: 15, reps: "12×3", memo: "선택 · 라잉 뒤에 · 9/19 기록 15kg", step: 2.5 },
   { name: "덤벨풀오버", w: 10, reps: "12×3", memo: "보강 날 · 벤치에 가로로 누워 덤벨 한 개를 머리 뒤로 · 가볍게 시작 · 가슴·등 앞뒤 두께", step: 2 },
 ];
 /* 일기의 운동 선택 칩 = 루틴에 들어 있는 모든 운동 + 선택 종목, 이름 중복 없이 루틴 순서대로.
@@ -2011,7 +2011,7 @@ async function renderDiary() {
       const nu = known ? { ...known } : { name, w: 20, reps: "12×3" };
       const pos = insertAtRec(activeRoutine.items, nu), info = exInfo(nu.name);
       warmFix();
-      toast(`${known && known.name !== name ? "'" + name + "' → '" + known.name + "'(프로그램 값) · " : ""}${nu.name}은(는) ${pos}번째가 좋아요 — ${info.why}`);
+      toast(`${known && known.name !== name ? "'" + name + "' → '" + known.name + "'(프로그램 값) · " : ""}${nu.name} → ${pos}번째가 좋아요 — ${info.why}`);
       syncChips();
       renderRoutineEditor();
       syncRoutineNote();
@@ -2033,7 +2033,7 @@ async function renderDiary() {
       if (!activeRoutine) activeRoutine = { items: [] };
       const idx = activeRoutine.items.findIndex(i => i.name === name);
       if (idx >= 0) activeRoutine.items.splice(idx, 1);            // 두 번 누르면 뺀다 (실수 클릭)
-      else { const nu = { ...EXERCISE_CATALOG.find(c => c.name === name) }, pos = insertAtRec(activeRoutine.items, nu); toast(`${name}은(는) ${pos}번째가 좋아요 — ${exInfo(name).why}`); } activeRoutine.items.forEach((it, n) => { const m = memoForPosition(it.memo, n === 0); if (m) it.memo = m; else delete it.memo; }); // 기본 무게·세트로, 추천 자리에 추가
+      else { const nu = { ...EXERCISE_CATALOG.find(c => c.name === name) }, pos = insertAtRec(activeRoutine.items, nu); toast(`${name} → ${pos}번째가 좋아요 — ${exInfo(name).why}`); } activeRoutine.items.forEach((it, n) => { const m = memoForPosition(it.memo, n === 0); if (m) it.memo = m; else delete it.memo; }); // 기본 무게·세트로, 추천 자리에 추가
       if (!activeRoutine.items.length) activeRoutine = null;
       syncChips();
       renderRoutineEditor();
@@ -2406,13 +2406,13 @@ const EX_ORDER = {
   "사이드레터럴레이즈": [4, "작은 근육 고립 — 가벼워서 지친 뒤에도 괜찮아요"],
   "덤벨풀오버": [6, "가슴·광배·전거근을 길게 늘리는 동작 — 큰 운동 뒤에 가볍게 (몸통 앞뒤 두께)"],
   "펙덱플라이": [5, "가슴 고립 마무리 — 복합 운동 뒤에"],
-  "라잉트라이셉스": [5, "등 날엔 당기는 운동이라 삼두가 쉬어 있어요 — 마지막에"],
+  "라잉트라이셉스": [5, "삼두 고립 — 가슴 날엔 이미 털려서 빼고, 등·다리 날 마지막에"],
   "케이블푸쉬다운": [7, "삼두 마무리 — 맨 뒤"],
   "티바로우": [1, "등에서 가장 무겁고 허리를 쓰는 운동 — 허리가 신선할 때 먼저"],
   "렛풀다운": [2, "광배를 쓰는 큰 복합 운동 — 두 번째"],
   "시티드로우": [3, "등 중부 복합 — 무게보다 쥐어짜기"],
   "리버스펙덱플라이": [4, "후면 어깨 고립 — 로우에서 이미 썼으니 가볍게"],
-  "케이블이두컬": [5, "가슴 날엔 미는 운동이라 이두가 쉬어 있어요 — 마지막에"],
+  "케이블이두컬": [5, "이두 고립 — 등 날엔 이미 털려서 빼고, 가슴·다리 날 마지막에"],
   "V스쿼트 머신": [1, "하체에서 가장 크고 무거운 운동 — 먼저"],
   "덤벨 RDL": [2, "햄스트링·허리 — 스쿼트 뒤, 허리 힘이 남아 있을 때 자세 위주로"],
   "레그프레스": [3, "다리 복합이지만 안전해서 지친 뒤에도 괜찮아요"],
@@ -2510,8 +2510,8 @@ const PULL_FOR_BI = ["렛풀다운", "티바로우", "시티드로우"], BI_ISO 
 function fatigueSkips(items) {
   const sum = (names) => items.filter(i => names.includes(i.name)).reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
   const why = {}, tri = sum(PRESS_FOR_TRI), bi = sum(PULL_FOR_BI);
-  if (tri >= 10) items.filter(i => TRI_ISO.includes(i.name)).forEach(i => { why[i.name] = `삼두는 프레스 ${tri}세트에서 이미 털렸어요 — 오늘은 생략 추천 (삼두는 등 날에 해요, 필요하면 눌러서 넣기)`; });
-  if (bi >= 10) items.filter(i => BI_ISO.includes(i.name)).forEach(i => { why[i.name] = `이두는 당기기 ${bi}세트에서 이미 털렸어요 — 오늘은 생략 추천 (이두는 가슴 날에 해요, 필요하면 눌러서 넣기)`; });
+  if (tri >= 10) items.filter(i => TRI_ISO.includes(i.name)).forEach(i => { why[i.name] = `삼두는 프레스 ${tri}세트에서 이미 털렸어요 — 오늘은 생략 추천 (삼두는 등·다리 날에 해요, 필요하면 눌러서 넣기)`; });
+  if (bi >= 10) items.filter(i => BI_ISO.includes(i.name)).forEach(i => { why[i.name] = `이두는 당기기 ${bi}세트에서 이미 털렸어요 — 오늘은 생략 추천 (이두는 가슴·다리 날에 해요, 필요하면 눌러서 넣기)`; });
   return { why, names: Object.keys(why) };
 }
 /* 보조 풀에서 이번에 할 2개 — 마지막으로 한 지 가장 오래된 순(안 한 건 맨 앞), 코칭 보강 종목은 3일 가산. 일기 기록 전체를 본다. */
@@ -2542,6 +2542,7 @@ function workoutSuggestView(plan, sel, open, skip) {
     return o;
   });
   const fat = fatigueSkips(items.filter(i => !rest.includes(i.name)));
+  const isAlt = i => skip.has(i.name) && !fat.why[i.name];   // 오늘 안 하는 운동은 줄 대신 아래 작은 버튼으로
   const chosen = items.filter(i => !skip.has(i.name));
   const total = chosen.reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
   const head = plan.doneToday ? `오늘 ${DAY_LABEL[plan.doneToday.key]} 완료 ✅ · 다음은 ${DAY_LABEL[plan.rec]}` : `${DAY_LABEL[plan.rec]} 차례`;
@@ -2549,8 +2550,8 @@ function workoutSuggestView(plan, sel, open, skip) {
   const html = `<details class="wk-sg"${open ? " open" : ""}><summary>💪 <b>오늘 운동 제안</b> <small>${head}</small></summary>
     ${cwHtml}<div class="wk-why">${plan.lines.join("<br>")}</div>
     <div class="wk-days">${plan.days.map(k => `<button type="button" data-k="${k}" class="${k === sel ? "on" : ""}">${DAY_LABEL[k]}${k === plan.rec ? " ★" : ""}${plan.last[k] ? ` <small>${agoText(dayDiff(today, plan.last[k]))}</small>` : ""}</button>`).join("")}</div>
-    ${items.filter(i => !(rest.includes(i.name) && skip.has(i.name))).map((i, n) => `<div class="wk-row${skip.has(i.name) ? " off" : ""}" data-n="${escapeHtml(i.name)}" title="누르면 오늘 운동에서 빼거나 다시 넣어요"><b><span class="wk-ck">✓</span><span class="wk-no">${skip.has(i.name) ? "" : chosen.indexOf(i) + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${fat.why[i.name] ? `<small class="wk-warn">⚠ ${escapeHtml(fat.why[i.name])}</small>` : ""}${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
-    ${items.some(i => rest.includes(i.name) && skip.has(i.name)) ? `<div class="wk-alts"><small>다른 운동 하고 싶으면</small>${items.filter(i => rest.includes(i.name) && skip.has(i.name)).map(i => `<button type="button" class="wk-alt" data-n="${escapeHtml(i.name)}">+ ${escapeHtml(i.name)}</button>`).join("")}</div>` : ""}
+    ${items.filter(i => !isAlt(i)).map((i, n) => `<div class="wk-row${skip.has(i.name) ? " off" : ""}" data-n="${escapeHtml(i.name)}" title="누르면 오늘 운동에서 빼거나 다시 넣어요"><b><span class="wk-ck">✓</span><span class="wk-no">${skip.has(i.name) ? "" : chosen.indexOf(i) + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${fat.why[i.name] ? `<small class="wk-warn">⚠ ${escapeHtml(fat.why[i.name])}</small>` : ""}${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
+    ${items.some(isAlt) ? `<div class="wk-alts"><small>다른 운동 하고 싶으면</small>${items.filter(isAlt).map(i => `<button type="button" class="wk-alt" data-n="${escapeHtml(i.name)}">+ ${escapeHtml(i.name)}</button>`).join("")}</div>` : ""}
     <div class="wk-foot" style="margin:6px 0 0">하기 싫은 운동은 눌러서 빼세요</div>
     <button type="button" class="wk-fill"${chosen.length ? "" : " disabled"}>${chosen.length ? `고른 ${chosen.length}개로 일기에 채우기` : "운동을 하나 이상 골라 주세요"}</button>
     <div class="wk-foot">총 ${total}세트${total > 18 ? " ⚠ 18세트가 넘어요 — 뒤쪽 보조 운동은 빼도 돼요" : ""} · 마지막 세트는 1~2회 남기고 끝내기 · 끝나면 단백질 20g 이상</div></details>`;
