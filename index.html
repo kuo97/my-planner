@@ -1172,7 +1172,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_XhakCx4w4s7KRczs1kOcJQ_J8Qq11hK";
 const DAY_NAMES = ["일","월","화","수","목","금","토"];
 const MAX_PHOTOS = 6;
 /* 루틴별 운동 구성 (2026-10-07 가슴·등·다리 3분할로 재배치 — 운동 폼 가이드와 동일). w = 기본 무게(kg), step = 무게 조절 단위(kg, 생략 시 5), reps = "횟수×세트"
-   요일 고정 없이 가슴 → 등 → 다리 순서로 돌린다(주 3~4일). 어깨·팔은 밀기(가슴 날)·당기기(등 날)에 붙인다. 하루 5종목·20세트 이내. */
+   요일 고정 없이 가슴 → 등 → 다리 순서로 돌린다(주 횟수 제한 없음 — 컨디션 되는 대로, 찬진 10-14). 어깨·팔은 밀기(가슴 날)·당기기(등 날)에 붙인다. 하루 4종목·15세트 안팎. */
 const EXERCISE_ROUTINES = [
   { key: "chest", label: "가슴 날", items: [
     { name: "벤치프레스", w: 55, reps: "6×5", memo: "바20+원판35 · 워밍업 20×10→40×5→50×2" },
@@ -2457,7 +2457,7 @@ function planWorkout() {
   let streak = 0; const cur = new Date(); if (!days.has(today)) cur.setDate(cur.getDate() - 1);
   while (days.has(dateStr(cur))) { streak++; cur.setDate(cur.getDate() - 1); }
   const lines = [];
-  if (streak >= 3) lines.push(`<span class="warn">${streak}일 연속 운동했어요</span> — ${doneToday ? "내일은" : "오늘은"} 쉬거나 가볍게 걷기도 좋아요. 근육은 쉴 때 자라요.`);
+  if (streak >= 5) lines.push(`<span class="warn">${streak}일 연속 운동했어요</span> — 몸이 가벼우면 계속 가도 돼요. 무겁고 피곤하면 ${doneToday ? "내일은" : "오늘은"} 쉬거나 걷기만.`);
   if (boostRec) lines.push("가슴·등·다리를 한 바퀴 돌았어요 → 다음은 <b>보강 날</b>(코칭이 정한 보강 종목, 가볍게).");
   if (!lifted.length) lines.push("아직 웨이트 기록이 없어요. 이 목록으로 시작하고, 기록이 쌓이면 지난 무게를 기준으로 올릴 때를 알려줘요.");
   else {
