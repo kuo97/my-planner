@@ -2051,7 +2051,7 @@ async function renderDiary() {
     try {
       const plan = planWorkout();
       let sel = plan.rec, open = false; const skip = new Set();
-      const autoSkip = () => { skip.clear(); try { fatigueSkips(workoutSuggestView(plan, sel, false, new Set()).items).names.forEach(n => skip.add(n)); } catch {} };
+      const autoSkip = () => { skip.clear(); try { const v = workoutSuggestView(plan, sel, false, new Set()); v.rest.forEach(n => skip.add(n)); v.fatNames.forEach(n => skip.add(n)); } catch {} };
       autoSkip();
       try { open = localStorage.getItem("wk_open") === "1"; } catch {}   // 접고 펴기는 기억한다(기본 접힘)
       const draw = () => {
@@ -2357,6 +2357,15 @@ const DAY_LABEL = { chest: "가슴 날", back: "등 날", legs: "다리 날", bo
 /* 보강 날(4일째) — 매주 코칭이 정한 보강 종목만 모은 가벼운 날. 이 종목들로만 이뤄진 기록은 가슴→등→다리 순환에 넣지 않는다 */
 const BOOST_POOL = ["덤벨풀오버", "펙덱플라이", "케이블푸쉬다운", "사이드레터럴레이즈", "리버스펙덱플라이", "케이블이두컬", "라잉트라이셉스"];
 const DAY_ORDER = ["chest", "back", "legs"];
+/* 하루 4종목 (2026-10-14 찬진: "하루에 다 하면 스트레스 — 3분할로 계속 돌면서 적절히 섞어서").
+   날마다 하는 '기본' 2개 + 보조 풀에서 '가장 오래 안 한' 2개를 돌려 고른다. 코칭 보강 종목(풀오버·펙덱·레터럴·리버스펙덱)도 이 풀에 섞여 있어 따로 '보강 날'이 없다. */
+const DAY_CORE = { chest: ["벤치프레스", "인클라인 덤벨프레스"], back: ["티바로우", "렛풀다운"], legs: ["V스쿼트 머신", "덤벨 RDL"] };
+const DAY_POOL = {
+  chest: ["시티드 덤벨 숄더프레스", "사이드레터럴레이즈", "펙덱플라이", "덤벨풀오버", "케이블이두컬"],
+  back: ["시티드로우", "리버스펙덱플라이", "라잉트라이셉스", "덤벨풀오버"],
+  legs: ["레그프레스", "레그컬", "카프레이즈"],
+};
+const POOL_PICK = 2;
 function dayKeyOf(name) {
   const hit = EXERCISE_ROUTINES.find(r => r.items.some(i => i.name === name));
   if (hit) return hit.key;
@@ -2387,7 +2396,7 @@ const EX_ORDER = {
   "인클라인 덤벨프레스": [2, "윗가슴 복합 운동 — 벤치 다음으로 큰 운동"],
   "시티드 덤벨 숄더프레스": [3, "어깨 복합 — 삼두·앞 어깨가 아직 남아 있을 때"],
   "사이드레터럴레이즈": [4, "작은 근육 고립 — 가벼워서 지친 뒤에도 괜찮아요"],
-  "덤벨풀오버": [2, "가슴·광배·전거근을 길게 늘리는 큰 동작 — 보강 날 첫 운동으로 (몸통 앞뒤 두께)"],
+  "덤벨풀오버": [6, "가슴·광배·전거근을 길게 늘리는 동작 — 큰 운동 뒤에 가볍게 (몸통 앞뒤 두께)"],
   "펙덱플라이": [5, "가슴 고립 마무리 — 복합 운동 뒤에"],
   "라잉트라이셉스": [5, "등 날엔 당기는 운동이라 삼두가 쉬어 있어요 — 마지막에"],
   "케이블푸쉬다운": [7, "삼두 마무리 — 맨 뒤"],
@@ -2437,8 +2446,8 @@ function planWorkout() {
   const rec = DAY_ORDER.slice().sort((a, b) => (last[a] || "").localeCompare(last[b] || "") || dist(a) - dist(b))[0];
   const hasBoost = !!(cw && cw.boost && cw.boost.length);
   const sinceBoost = rot.filter(s => s.d > (last.boost || "")).length;            // 마지막 보강 날 뒤로 한 운동 횟수
-  const boostRec = hasBoost && sinceBoost > 0 && sinceBoost % 3 === 0;              // 가슴·등·다리를 세 번 할 때마다 한 번 권한다(요일·주 단위가 아님)
-  const dayList = hasBoost ? [...DAY_ORDER, "boost"] : DAY_ORDER;
+  const boostRec = false;                                                            // 보강 종목은 이제 날마다 보조 풀에 섞여 돈다(별도 보강 날 없음)
+  const dayList = DAY_ORDER;
   const days = new Set(ss.map(s => s.d));
   let streak = 0; const cur = new Date(); if (!days.has(today)) cur.setDate(cur.getDate() - 1);
   while (days.has(dateStr(cur))) { streak++; cur.setDate(cur.getDate() - 1); }
@@ -2480,21 +2489,32 @@ function fatigueSkips(items) {
   if (bi >= 10) items.filter(i => BI_ISO.includes(i.name)).forEach(i => { why[i.name] = `이두는 당기기 ${bi}세트에서 이미 털렸어요 — 오늘은 생략 추천 (이두는 가슴 날에 해요, 필요하면 눌러서 넣기)`; });
   return { why, names: Object.keys(why) };
 }
+/* 보조 풀에서 이번에 할 2개 — 마지막으로 한 지 가장 오래된 순(안 한 건 맨 앞), 코칭 보강 종목은 3일 가산. 일기 기록 전체를 본다. */
+function poolPicks(plan, sel) {
+  const today = todayStr(), cw = plan.cw, boost = new Set(((cw && cw.boost) || []).map(b => b.name));
+  const lastOf = name => { const h = plan.ss.filter(s => s.d !== today && s.items.some(i => i.name === name)); return h.length ? h[h.length - 1].d : null; };
+  const pool = (DAY_POOL[sel] || []).map((name, n) => { const d = lastOf(name); return { name, n, score: (d ? dayDiff(today, d) : 999) + (boost.has(name) ? 3 : 0) }; });
+  pool.sort((a, b) => b.score - a.score || a.n - b.n);
+  return new Set(pool.slice(0, POOL_PICK).map(p => p.name));
+}
 function workoutSuggestView(plan, sel, open, skip) {
   skip = skip || new Set();
   const cw = plan.cw, today = todayStr();
-  const base = sel === "boost"
-    ? ((cw && cw.boost) || []).map(x => { const c = EXERCISE_CATALOG.find(e => e.name === x.name); return c ? { ...c, reps: x.reps || c.reps } : null; }).filter(Boolean)
-    : EXERCISE_ROUTINES.find(r => r.key === sel).items;
-  const items = sortExercises(base).map((i, n) => {
+  const picks = poolPicks(plan, sel), core = DAY_CORE[sel] || [];
+  const cat = n => EXERCISE_ROUTINES.flatMap(r => r.items).concat(EXTRA_EXERCISES).find(i => i.name === n);
+  const base = [...core, ...(DAY_POOL[sel] || [])].map(cat).filter(Boolean);
+  const rest = (DAY_POOL[sel] || []).filter(n => !picks.has(n));
+  const ord = n => EX_ORDER[n] ? EX_ORDER[n][0] : 9;   // 오늘 하는 날 안에서는 날 구분 없이 순서 숫자만으로 줄 세운다(등 날의 풀오버가 가슴 운동처럼 맨 앞에 서지 않게)
+  const items = base.map((x, i) => ({ x, i })).sort((a, b) => ord(a.x.name) - ord(b.x.name) || a.i - b.i).map(o => o.x).map((i, n) => {
     const o = suggestItem(i, plan.ss); o.memo = memoForPosition(i.memo, n === 0);
-    if (sel === "boost") o.reps = i.reps;                                     // 보강 날의 세트·횟수는 코칭이 정한 값
+    if (picks.has(i.name)) o.tip = "보조 — 가장 오래 안 한 순서로 돌아가요 · " + o.tip;
+    else if (rest.includes(i.name)) o.tip = "보조 — 오늘은 건너뛰어요(다음에 차례) · 하고 싶으면 눌러서 넣기";
     const d = cw && cw.setDelta && cw.setDelta[i.name], sp = splitReps(o.reps);
-    if (d && sp && sel !== "boost") { o.reps = `${sp.r}×${Math.min(10, Math.max(1, sp.s + d))}`; o.tip = "코칭 반영 — 세트 " + (d > 0 ? "+" : "") + d + " · " + o.tip; o.coach = true; }
+    if (d && sp) { o.reps = `${sp.r}×${Math.min(10, Math.max(1, sp.s + d))}`; o.tip = "코칭 반영 — 세트 " + (d > 0 ? "+" : "") + d + " · " + o.tip; o.coach = true; }
     if (cw && cw.hold && cw.hold.includes(i.name) && o.up) { o.w = o.w0; o.up = false; o.tip = "코칭 — 이번 주는 무게를 올리지 않고 유지"; o.coach = true; }
     return o;
   });
-  const fat = fatigueSkips(items);
+  const fat = fatigueSkips(items.filter(i => !rest.includes(i.name)));
   const chosen = items.filter(i => !skip.has(i.name));
   const total = chosen.reduce((a, i) => { const sp = splitReps(i.reps); return a + (sp ? sp.s : 0); }, 0);
   const head = plan.doneToday ? `오늘 ${DAY_LABEL[plan.doneToday.key]} 완료 ✅ · 다음은 ${DAY_LABEL[plan.rec]}` : `${DAY_LABEL[plan.rec]} 차례`;
@@ -2505,8 +2525,8 @@ function workoutSuggestView(plan, sel, open, skip) {
     ${items.map((i, n) => `<div class="wk-row${skip.has(i.name) ? " off" : ""}" data-n="${escapeHtml(i.name)}" title="누르면 오늘 운동에서 빼거나 다시 넣어요"><b><span class="wk-ck">✓</span><span class="wk-no">${skip.has(i.name) ? "" : chosen.indexOf(i) + 1}</span>${escapeHtml(i.name)}${i.coach ? ' <span class="wk-coachtag">코칭</span>' : ""}</b><span class="wk-w${i.up ? " up" : ""}">${i.w}kg · ${escapeHtml(i.reps)}</span><small>${i.prev ? escapeHtml(i.prev) + " — " : ""}${escapeHtml(i.tip)}</small>${fat.why[i.name] ? `<small class="wk-warn">⚠ ${escapeHtml(fat.why[i.name])}</small>` : ""}${EX_ORDER[i.name] ? `<small class="wk-why">순서 · ${escapeHtml(EX_ORDER[i.name][1])}${n === 0 ? " · 첫 운동이라 워밍업 먼저" : ""}</small>` : ""}</div>`).join("")}
     <div class="wk-foot" style="margin:6px 0 0">하기 싫은 운동은 눌러서 빼세요 (${chosen.length}/${items.length}개 선택)</div>
     <button type="button" class="wk-fill"${chosen.length ? "" : " disabled"}>${chosen.length ? `고른 ${chosen.length}개로 일기에 채우기` : "운동을 하나 이상 골라 주세요"}</button>
-    <div class="wk-foot">총 ${total}세트${total > 20 ? " ⚠ 20세트가 넘어요 — 뒤쪽 고립 운동은 줄여도 돼요" : ""} · 마지막 세트는 1~2회 남기고 끝내기 · 끝나면 단백질 20g 이상</div></details>`;
-  return { html, items: chosen };
+    <div class="wk-foot">총 ${total}세트${total > 18 ? " ⚠ 18세트가 넘어요 — 뒤쪽 보조 운동은 빼도 돼요" : ""} · 마지막 세트는 1~2회 남기고 끝내기 · 끝나면 단백질 20g 이상</div></details>`;
+  return { html, items: chosen, rest, fatNames: fat.names };
 }
 
 /* ---------- 로또 번호 추천 (6/45) ----------
