@@ -2365,12 +2365,12 @@ const DAY_ORDER = ["chest", "back", "legs"];
 /* 하루 4종목 (2026-10-14 찬진: "하루에 다 하면 스트레스 — 3분할로 계속 돌면서 적절히 섞어서").
    날마다 하는 '기본' 2개 + 보조 풀에서 '가장 오래 안 한' 2개를 돌려 고른다. 코칭 보강 종목(풀오버·펙덱·레터럴·리버스펙덱)도 이 풀에 섞여 있어 따로 '보강 날'이 없다. */
 const DAY_CORE = { chest: ["벤치프레스", "인클라인 덤벨프레스"], back: ["티바로우", "렛풀다운"], legs: ["V스쿼트 머신", "덤벨 RDL"] };
-const DAY_POOL = {
-  chest: ["시티드 덤벨 숄더프레스", "사이드레터럴레이즈", "펙덱플라이", "덤벨풀오버", "케이블이두컬"],
-  back: ["시티드로우", "리버스펙덱플라이", "라잉트라이셉스", "덤벨풀오버"],
-  legs: ["레그프레스", "레그컬", "카프레이즈"],
+const DAY_POOL = {   // 칸(묶음)마다 하나씩 — 같은 부위만 4개 되지 않게 섞는다. 다리 날엔 어깨(찬진 10-14: "다리랑 어깨를 같이")
+  chest: [["펙덱플라이", "덤벨풀오버"], ["사이드레터럴레이즈", "케이블이두컬"]],
+  back: [["시티드로우", "덤벨풀오버"], ["리버스펙덱플라이", "라잉트라이셉스"]],
+  legs: [["레그프레스", "레그컬", "카프레이즈"], ["시티드 덤벨 숄더프레스", "사이드레터럴레이즈"]],
 };
-const POOL_PICK = 2;
+const poolNames = k => (DAY_POOL[k] || []).flat();
 function dayKeyOf(name) {
   const hit = EXERCISE_ROUTINES.find(r => r.items.some(i => i.name === name));
   if (hit) return hit.key;
@@ -2498,17 +2498,21 @@ function fatigueSkips(items) {
 function poolPicks(plan, sel) {
   const today = todayStr(), cw = plan.cw, boost = new Set(((cw && cw.boost) || []).map(b => b.name));
   const lastOf = name => { const h = plan.ss.filter(s => s.d !== today && s.items.some(i => i.name === name)); return h.length ? h[h.length - 1].d : null; };
-  const pool = (DAY_POOL[sel] || []).map((name, n) => { const d = lastOf(name); return { name, n, score: (d ? dayDiff(today, d) : 999) + (boost.has(name) ? 3 : 0) }; });
-  pool.sort((a, b) => b.score - a.score || a.n - b.n);
-  return new Set(pool.slice(0, POOL_PICK).map(p => p.name));
+  const out = new Set();
+  (DAY_POOL[sel] || []).forEach(group => {
+    const g = group.map((name, n) => { const d = lastOf(name); return { name, n, score: (d ? dayDiff(today, d) : 999) + (boost.has(name) ? 3 : 0) }; });
+    g.sort((a, b) => b.score - a.score || a.n - b.n);
+    out.add(g[0].name);
+  });
+  return out;
 }
 function workoutSuggestView(plan, sel, open, skip) {
   skip = skip || new Set();
   const cw = plan.cw, today = todayStr();
   const picks = poolPicks(plan, sel), core = DAY_CORE[sel] || [];
   const cat = n => EXERCISE_ROUTINES.flatMap(r => r.items).concat(EXTRA_EXERCISES).find(i => i.name === n);
-  const base = [...core, ...(DAY_POOL[sel] || [])].map(cat).filter(Boolean);
-  const rest = (DAY_POOL[sel] || []).filter(n => !picks.has(n));
+  const base = [...core, ...poolNames(sel)].map(cat).filter(Boolean);
+  const rest = poolNames(sel).filter(n => !picks.has(n));
   const ord = n => EX_ORDER[n] ? EX_ORDER[n][0] : 9;   // 오늘 하는 날 안에서는 날 구분 없이 순서 숫자만으로 줄 세운다(등 날의 풀오버가 가슴 운동처럼 맨 앞에 서지 않게)
   const items = base.map((x, i) => ({ x, i })).sort((a, b) => ord(a.x.name) - ord(b.x.name) || a.i - b.i).map(o => o.x).map((i, n) => {
     const o = suggestItem(i, plan.ss); o.memo = memoForPosition(i.memo, n === 0);
