@@ -2375,9 +2375,11 @@ const DAY_CORE = { chest: ["벤치프레스", "인클라인 덤벨프레스"], b
 const DAY_POOL = {   // 칸(묶음)마다 하나씩 — 같은 부위만 4개 되지 않게 섞는다. 다리 날엔 어깨(찬진 10-14: "다리랑 어깨를 같이")
   chest: [["펙덱플라이", "덤벨풀오버"], ["사이드레터럴레이즈", "케이블이두컬"]],
   back: [["시티드로우", "덤벨풀오버"], ["리버스펙덱플라이", "라잉트라이셉스"]],
-  legs: [["레그프레스", "레그컬", "카프레이즈"], ["시티드 덤벨 숄더프레스", "사이드레터럴레이즈", "케이블이두컬", "라잉트라이셉스"]],   // 팔·어깨는 다리 날에 가장 쉬어 있다. 가슴 날엔 삼두를, 등 날엔 이두를 넣지 않는다(찬진 10-13·14)
+  legs: [["시티드 덤벨 숄더프레스", "사이드레터럴레이즈"], ["라잉트라이셉스", "케이블푸쉬다운", "케이블이두컬"]],   // 팔·어깨는 다리 날에 가장 쉬어 있다. 가슴 날엔 삼두를, 등 날엔 이두를 넣지 않는다(찬진 10-13·14)
 };
-const poolNames = k => (DAY_POOL[k] || []).flat();
+/* 기본 추천엔 안 넣고 '다른 운동' 버튼에만 두는 종목 — 다리 날 세 번째 다리 운동(찬진 10-14: 스쿼트·RDL 두 개로 다리 힘을 다 써서 레그프레스는 못 함) */
+const DAY_EXTRA = { legs: ["레그프레스", "레그컬", "카프레이즈"] };
+const poolNames = k => [...(DAY_POOL[k] || []).flat(), ...(DAY_EXTRA[k] || [])];
 function dayKeyOf(name) {
   const hit = EXERCISE_ROUTINES.find(r => r.items.some(i => i.name === name));
   if (hit) return hit.key;
@@ -2521,13 +2523,16 @@ function fatigueSkips(items) {
 /* 보조 풀에서 이번에 할 2개 — 마지막으로 한 지 가장 오래된 순(안 한 건 맨 앞), 코칭 보강 종목은 3일 가산. 일기 기록 전체를 본다. */
 function poolPicks(plan, sel) {
   const today = todayStr(), cw = plan.cw, boost = new Set(((cw && cw.boost) || []).map(b => b.name));
-  const lastOf = name => { const h = plan.ss.filter(s => s.d !== today && s.items.some(i => i.name === name)); return h.length ? h[h.length - 1].d : null; };
+  const same = { "라잉트라이셉스": ["케이블푸쉬다운"], "케이블푸쉬다운": ["라잉트라이셉스"] };   // 같은 근육(삼두) 운동은 서로의 기록도 본다 — 어제 푸쉬다운을 했으면 오늘 라잉이 또 뽑히지 않게
+  const lastOf = name => { const fam = [name, ...(same[name] || [])]; const h = plan.ss.filter(s => s.d !== today && s.items.some(i => fam.includes(i.name))); return h.length ? h[h.length - 1].d : null; };
   const out = new Set();
   (DAY_POOL[sel] || []).forEach(group => {
     const g = group.map((name, n) => { const d = lastOf(name); return { name, n, score: (d ? dayDiff(today, d) : 999) + (boost.has(name) ? 3 : 0) }; });
     g.sort((a, b) => b.score - a.score || a.n - b.n);
     out.add(g[0].name);
   });
+  /* 어깨 프레스를 하면 삼두가 이미 지친다 — 누워서 하는 라잉 대신 쉬운 케이블 푸쉬다운으로(찬진 10-14 실제로 그렇게 함) */
+  if (out.has("시티드 덤벨 숄더프레스") && out.has("라잉트라이셉스") && poolNames(sel).includes("케이블푸쉬다운")) { out.delete("라잉트라이셉스"); out.add("케이블푸쉬다운"); }
   return out;
 }
 function workoutSuggestView(plan, sel, open, skip) {
