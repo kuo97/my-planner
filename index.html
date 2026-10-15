@@ -166,6 +166,15 @@
   .season-chip { padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; }
   .diet-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .diet-row:empty { display: none; }
+  .food-sum { margin-top: 6px; font-size: 12.5px; color: var(--ink); }
+  .food-sum:empty { display: none; }
+  .food-pick { margin-top: 8px; padding: 10px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--paper-card); }
+  .food-pick h5 { margin: 0 0 8px; font-size: 13px; font-weight: 700; }
+  .food-pick .fp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .food-pick .fp-other { width: 100%; margin-top: 8px; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 13px; background: #fff; box-sizing: border-box; }
+  .food-pick .fp-act { display: flex; gap: 6px; margin-top: 8px; }
+  .food-pick .fp-act button { flex: 1; padding: 7px; border-radius: 10px; border: 1.5px solid var(--line); background: none; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--muted); }
+  .food-pick .fp-act .fp-save { background: var(--sage); border-color: var(--sage); color: #fff; font-weight: 700; flex: 2; }
   .dt { padding: 10px 0; border-top: 1px dashed var(--line); }
   .dt:first-of-type { border-top: 0; padding-top: 4px; }
   .dt-top { display: flex; align-items: baseline; justify-content: space-between; }
@@ -1829,9 +1838,17 @@ async function renderDiary() {
   dCard.querySelector("#mealsNote").value = shown.meals || "";
   const paintDiet = () => {
     const row = dCard.querySelector("#dietRow"); if (!row || lifeLog === null) return;
-    if (editDate < DIET_START) { row.innerHTML = ""; return; }
-    row.innerHTML = DIET_KINDS.map(d => `<button type="button" class="season-chip${dietOn(editDate, d.k) ? " on" : ""}" data-k="${d.k}" title="누르면 이 날 기록, 다시 누르면 취소">${d.ico} ${d.k}</button>`).join("");
-    row.querySelectorAll("button").forEach(b => b.onclick = async () => { b.disabled = true; await toggleDiet(editDate, b.dataset.k); paintDiet(); });
+    let box = dCard.querySelector("#foodBox"); if (!box) { box = document.createElement("div"); box.id = "foodBox"; row.insertAdjacentElement("afterend", box); }
+    if (editDate < DIET_START) { row.innerHTML = ""; box.innerHTML = ""; return; }
+    const showSum = () => { box.dataset.open = ""; box.innerHTML = foodSummary(editDate) ? `<div class="food-sum">${foodSummary(editDate)}</div>` : ""; };
+    row.innerHTML = DIET_KINDS.map(d => `<button type="button" class="season-chip${dietOn(editDate, d.k) ? " on" : ""}" data-k="${d.k}" title="${d.k === FOOD_LABEL ? "누르면 뭘 먹었는지 고르거나 적어요" : "누르면 이 날 기록, 다시 누르면 취소"}">${d.ico} ${d.k}</button>`).join("");
+    showSum();
+    row.querySelectorAll("button").forEach(b => b.onclick = async () => {
+      if (b.dataset.k === FOOD_LABEL) {
+        if (box.dataset.open === "1") { showSum(); return; }
+        box.dataset.open = "1"; box.innerHTML = ""; box.appendChild(foodPickerEl(editDate, () => { paintDiet(); })); return;
+      }
+      b.disabled = true; await toggleDiet(editDate, b.dataset.k); paintDiet(); });
   };
   if (lifeLoaded) paintDiet(); else loadLifeLog().then(paintDiet).catch(() => {});
   try { mealsEditor(dCard); } catch (e) { console.warn("식사 편집기", e); dCard.querySelector("#mealsNote").hidden = false; }
@@ -2746,6 +2763,43 @@ const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타
 const DIET_KINDS = [{ k: "술 마심", ico: "🍺", c: "#eb6834" }, { k: "몸에 안 좋은 음식", ico: "🍗", c: "#eda100" }];
 const DIET_START = "2026-10-09";   // 찬진 지시(10-09): 술·음식은 오늘부터 새로 센다 — 그 전 기록은 제대로 안 남겼으니 무시
 let lifeLoaded = false, lifeDietYear = new Date().getFullYear();
+/* 몸에 안 좋은 음식 — 뭘 먹었는지(고르기 + 기타 직접 입력). 같은 life_log 행의 meta {items:[…], note} 에 저장(표 변경 없음, 찬진 10-15) */
+const FOOD_LABEL = "몸에 안 좋은 음식", FOOD_PRESETS = ["치킨", "피자", "닭강정", "햄버거", "떡볶이", "라면", "족발·보쌈", "과자·단 것", "야식"];
+const foodRec = date => (lifeLog || []).find(r => r.kind === "season" && r.on_date === date && r.label === FOOD_LABEL);
+const foodItems = r => (r && r.meta && Array.isArray(r.meta.items)) ? r.meta.items : [];
+const foodSummary = date => { const r = foodRec(date); if (!r) return ""; const t = [...foodItems(r), ...(r.meta && r.meta.note ? [r.meta.note] : [])]; return t.length ? "🍗 " + t.map(escapeHtml).join(" · ") : ""; };
+async function saveFood(date, items, note) {
+  const meta = (items.length || note) ? { items, ...(note ? { note } : {}) } : null, hit = foodRec(date);
+  const { error } = hit ? await sb.from("life_log").update({ meta }).eq("id", hit.id)
+                        : await sb.from("life_log").insert({ on_date: date, kind: "season", label: FOOD_LABEL, meta });
+  if (error) { toast("기록 실패: " + error.message); return false; }
+  await loadLifeLog(); toast(hit ? "몸에 안 좋은 음식 기록을 고쳤어요" : "몸에 안 좋은 음식 — 기록했어요"); return true;
+}
+async function clearFood(date) {
+  const hit = foodRec(date); if (!hit) return true;
+  const { error } = await sb.from("life_log").delete().eq("id", hit.id);
+  if (error) { toast("기록 실패: " + error.message); return false; }
+  await loadLifeLog(); toast("몸에 안 좋은 음식 기록을 지웠어요"); return true;
+}
+/* 고르는 창: 자주 먹는 것 칩(여러 개) + 기타 직접 입력(쉼표로 여러 개). 이미 기록된 날이면 현재 값을 보여 주고 고치거나 지울 수 있다. */
+function foodPickerEl(date, onDone) {
+  const rec = foodRec(date), cur = new Set(foodItems(rec)), box = document.createElement("div");
+  box.className = "food-pick";
+  const names = [...FOOD_PRESETS, ...[...cur].filter(x => !FOOD_PRESETS.includes(x))];
+  box.innerHTML = `<h5>🍗 뭘 드셨나요? <small style="font-weight:400;color:var(--muted)">여러 개 고를 수 있어요</small></h5>
+    <div class="fp-chips">${names.map(n => `<button type="button" class="season-chip${cur.has(n) ? " on" : ""}" data-n="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join("")}</div>
+    <input class="fp-other" type="text" maxlength="60" placeholder="기타 — 직접 적기 (예: 곱창, 마라탕 — 쉼표로 여러 개)" value="">
+    <div class="fp-act">${rec ? '<button type="button" class="fp-del">기록 지우기</button>' : ""}<button type="button" class="fp-close">닫기</button><button type="button" class="fp-save">${rec ? "고치기" : "기록하기"}</button></div>`;
+  box.querySelectorAll(".fp-chips button").forEach(b => b.addEventListener("click", () => { const n = b.dataset.n; if (cur.has(n)) cur.delete(n); else cur.add(n); b.classList.toggle("on", cur.has(n)); }));
+  const done = () => { try { onDone(); } catch (e) { console.warn(e); } };
+  box.querySelector(".fp-close").addEventListener("click", done);
+  const del = box.querySelector(".fp-del"); if (del) del.addEventListener("click", async () => { if (await clearFood(date)) done(); });
+  box.querySelector(".fp-save").addEventListener("click", async () => {
+    const extra = box.querySelector(".fp-other").value.split(/[,，、]/).map(x => x.trim()).filter(Boolean);   // 기타로 적은 것도 항목으로 세어 통계에 잡히게
+    if (await saveFood(date, [...new Set([...cur, ...extra])], "")) done();
+  });
+  return box;
+}
 const dietOn = (date, label) => (lifeLog || []).some(r => r.kind === "season" && r.on_date === date && r.label === label);
 async function toggleDiet(date, label) {                     // 일기 탭에서 쓰는 가벼운 토글(달력은 다시 그리지 않는다)
   const hit = (lifeLog || []).find(r => r.kind === "season" && r.on_date === date && r.label === label);
@@ -3048,6 +3102,7 @@ function lifeCard() {
     const avg = Math.round(cur.length / Math.min(12, Math.max(1, spanDays / 30.4)) * 10) / 10, showPrev = lifeDietYear - 1 >= startY;
     return `<div class="dt"><div class="dt-top"><b>${d.ico} ${d.k}</b><span class="dt-n">${cur.length}<small>일</small></span></div>
       <div class="dt-sub">${showPrev ? `${lifeDietYear - 1}년 ${prev.length}일${lifeDietYear - 1 === startY ? "(" + md(DIET_START) + "부터)" : ""} · ` : ""}월 평균 ${avg}일${last ? ` · ${n === 0 ? "오늘 했어요" : `마지막 ${n}일 전(${md(last)})`}` : ""}</div>
+      ${d.k === FOOD_LABEL ? (() => { const t = {}; lifeLog.filter(r => r.kind === "season" && r.label === FOOD_LABEL && r.on_date >= DIET_START && r.on_date.startsWith(String(lifeDietYear))).forEach(r => { foodItems(r).forEach(n => { t[n] = (t[n] || 0) + 1; }); }); const top = Object.entries(t).sort((a, b) => b[1] - a[1]).slice(0, 6); return top.length ? `<div class="dt-sub" style="margin-top:2px">${top.map(([n, c]) => escapeHtml(n) + " " + c).join(" · ")}</div>` : ""; })() : ""}
       <div class="dt-bars">${per.map((v, i) => `<span class="dt-col${lifeDietYear === nowY && i + 1 === curM ? " now" : ""}"><b>${v || ""}</b><i style="height:${v ? Math.max(5, Math.round(v / mx * 34)) : 2}px;background:${v ? d.c : "var(--line)"}"></i><em>${i + 1}</em></span>`).join("")}</div></div>`;
   };
   const dietBody = `<div class="sp-hint" style="margin:0 0 6px">${DIET_START.slice(5, 7).replace(/^0/, "")}월 ${Number(DIET_START.slice(8))}일부터 새로 세요</div><div class="dt-nav"><button type="button" data-dy="-1">‹</button><b>${lifeDietYear}년</b><button type="button" data-dy="1">›</button></div>` +
@@ -3195,7 +3250,7 @@ function renderCalendarView() {
       const marks = (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
                   + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "")
                   + seasonOn(c.dateStr).map(r => { const s = [...SEASON_KINDS, ...DIET_KINDS].find(x => x.k === r.label);
-                      return `<span class="day-mark" title="${r.label}">${s ? s.ico : "•"}</span>`; }).join("");
+                      const fi = r.label === FOOD_LABEL ? foodItems(r) : []; return `<span class="day-mark" title="${r.label}${fi.length ? " — " + fi.join(", ") : ""}">${s ? s.ico : "•"}</span>`; }).join("");
       cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${marks ? `<span class="day-marks">${marks}</span>` : ""}`;
       cell.addEventListener("click", () => {
         calSel = c.dateStr;
@@ -3291,10 +3346,17 @@ function renderCalendarView() {
           b.type = "button";
           b.className = "season-chip" + (on ? " on" : "");
           b.textContent = `${s.ico} ${s.k}`;
-          b.addEventListener("click", () => toggleSeason(calSel, s.k));
+          if (s.k === FOOD_LABEL) b.addEventListener("click", () => {
+            if (holder.dataset.open === "1") { holder.dataset.open = ""; holder.innerHTML = sumHtml(); return; }
+            holder.dataset.open = "1"; holder.innerHTML = "";
+            holder.appendChild(foodPickerEl(calSel, () => { renderCalendarView(); }));
+          });
+          else b.addEventListener("click", () => toggleSeason(calSel, s.k));
           row.appendChild(b);
         });
         detail.appendChild(row);
+        const holder = document.createElement("div"), sumHtml = () => foodSummary(calSel) ? `<div class="food-sum">${foodSummary(calSel)}</div>` : "";
+        if (kinds === DIET_KINDS) { holder.innerHTML = sumHtml(); detail.appendChild(holder); }
       });
     }
   }
