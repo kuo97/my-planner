@@ -35,7 +35,7 @@ function createWindow() {
     frame: false, resizable: true, skipTaskbar: false, show: false,
     icon: ICON_ICO,
     backgroundColor: "#FFFDF8",
-    webPreferences: { preload: path.join(__dirname, "preload.js") },
+    webPreferences: { preload: path.join(__dirname, "preload.js"), backgroundThrottling: false },
   });
   win.setAlwaysOnTop(st.onTop, "floating");
   win.setIcon(nativeImage.createFromPath(ICON_ICO));

@@ -75,6 +75,13 @@
   .chip:hover { background: #F3ECDD; }
   .selhead { padding: 6px 10px 2px; font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; }
   .selhead b { color: var(--ink); }
+  .rout { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 3px 10px 5px; font-size: 11px; color: var(--muted); }
+  .rout i { font-style: normal; opacity: .7; }
+  .rout .pill { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px 1px 5px; border: 1px solid #D9CDB6; border-radius: 99px; cursor: pointer; user-select: none; background: #FBF7EE; }
+  .rout .pill:hover { background: #F3ECDD; }
+  .rout .pill b { width: 11px; height: 11px; border: 1.5px solid #CFC3AD; border-radius: 3px; display: grid; place-items: center; font-size: 9px; color: #fff; font-weight: 700; }
+  .rout .pill.done { color: var(--muted); }
+  .rout .pill.done b { background: var(--sage); border-color: var(--sage); }
   .donehead { margin: 8px 8px 2px; padding: 4px 8px; border-radius: 7px; cursor: pointer; font-size: 11.5px; color: var(--muted); background: #F3ECDD; user-select: none; }
   .donehead:hover { background: #EDE4D0; color: var(--ink); }
   .num { flex: none; width: 17px; margin-top: 1px; text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); border-radius: 5px; cursor: text; height: 17px; line-height: 17px; }
@@ -381,7 +388,21 @@ function dayBlock(d, box, showHead) {
     box.appendChild(h);
   }
   const doneEv = evs.filter(e => evDone[e.id + "|" + d]), openEv = evs.filter(e => !evDone[e.id + "|" + d]);
-  const doneTk = list.filter(t => isDone(t, d)), openTk = list.filter(t => !isDone(t, d));
+  // 매일 반복하는 루틴(영어 15분 등)은 줄마다 늘어놓지 않고 한 줄 알약으로 접는다 (10-15 찬진: 너무 지저분)
+  const rep = list.filter(isRepeat), norm = list.filter(t => !isRepeat(t));
+  const doneTk = norm.filter(t => isDone(t, d)), openTk = norm.filter(t => !isDone(t, d));
+  if (rep.length) {
+    const r = document.createElement("div"); r.className = "rout";
+    r.innerHTML = "<i>루틴</i>";
+    rep.forEach(t => {
+      const dn = isDone(t, d), p = document.createElement("span");
+      p.className = "pill" + (dn ? " done" : "");
+      p.innerHTML = `<b>${dn ? "✓" : ""}</b>${esc(t.title)}`;
+      p.onclick = () => t.sub_total > 0 ? widget.openPlanner() : toggle(t, d);
+      r.appendChild(p);
+    });
+    box.appendChild(r);
+  }
   openEv.forEach(e => box.appendChild(eventEl(e, d)));
   let n = 0;
   openTk.forEach(t => box.appendChild(itemEl(t, d, ++n)));
@@ -408,7 +429,7 @@ function render() {
     const t0 = today(), sel = target || t0, strip = document.createElement("div");
     strip.className = "strip";
     weekDates().forEach(d => {
-      const left = tasksOn(d).filter(t => !isDone(t, d)).length + events.filter(e => e.date <= d && d <= e.end && !evDone[e.id + "|" + d]).length;
+      const left = tasksOn(d).filter(t => !isRepeat(t) && !isDone(t, d)).length + events.filter(e => e.date <= d && d <= e.end && !evDone[e.id + "|" + d]).length;
       const c = document.createElement("div");
       c.className = "chip" + (d === t0 ? " today" : "") + (d < t0 ? " past" : "") + (d === sel ? " sel" : "");
       c.innerHTML = `${DAY[new Date(d + "T00:00:00").getDay()]}<b>${Number(d.slice(8))}</b><i>${left || ""}</i>`;
@@ -498,9 +519,9 @@ async function refresh(force) {
   } finally { busy = false; }
 }
 async function pullInbox() {
+  const { data: { session } } = await sb.auth.getSession(); if (!session) return;
   let items = []; try { items = await widget.inbox(); } catch {}
   if (!items.length) return;
-  const { data: { session } } = await sb.auth.getSession(); if (!session) return;
   for (const it of items) {
     if (!it || !it.title) continue;
     const { data, error } = await sb.from("tasks").insert({ title: String(it.title), due: it.due || today() }).select().single();
