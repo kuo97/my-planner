@@ -163,6 +163,7 @@
   .ds-chip.on { color: var(--muted); }
   .ds-chip.on i { background: var(--sage); border-color: var(--sage); }
   .season-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .cal-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .season-chip { padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; }
   .diet-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .diet-row:empty { display: none; }
@@ -2762,7 +2763,7 @@ const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타
 /* 술·몸에 안 좋은 음식(치킨·피자·야식·단 것…)을 한 날 — season 과 같은 life_log 표에 label 만 달리 쓴다(표 변경 없음) */
 const DIET_KINDS = [{ k: "술 마심", ico: "🍺", c: "#eb6834" }, { k: "몸에 안 좋은 음식", ico: "🍗", c: "#eda100" }];
 const DIET_START = "2026-10-09";   // 찬진 지시(10-09): 술·음식은 오늘부터 새로 센다 — 그 전 기록은 제대로 안 남겼으니 무시
-let lifeLoaded = false, lifeDietYear = new Date().getFullYear();
+let lifeLoaded = false, lifeDietYear = new Date().getFullYear(), calSeasonOpen = false;
 /* 몸에 안 좋은 음식 — 뭘 먹었는지(고르기 + 기타 직접 입력). 같은 life_log 행의 meta {items:[…], note} 에 저장(표 변경 없음, 찬진 10-15) */
 const FOOD_LABEL = "몸에 안 좋은 음식", FOOD_PRESETS = ["치킨", "피자", "닭강정", "햄버거", "떡볶이", "라면", "족발·보쌈", "과자·단 것", "야식"];
 const foodRec = date => (lifeLog || []).find(r => r.kind === "season" && r.on_date === date && r.label === FOOD_LABEL);
@@ -3330,35 +3331,40 @@ function renderCalendarView() {
     detail.appendChild(evWrap);
   }
   if (calSel <= today) {
-    const hairBtn = document.createElement("button");
-    const done = !!(entry && entry.haircut);
-    hairBtn.className = "hair-toggle" + (done ? " on" : "");
-    hairBtn.textContent = done ? "✂️ 이발 기록 지우기" : "✂️ 이 날 이발했어요";
-    hairBtn.addEventListener("click", () => toggleHaircut(calSel));
-    detail.appendChild(hairBtn);
+    /* 기록 도구는 한 줄 작은 칩으로 — 이발 · 술 · 안 좋은 음식 · 냉난방(1년에 몇 번이라 눌러야 펼쳐짐) */
+    const tools = document.createElement("div"), sub = document.createElement("div");
+    tools.className = "cal-tools";
+    const mk = (txt, on, title, fn) => { const x = document.createElement("button"); x.type = "button"; x.className = "season-chip" + (on ? " on" : ""); x.textContent = txt; x.title = title || ""; x.addEventListener("click", fn); tools.appendChild(x); return x; };
+    const hairDone = !!(entry && entry.haircut);
+    mk(hairDone ? "✂️ 이발함" : "✂️ 이발", hairDone, hairDone ? "누르면 이발 기록을 지워요" : "이 날 이발했어요", () => toggleHaircut(calSel));
     if (lifeLog) {
-      [SEASON_KINDS, ...(calSel >= DIET_START ? [DIET_KINDS] : [])].forEach(kinds => {
+      const sumHtml = () => foodSummary(calSel) ? `<div class="food-sum">${foodSummary(calSel)}</div>` : "";
+      if (calSel >= DIET_START) {
+        mk("🍺 술", seasonOn(calSel).some(r => r.label === "술 마심"), "술 마신 날 — 누르면 기록/취소", () => toggleSeason(calSel, "술 마심"));
+        mk("🍗 안 좋은 음식", !!foodRec(calSel), "치킨·피자 등 몸에 안 좋은 음식 — 뭘 먹었는지 고르거나 적어요", () => {
+          if (sub.dataset.open === "food") { sub.dataset.open = ""; sub.innerHTML = sumHtml(); return; }
+          sub.dataset.open = "food"; sub.innerHTML = ""; sub.appendChild(foodPickerEl(calSel, () => { calSeasonOpen = false; renderCalendarView(); }));
+        });
+      }
+      const sOn = seasonOn(calSel).filter(r => SEASON_KINDS.some(s => s.k === r.label));   // 술·음식 기록은 제외
+      mk(sOn.length ? "🌡️ " + sOn.map(r => r.label).join(" · ") : "🌡️ 냉난방", sOn.length > 0, "에어컨·난방 켠 날/끈 날 기록", () => { calSeasonOpen = !calSeasonOpen; renderCalendarView(); });
+      detail.appendChild(tools);
+      if (calSeasonOpen) {
         const row = document.createElement("div");
         row.className = "season-chips";
-        kinds.forEach(s => {
-          const on = seasonOn(calSel).some(r => r.label === s.k);
-          const b = document.createElement("button");
-          b.type = "button";
-          b.className = "season-chip" + (on ? " on" : "");
-          b.textContent = `${s.ico} ${s.k}`;
-          if (s.k === FOOD_LABEL) b.addEventListener("click", () => {
-            if (holder.dataset.open === "1") { holder.dataset.open = ""; holder.innerHTML = sumHtml(); return; }
-            holder.dataset.open = "1"; holder.innerHTML = "";
-            holder.appendChild(foodPickerEl(calSel, () => { renderCalendarView(); }));
-          });
-          else b.addEventListener("click", () => toggleSeason(calSel, s.k));
-          row.appendChild(b);
+        SEASON_KINDS.forEach(s => {
+          const b2 = document.createElement("button");
+          b2.type = "button";
+          b2.className = "season-chip" + (seasonOn(calSel).some(r => r.label === s.k) ? " on" : "");
+          b2.textContent = `${s.ico} ${s.k}`;
+          b2.addEventListener("click", () => { calSeasonOpen = false; toggleSeason(calSel, s.k); });
+          row.appendChild(b2);
         });
         detail.appendChild(row);
-        const holder = document.createElement("div"), sumHtml = () => foodSummary(calSel) ? `<div class="food-sum">${foodSummary(calSel)}</div>` : "";
-        if (kinds === DIET_KINDS) { holder.innerHTML = sumHtml(); detail.appendChild(holder); }
-      });
-    }
+      }
+      sub.innerHTML = sumHtml();
+      detail.appendChild(sub);
+    } else detail.appendChild(tools);
   }
   if (calSel === today) {
     const jump = document.createElement("button");
