@@ -167,6 +167,12 @@
   .season-chip { padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; }
   .diet-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .diet-row:empty { display: none; }
+  .meals-det { margin: 8px 0 0; }
+  .meals-det > summary { cursor: pointer; font-size: 12.5px; color: var(--muted); list-style: none; padding: 4px 2px; }
+  .meals-det > summary::-webkit-details-marker { display: none; }
+  .meals-det > summary::before { content: '▸ '; }
+  .meals-det[open] > summary::before { content: '▾ '; }
+  .meals-det > summary small { opacity: .7; }
   .food-sum { margin-top: 6px; font-size: 12.5px; color: var(--ink); }
   .food-sum:empty { display: none; }
   .food-pick { margin-top: 8px; padding: 10px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--paper-card); }
@@ -1794,9 +1800,10 @@ async function renderDiary() {
       </div>
     </div>
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
+    <details class="meals-det" id="mealsDet"><summary>🍽️ 식단 · 술 · 음식 기록 <small>(필요할 때만 펼쳐요)</small></summary>
     <div class="meals-ed" id="mealsEd"></div>
     <div class="diet-row" id="dietRow"></div>
-    <textarea id="mealsNote" hidden></textarea>
+    <textarea id="mealsNote" hidden></textarea></details>
     <div id="wkSuggest"></div>
     <input class="exercise-input" id="exerciseNote" placeholder="무슨 운동을 했나요? (예: 러닝 5km)">
     <div class="exercise-presets" id="exercisePresets">
@@ -1837,6 +1844,7 @@ async function renderDiary() {
   };
   dCard.querySelector("#diaryContent").value = shown.content || "";
   dCard.querySelector("#mealsNote").value = shown.meals || "";
+  try { const md_ = dCard.querySelector("#mealsDet"); md_.open = localStorage.getItem("meals_open") === "1"; md_.addEventListener("toggle", () => { try { localStorage.setItem("meals_open", md_.open ? "1" : "0"); } catch {} }); } catch {}
   const paintDiet = () => {
     const row = dCard.querySelector("#dietRow"); if (!row || lifeLog === null) return;
     let box = dCard.querySelector("#foodBox"); if (!box) { box = document.createElement("div"); box.id = "foodBox"; row.insertAdjacentElement("afterend", box); }
