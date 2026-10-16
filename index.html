@@ -4349,7 +4349,7 @@ function render() {
     statsRow.appendChild(exerciseStatsEl());
     statsRow.appendChild(lottoStatsEl());
     list.appendChild(statsRow);
-    try { list.appendChild(foodTipEl()); } catch (e) {}
+    if (SHOW_DIET) try { list.appendChild(foodTipEl()); } catch (e) {}
     try { list.appendChild(balanceEl()); } catch (e) {}
     list.appendChild(gcalBar);
   }
