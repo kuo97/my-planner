@@ -1844,6 +1844,7 @@ async function renderDiary() {
   };
   dCard.querySelector("#diaryContent").value = shown.content || "";
   dCard.querySelector("#mealsNote").value = shown.meals || "";
+  if (!SHOW_DIET) { const hd = dCard.querySelector("#mealsDet"); if (hd) hd.hidden = true; }
   try { const md_ = dCard.querySelector("#mealsDet"); md_.open = localStorage.getItem("meals_open") === "1"; md_.addEventListener("toggle", () => { try { localStorage.setItem("meals_open", md_.open ? "1" : "0"); } catch {} }); } catch {}
   const paintDiet = () => {
     const row = dCard.querySelector("#dietRow"); if (!row || lifeLog === null) return;
@@ -2771,6 +2772,8 @@ const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타
 /* 술·몸에 안 좋은 음식(치킨·피자·야식·단 것…)을 한 날 — season 과 같은 life_log 표에 label 만 달리 쓴다(표 변경 없음) */
 const DIET_KINDS = [{ k: "술 마심", ico: "🍺", c: "#eb6834" }, { k: "몸에 안 좋은 음식", ico: "🍗", c: "#eda100" }];
 const DIET_START = "2026-10-09";   // 찬진 지시(10-09): 술·음식은 오늘부터 새로 센다 — 그 전 기록은 제대로 안 남겼으니 무시
+/* 식단·술·음식 기록 화면 표시 — 찬진 10-16: "귀찮아서 안 하게 됨, 아예 숨겨줘". 데이터·코드는 그대로 두고 화면에서만 숨김. 다시 쓰려면 true */
+const SHOW_DIET = false;
 let lifeLoaded = false, lifeDietYear = new Date().getFullYear(), calSeasonOpen = false;
 /* 몸에 안 좋은 음식 — 뭘 먹었는지(고르기 + 기타 직접 입력). 같은 life_log 행의 meta {items:[…], note} 에 저장(표 변경 없음, 찬진 10-15) */
 const FOOD_LABEL = "몸에 안 좋은 음식", FOOD_PRESETS = ["치킨", "피자", "닭강정", "햄버거", "떡볶이", "라면", "족발·보쌈", "과자·단 것", "야식"];
@@ -3137,7 +3140,7 @@ function lifeCard() {
     ${sec("spend", "지출", lifeSpendSel ? `${mLabel(lifeSpendSel)} ${won(spendSum(lifeSpendSel))}` : "", spendBody)}
     ${sec("sub", "구독", subs.length ? `월 ${won(subTotal())}` : "", subBody)}
     ${sec("bill", "공과금", billMonths[0] ? `${mLabel(billMonths[0])} ${won(billSum(billMonths[0]))}` : "", billBody)}
-    ${sec("diet", "술·음식", dietSub, dietBody)}
+    ${SHOW_DIET ? sec("diet", "술·음식", dietSub, dietBody) : ""}
     ${sec("place", "🍜 가볼 맛집", placeTodo.length ? `${placeTodo.length}곳` : "", placeBody)}
     ${sec("season", "계절", lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "", seasonBody)}`;
 
@@ -3258,7 +3261,7 @@ function renderCalendarView() {
       const thumb = entry && entry.photos && entry.photos[0];
       const marks = (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
                   + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "")
-                  + seasonOn(c.dateStr).map(r => { const s = [...SEASON_KINDS, ...DIET_KINDS].find(x => x.k === r.label);
+                  + seasonOn(c.dateStr).filter(r => SHOW_DIET || SEASON_KINDS.some(x => x.k === r.label)).map(r => { const s = [...SEASON_KINDS, ...DIET_KINDS].find(x => x.k === r.label);
                       const fi = r.label === FOOD_LABEL ? foodItems(r) : []; return `<span class="day-mark" title="${r.label}${fi.length ? " — " + fi.join(", ") : ""}">${s ? s.ico : "•"}</span>`; }).join("");
       cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${marks ? `<span class="day-marks">${marks}</span>` : ""}`;
       cell.addEventListener("click", () => {
@@ -3347,7 +3350,7 @@ function renderCalendarView() {
     mk(hairDone ? "✂️ 이발함" : "✂️ 이발", hairDone, hairDone ? "누르면 이발 기록을 지워요" : "이 날 이발했어요", () => toggleHaircut(calSel));
     if (lifeLog) {
       const sumHtml = () => foodSummary(calSel) ? `<div class="food-sum">${foodSummary(calSel)}</div>` : "";
-      if (calSel >= DIET_START) {
+      if (SHOW_DIET && calSel >= DIET_START) {
         mk("🍺 술", seasonOn(calSel).some(r => r.label === "술 마심"), "술 마신 날 — 누르면 기록/취소", () => toggleSeason(calSel, "술 마심"));
         mk("🍗 안 좋은 음식", !!foodRec(calSel), "치킨·피자 등 몸에 안 좋은 음식 — 뭘 먹었는지 고르거나 적어요", () => {
           if (sub.dataset.open === "food") { sub.dataset.open = ""; sub.innerHTML = sumHtml(); return; }
