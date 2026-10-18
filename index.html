@@ -1005,7 +1005,10 @@
     border: none; background: var(--sage); color: white; font-family: 'Gaegu', sans-serif;
     font-weight: 700; font-size: 13px; padding: 0 16px; border-radius: 10px; cursor: pointer;
   }
-  .date-toggle { display: flex; gap: 4px; }
+  .date-toggle { display: flex; gap: 4px; align-items: center; }
+  .date-pick { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 28px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper); cursor: pointer; font-size: 13px; overflow: hidden; }
+  .date-pick.on { background: var(--coral); border-color: var(--coral); }
+  .date-pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .date-toggle button {
     padding: 5px 12px; border: 1.5px solid var(--line); border-radius: 999px;
     background: var(--paper); font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 12.5px;
@@ -1683,7 +1686,7 @@ async function saveDiary() {
   const { error } = await sb.from("diary").upsert(row, { onConflict: "user_id,on_date" });
   if (error) { toast("저장 실패: " + error.message); return; }
   clearDiaryDraft(editDate);
-  toast(editDate === todayStr() ? "오늘 일기를 저장했어요" : "어제 일기를 저장했어요");
+  toast(editDate === todayStr() ? "오늘 일기를 저장했어요" : editDate === yesterdayStr() ? "어제 일기를 저장했어요" : `${Number(editDate.slice(5, 7))}월 ${Number(editDate.slice(8))}일 일기를 저장했어요`);
   /* 저장 뒤에도 보던 탭·스크롤 자리에 그대로 머문다 — 예전엔 목록을 비웠다가 다시 그려서 맨 위로 튀었다(찬진 10-14) */
   const y = window.scrollY, listEl = $("list");
   await Promise.all([loadDiary(), loadExerciseStats()]);
@@ -1787,8 +1790,8 @@ async function renderDiary() {
   const primary = cities[0];
 
   /* 오늘/어제 일기 카드 */
-  const isToday = editDate === todayStr();
-  const dayWord = isToday ? "오늘" : "어제";
+  const isToday = editDate === todayStr(), isYest = editDate === yesterdayStr();
+  const dayWord = isToday ? "오늘" : isYest ? "어제" : `${Number(editDate.slice(5, 7))}월 ${Number(editDate.slice(8))}일`;
   const dCard = document.createElement("div");
   dCard.className = "dcard";
   dCard.innerHTML = `
@@ -1796,7 +1799,8 @@ async function renderDiary() {
       <span>${dayWord} 일기</span>
       <div class="date-toggle" id="dateToggle">
         <button type="button" data-d="today" class="${isToday ? "on" : ""}">오늘</button>
-        <button type="button" data-d="yesterday" class="${!isToday ? "on" : ""}">어제</button>
+        <button type="button" data-d="yesterday" class="${isYest ? "on" : ""}">어제</button>
+        <label class="date-pick${!isToday && !isYest ? " on" : ""}" title="다른 날짜 일기 고치기">📅<input type="date" id="diaryDatePick" max="${todayStr()}" value="${editDate}"></label>
       </div>
     </div>
     <textarea class="diary-input" id="diaryContent" placeholder="${dayWord} 하루는 어땠나요?"></textarea>
@@ -2120,6 +2124,14 @@ async function renderDiary() {
       editDate = next;
       loadDiary().then(renderDiary);
     });
+  });
+  /* 아무 날짜나 골라 그 날 일기·운동 기록 고치기 (찬진 10-18: 어제까지만 되던 걸 언제든) */
+  const pickEl = dCard.querySelector("#diaryDatePick");
+  if (pickEl) pickEl.addEventListener("change", () => {
+    const v = pickEl.value;
+    if (!v || v > todayStr() || v === editDate) return;
+    editDate = v;
+    loadDiary().then(renderDiary);
   });
   renderPhotoGrid();
   dCard.querySelector("#photoInput").addEventListener("change", (e) => {
@@ -3377,11 +3389,15 @@ function renderCalendarView() {
       detail.appendChild(sub);
     } else detail.appendChild(tools);
   }
-  if (calSel === today) {
+  if (calSel <= today) {
     const jump = document.createElement("button");
     jump.className = "cal-jump";
-    jump.textContent = "오늘 일기 탭에서 사진/글 수정하기";
-    jump.addEventListener("click", () => { document.querySelector('nav button[data-view="diary"]').click(); });
+    jump.textContent = calSel === today ? "✏️ 오늘 일기·운동 고치기" : "✏️ 이 날 일기·운동 고치기";
+    jump.addEventListener("click", () => {
+      const d = calSel;
+      document.querySelector('nav button[data-view="diary"]').click();   // 일기 탭으로(이때 오늘로 맞춰진다)
+      if (d !== todayStr()) { editDate = d; loadDiary().then(renderDiary); }
+    });
     detail.appendChild(jump);
   }
   list.appendChild(lifeCard());
