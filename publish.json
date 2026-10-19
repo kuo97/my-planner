@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-19T15:09+09:00",
+ "updated": "2026-10-19T15:10+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -2045,13 +2045,13 @@
     },
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-24T21:00:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-24T21:00:00+09:00",
      "ready": true
     }
@@ -2078,13 +2078,13 @@
     },
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-25T21:00:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-25T21:00:00+09:00",
      "ready": true
     }
