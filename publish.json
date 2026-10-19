@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-19T16:23+09:00",
+ "updated": "2026-10-19T16:28+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -1969,7 +1969,7 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-22T19:00:00+09:00",
      "ready": false
     }
