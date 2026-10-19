@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-19T14:28+09:00",
+ "updated": "2026-10-19T14:51+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -1920,7 +1920,9 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "pending",
+     "status": "scheduled",
+     "url": "https://youtu.be/J33xXDm3N6A",
+     "publishAt": "2026-10-21T19:00:00+09:00",
      "due": "2026-10-21T19:00:00+09:00",
      "ready": false
     },
