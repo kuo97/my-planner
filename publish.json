@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-18T20:29+09:00",
+ "updated": "2026-10-19T14:28+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -475,9 +475,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-18T21:01:58+09:00",
      "due": "2026-10-18T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-18T21:01:58+09:00"
+     "ready": true
     }
    }
   },
@@ -1438,6 +1438,39 @@
    }
   },
   {
+   "id": "2026-10-19_19",
+   "date": "2026-10-19",
+   "time": "19:00",
+   "kind": "정보형",
+   "work": "21번",
+   "title": "21번의 파생물 — 정보형 「프로포즈 당일, 이것 때문에 망칩니다」",
+   "memo": "10-19 주간 배치. 회피·실패형(「안 된 것」 표 반영). 첫 5초 「5,900번 넘게 본 '최악의 프로포즈' 그다음 편」 오버레이(롤모델 10-18). 엔드카드 작품 장면+다음 편(10-24 프로포즈 멘트) 예고. 배경 21번 cut_03·14·15·12·10·06, 엔드 16. BGM Back To Portland.",
+   "short": "프로포즈 당일, 이것 때문에 망칩니다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/mgUD1uSjVuo",
+     "publishAt": "2026-10-19T10:00:00Z",
+     "due": "2026-10-19T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-19T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-19T21:00:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "2026-10-19_19b",
    "date": "2026-10-19",
    "time": "19:00",
@@ -1746,9 +1779,9 @@
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-18T21:08:56+09:00",
      "due": "2026-10-18T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-18T21:08:56+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
