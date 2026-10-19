@@ -1482,14 +1482,15 @@
    "prep": [
     {
      "text": "네이버 블로그 예약발행 (10-19 월 19:00) — 원고·이미지 완료: 12번 폴더 블로그.md",
-     "done": false,
+     "done": true,
      "ch": "blog"
     }
    ],
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
+     "at": "2026-10-19T19:00+09:00",
      "due": "2026-10-19T19:00:00+09:00",
      "ready": false
     }
