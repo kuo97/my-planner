@@ -136,6 +136,18 @@
   }
   .cal-day .day-mark.ex { background: var(--sage); }
   .cal-stats-row { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: -4px 0 10px; }
+  .today-tasks { margin: 0 0 14px; }
+  .today-tasks .cal-stats-row { margin: 12px 0 8px; }
+  .tt-add { display: flex; gap: 8px; margin: 0 0 10px; }
+  .tt-add input { flex: 1; min-width: 0; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--paper-card); font-family: inherit; font-size: 15px; outline: none; }
+  .tt-add input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px var(--coral-soft); }
+  .tt-add button { border: none; background: var(--coral); color: #fff; border-radius: 14px; padding: 0 16px; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .tt-memo .tt-add input { padding: 8px 12px; font-size: 14px; }
+  .tt-empty { color: var(--muted); font-size: 13px; padding: 4px 4px 2px; }
+  .tt-memo { margin-top: 8px; }
+  .tt-memo > summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 2px; }
+  .tt-memo[open] > summary { margin-bottom: 6px; }
+  .cal-tasks { margin-top: 10px; }
   .cal-stats-row .ex-stats.cal-ex { margin: 0; }
   .ex-stats.hair-stats { background: var(--paper-card); border-color: var(--line); }
   .ex-stats.lotto-pick {
@@ -1132,7 +1144,7 @@
 
 <div id="appView" class="app" style="display:none">
   <header>
-    <h1 id="viewTitle">오늘</h1>
+    <h1 id="viewTitle">일기</h1>
     <span class="date" id="todayDate"></span>
   </header>
   <main>
@@ -1144,8 +1156,7 @@
     <div id="list"></div>
   </main>
   <nav>
-    <button data-view="today" class="active"><span class="ico">☀️</span>오늘</button>
-    <button data-view="diary"><span class="ico">📖</span>일기</button>
+    <button data-view="diary" class="active"><span class="ico">📖</span>일기</button>
     <button data-view="calendar"><span class="ico">📅</span>달력</button>
     <button data-view="publish"><span class="ico">📤</span>발행</button>
   </nav>
@@ -1233,12 +1244,12 @@ function splitReps(reps) {
   const m = String(reps || "").match(/^(.+)×(\d+)$/);
   return m ? { r: m[1], s: Number(m[2]) } : null;
 }
-let sb = null, user = null, tasks = [], repeatLog = [], view = "today", editing = null;
+let sb = null, user = null, tasks = [], repeatLog = [], view = "diary", editing = null;   // 10-21 오늘 탭을 일기 탭에 합침(찬진: "최대한 깔끔하게")
 let taskTab = "today";
 /* 새로고침해도 보던 탭에 그대로 머문다(같은 창 안에서만 — 앱을 완전히 닫았다 열면 '오늘'부터) */
 const VIEWS = ["today", "diary", "calendar", "publish"];
 const keepNav = () => { try { sessionStorage.setItem("planner_nav", JSON.stringify({ view, taskTab })); } catch {} };
-try { const sv = JSON.parse(sessionStorage.getItem("planner_nav") || "null"); if (sv && VIEWS.includes(sv.view)) { view = sv.view; if (sv.taskTab === "inbox") taskTab = "inbox"; } } catch {}
+try { const sv = JSON.parse(sessionStorage.getItem("planner_nav") || "null"); if (sv && VIEWS.includes(sv.view)) { view = sv.view === "today" ? "diary" : sv.view; } } catch {}
 let calY = new Date().getFullYear(), calM = new Date().getMonth(), calSel = null, calMap = {};
 
 const $ = (id) => document.getElementById(id);
@@ -1787,6 +1798,8 @@ async function renderDiary() {
   list.innerHTML = "";
 
   const primary = cities[0];
+
+  if (editDate === todayStr()) { try { list.appendChild(todayTasksEl()); } catch (e) { console.warn("오늘 할 일", e); } }
 
   /* 오늘/어제 일기 카드 */
   const isToday = editDate === todayStr(), isYest = editDate === yesterdayStr();
@@ -3272,7 +3285,8 @@ function renderCalendarView() {
       const entry = calMap[c.dateStr];
       const hasText = entry && (entry.content || entry.exercised || (entry.city_notes && entry.city_notes.length));
       const thumb = entry && entry.photos && entry.photos[0];
-      const marks = (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
+      const dueN = tasks.filter(t => !t.done_at && !(t.repeat_days && t.repeat_days.length) && t.due === c.dateStr).length;
+      const marks = (dueN ? `<span class="day-mark" title="할 일 ${dueN}개">📌</span>` : "") + (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
                   + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "")
                   + seasonOn(c.dateStr).filter(r => SHOW_DIET || (SHOW_FOOD && r.label === FOOD_LABEL) || SEASON_KINDS.some(x => x.k === r.label)).map(r => { const s = [...SEASON_KINDS, ...DIET_KINDS].find(x => x.k === r.label);
                       const fi = r.label === FOOD_LABEL ? foodItems(r) : []; return `<span class="day-mark" title="${s ? dietName(s) : r.label}${fi.length ? " — " + fi.join(", ") : ""}">${s ? s.ico : "•"}</span>`; }).join("");
@@ -3354,6 +3368,12 @@ function renderCalendarView() {
     });
     detail.appendChild(evWrap);
   }
+  const selTasks = tasks.filter(t => !(t.repeat_days && t.repeat_days.length) && t.due === calSel);
+  if (selTasks.length) {
+    const tw = document.createElement("div"); tw.className = "cal-tasks";
+    selTasks.forEach(t => tw.appendChild(taskRow(t, undefined, calSel)));
+    detail.appendChild(tw);
+  }
   if (calSel <= today) {
     /* 기록 도구는 한 줄 작은 칩으로 — 이발 · 술 · 안 좋은 음식 · 냉난방(1년에 몇 번이라 눌러야 펼쳐짐) */
     const tools = document.createElement("div"), sub = document.createElement("div");
@@ -3402,6 +3422,80 @@ function renderCalendarView() {
     detail.appendChild(jump);
   }
   list.appendChild(lifeCard());
+  try { list.appendChild(gcalBarEl()); } catch (e) {}
+}
+
+/* ---------- 오늘 할 일 (2026-10-21: 오늘 탭을 없애고 일기 탭 맨 위로) ----------
+   추가 칸 · 매일 칩 · 오늘 할 일(마감 지난 것 포함) · 오늘 구글 일정 · 메모함(접기) · 운동 횟수·로또 · 이번 주 균형.
+   날짜가 있는 다른 날 할 일은 달력 탭 그 날짜에서 본다. */
+function todayTasksEl() {
+  const today = todayStr(), dow = new Date(today + "T00:00:00").getDay();
+  const isDaily = t => t.repeat_days && t.repeat_days.length === 7 && !(t.sub_total > 0);
+  const box = document.createElement("div");
+  box.id = "todayTasks"; box.className = "today-tasks";
+  const add = (inbox) => { const f = document.createElement("form"); f.className = "tt-add";
+    f.innerHTML = `<input type="text" placeholder="${inbox ? "메모 추가 — 날짜 없이 쌓아 두기" : "오늘 할 일 추가"}" autocomplete="off"><button type="submit">추가</button>`;
+    f.addEventListener("submit", e => { e.preventDefault(); const inp = f.querySelector("input"), v = inp.value.trim(); if (!v) return; inp.value = "";
+      const keep = taskTab; taskTab = inbox ? "inbox" : "today"; addTask(v); taskTab = keep; });
+    return f; };
+  box.appendChild(add(false));
+  const dailies = tasks.filter(isDaily);
+  if (dailies.length) {
+    const strip = document.createElement("div"); strip.className = "daily-strip";
+    strip.innerHTML = `<span class="ds-label">매일</span>`;
+    dailies.forEach(t => {
+      const done = repeatLog.some(r => r.task_id === t.id && r.done_on === today);
+      const b = document.createElement("button"); b.type = "button"; b.className = "ds-chip" + (done ? " on" : "");
+      b.innerHTML = `<i>${done ? "✓" : ""}</i>${escapeHtml(t.title)}`;
+      b.title = "누르면 오늘 한 걸로 체크 · 오른쪽 클릭으로 수정";
+      b.addEventListener("click", () => applyRepeatLogState(t.id, !done, { on: today }));
+      b.addEventListener("contextmenu", e => { e.preventDefault(); openTaskCtxMenu(e.clientX, e.clientY, t); });
+      strip.appendChild(b);
+    });
+    box.appendChild(strip);
+  }
+  const dTasks = tasks.filter(t => {
+    if (t.repeat_days && t.repeat_days.length) return t.repeat_days.includes(dow) && !isDaily(t);
+    if (!t.due) return false;
+    if (!t.done_at && t.due <= today) return true;   // 마감 지난 미완료도 오늘에 모은다
+    return t.due === today;
+  });
+  const evs = gcalEventsOn(today);
+  if (evs.length) {
+    const ev = document.createElement("div"); ev.className = "gcal-events";
+    evs.forEach(e => { const a = document.createElement("a"); a.className = "gcal-event"; a.href = e.htmlLink || "#"; a.target = "_blank"; a.rel = "noopener noreferrer";
+      const s = document.createElement("span"); s.className = "gcal-title"; s.textContent = e.title; a.appendChild(s); ev.appendChild(a); });
+    box.appendChild(ev);
+  }
+  dTasks.forEach(t => { const rep_ = t.repeat_days && t.repeat_days.length; box.appendChild(taskRow(t, rep_ ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === today) : undefined, today)); });
+  if (!dTasks.length && !evs.length) box.insertAdjacentHTML("beforeend", `<div class="tt-empty">오늘 할 일은 없어요</div>`);
+  const inbox = tasks.filter(t => !t.done_at && !t.due && !(t.repeat_days && t.repeat_days.length));
+  const memo = document.createElement("details"); memo.className = "tt-memo";
+  try { memo.open = localStorage.getItem("tt_memo_open") === "1"; } catch {}
+  memo.addEventListener("toggle", () => { try { localStorage.setItem("tt_memo_open", memo.open ? "1" : "0"); } catch {} });
+  memo.innerHTML = `<summary>메모함 ${inbox.length}</summary>`;
+  memo.appendChild(add(true));
+  inbox.forEach(t => memo.appendChild(taskRow(t)));
+  box.appendChild(memo);
+  const stats = document.createElement("div"); stats.className = "cal-stats-row";
+  try { stats.appendChild(exerciseStatsEl()); } catch (e) {}
+  try { stats.appendChild(lottoStatsEl()); } catch (e) {}
+  box.appendChild(stats);
+  try { box.appendChild(balanceEl()); } catch (e) {}
+  return box;
+}
+function paintTodayTasks() { const old = $("todayTasks"); if (old) old.replaceWith(todayTasksEl()); }
+/* 구글 캘린더 연결 상태 한 줄 — 달력 탭 맨 아래(오늘 탭이 없어져서 옮김) */
+function gcalBarEl() {
+  const connected = gcalIsConnected(), bar = document.createElement("div");
+  bar.className = "gcal-bar" + (connected ? " gcal-bar-mini" : "");
+  const last = gcalLastStatus();
+  const statusHtml = last ? ` <span class="gcal-status" title="클릭하면 연동 기록 전체를 보여줘요">· ${escapeHtml(last)}</span>` : "";
+  bar.innerHTML = connected ? `<span>📅 구글 캘린더 연동됨${statusHtml}</span><button type="button">해제</button>`
+                            : `<span>구글 캘린더에 있는 일정도 같이 볼까요?${statusHtml}</span><button type="button">연동하기</button>`;
+  bar.querySelector("button").addEventListener("click", () => { connected ? disconnectGoogleCalendar() : connectGoogleCalendar(); });
+  const st = bar.querySelector(".gcal-status"); if (st) st.addEventListener("click", () => alert("구글 캘린더 연동 기록 (최신순)\n\n" + gcalLogEntries().slice().reverse().join("\n")));
+  return bar;
 }
 
 function emptyDoodle(msg, sub) {
@@ -4303,6 +4397,8 @@ async function deleteProject(name) {
 }
 
 function render() {
+  // 일기 탭에서 할 일만 바뀌었으면 할 일 묶음만 다시 그린다 — 쓰던 일기 글·사진은 그대로(10-21)
+  if (view === "diary" && $("todayTasks") && editDate === todayStr()) { paintTodayTasks(); return; }
   const list = $("list");
   list.innerHTML = "";
   const today = todayStr();
