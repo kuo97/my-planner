@@ -409,6 +409,25 @@ revoke all on function life_sub_add(text, jsonb) from public;
 grant execute on function life_sub_add(text, jsonb) to anon;
 ```
 
+## 1-14. 구독 지우기 (2026-10-22) — 추가 SQL
+
+Claude 가 바뀐 구독(예: 그록 요금제 변경)을 정리하는 통로. 이름이 정확히 같은 구독만 지운다.
+
+```sql
+create or replace function life_sub_del(p_token text, p_label text)
+returns integer language plpgsql security definer set search_path = public as $$
+declare uid uuid; n integer;
+begin
+  if encode(sha256(convert_to(p_token, 'UTF8')), 'hex') <> 'HASH_HERE' then return -1; end if;
+  select user_id into uid from diary order by on_date desc limit 1;
+  delete from life_log where user_id = uid and kind = 'sub' and label = p_label;
+  get diagnostics n = row_count;
+  return n;
+end $$;
+revoke all on function life_sub_del(text, text) from public;
+grant execute on function life_sub_del(text, text) to anon;
+```
+
 ## 2. 프로젝트 키 확인
 
 대시보드 → **Settings → API** 에서 두 값을 복사:
