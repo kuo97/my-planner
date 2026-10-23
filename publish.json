@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-19T19:17+09:00",
+ "updated": "2026-10-23T17:44+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -1459,16 +1459,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-19T21:02:36+09:00",
      "due": "2026-10-19T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-19T21:02:36+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-19T21:03:50+09:00",
      "due": "2026-10-19T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-19T21:03:50+09:00"
+     "ready": true
     }
    }
   },
@@ -1838,9 +1838,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-20T12:34:00+09:00",
      "due": "2026-10-20T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-10-20T12:34:00+09:00"
+     "ready": true
     }
    }
   },
@@ -1866,16 +1866,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-20T21:02:51+09:00",
      "due": "2026-10-20T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-20T21:02:51+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-20T21:04:00+09:00",
      "due": "2026-10-20T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-20T21:04:00+09:00"
+     "ready": true
     }
    }
   },
@@ -1898,7 +1898,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
+     "url": "https://blog.naver.com/chanjakstudio/224446683802",
+     "at": "2026-10-20T19:10:00+09:00",
      "due": "2026-10-20T19:00:00+09:00",
      "ready": false
     }
@@ -1918,9 +1920,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-21T12:33:45+09:00",
      "due": "2026-10-21T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-10-21T12:33:45+09:00"
+     "ready": true
     }
    }
   },
@@ -1946,16 +1948,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-22T21:02:43+09:00",
      "due": "2026-10-22T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-22T21:02:43+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-22T21:03:57+09:00",
      "due": "2026-10-22T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-22T21:03:57+09:00"
+     "ready": true
     }
    }
   },
@@ -1978,7 +1980,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
+     "url": "https://blog.naver.com/chanjakstudio/224446698259",
+     "at": "2026-10-22T18:50:00+09:00",
      "due": "2026-10-22T19:00:00+09:00",
      "ready": false
     }
@@ -2004,9 +2008,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-22T12:34:05+09:00",
      "due": "2026-10-22T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-10-22T12:34:05+09:00"
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
@@ -2144,20 +2148,22 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-21T21:03:02+09:00",
      "due": "2026-10-21T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-21T21:03:02+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-21T21:04:30+09:00",
      "due": "2026-10-21T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-21T21:04:30+09:00"
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
+     "url": "https://blog.naver.com/chanjakstudio/224446691583",
+     "at": "2026-10-21T19:20:00+09:00",
      "due": "2026-10-21T19:00:00+09:00",
      "ready": false
     },
@@ -2183,9 +2189,9 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-23T12:34:05+09:00",
      "due": "2026-10-23T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-10-23T12:34:05+09:00"
+     "ready": true
     }
    }
   },
@@ -2352,6 +2358,66 @@
      "status": "scheduled",
      "due": "2026-10-25T12:30:00+09:00",
      "ready": true
+    }
+   }
+  },
+  {
+   "id": "2026-10-30_19",
+   "date": "2026-10-30",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "30번",
+   "title": "30번(신랑입장영상 4호 「선수 카드」 — 축구 게임 카드 뽑기 연출) — 금요일 정기 발행",
+   "memo": "10-23 5차 확정(찬진 \"너무 마음에 든다\"). 가짜 회사 로고(유부닉스 FC)판 = 공개 가능. 수원삼성 엠블럼판은 납품용만. 브랜드 엔딩(10-30부터) 붙일 것. 신우진님 문의 샘플 겸용. 세트(썸네일·7채널 원고·업로드)는 10-26 주 배치에서.",
+   "short": "30번 「선수 카드」 신랑입장",
+   "prep": [
+    {
+     "text": "네이버 블로그 예약발행 (10-30 19:00) — 원고는 세션이 준비",
+     "done": false,
+     "ch": "blog"
+    },
+    {
+     "text": "네이버 클립 업로드 (10-30 21:00, 블로그 링크는 월요일 연결)",
+     "done": false,
+     "ch": "clip"
+    }
+   ],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-10-30T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-10-30T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-10-30T21:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-10-30T21:00:00+09:00",
+     "ready": false
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-10-30T19:00:00+09:00",
+     "ready": false
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-10-30T21:00:00+09:00",
+     "ready": false
     }
    }
   }
