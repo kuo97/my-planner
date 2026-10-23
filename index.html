@@ -190,6 +190,11 @@
   .food-pick { margin-top: 8px; padding: 10px; border: 1.5px dashed var(--line); border-radius: 14px; background: var(--paper-card); }
   .food-pick h5 { margin: 0 0 8px; font-size: 13px; font-weight: 700; }
   .food-pick .fp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .food-pick .fp-brands { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .food-pick .fp-brands:empty { display: none; }
+  .food-pick .fp-brand { display: flex; align-items: center; gap: 8px; }
+  .food-pick .fp-brand b { flex: 0 0 76px; font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .food-pick .fp-brand input { flex: 1; min-width: 0; padding: 6px 10px; border: 1.5px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 13px; background: #fff; }
   .food-pick .fp-other { width: 100%; margin-top: 8px; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 13px; background: #fff; box-sizing: border-box; }
   .food-pick .fp-act { display: flex; gap: 6px; margin-top: 8px; }
   .food-pick .fp-act button { flex: 1; padding: 7px; border-radius: 10px; border: 1.5px solid var(--line); background: none; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--muted); }
@@ -2794,7 +2799,7 @@ const SEASON_KINDS = [
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
 /* 술·몸에 안 좋은 음식(치킨·피자·야식·단 것…)을 한 날 — season 과 같은 life_log 표에 label 만 달리 쓴다(표 변경 없음) */
 const DIET_KINDS = [{ k: "술 마심", ico: "🍺", c: "#eb6834" }, { k: "몸에 안 좋은 음식", n: "배달·외식", ico: "🛵", c: "#eda100" }];
-const DIET_START = "2026-10-09";   // 찬진 지시(10-09): 술·음식은 오늘부터 새로 센다 — 그 전 기록은 제대로 안 남겼으니 무시
+const DIET_START = "2026-01-01";   // 10-23 찬진: 이전 날짜도 배달·외식을 기록할 수 있게 올해 1월부터 연다(처음엔 10-09부터였음)
 /* 식단·술·음식 기록 화면 표시 — 찬진 10-16: "귀찮아서 안 하게 됨, 아예 숨겨줘". 데이터·코드는 그대로 두고 화면에서만 숨김. 다시 쓰려면 true */
 const SHOW_DIET = false;
 /* 배달·외식(치킨·피자·돈까스…) 칩만 다시 켬 — 찬진 10-21: "안 좋은 음식이라는 단어가 별로", 이름은 화면에서만 바꾸고 저장 라벨은 그대로 */
@@ -2805,9 +2810,20 @@ let lifeLoaded = false, lifeDietYear = new Date().getFullYear(), calSeasonOpen =
 const FOOD_LABEL = "몸에 안 좋은 음식", FOOD_PRESETS = ["치킨", "피자", "돈까스", "닭강정", "햄버거", "족발·보쌈", "떡볶이·분식", "중식", "야식"];
 const foodRec = date => (lifeLog || []).find(r => r.kind === "season" && r.on_date === date && r.label === FOOD_LABEL);
 const foodItems = r => (r && r.meta && Array.isArray(r.meta.items)) ? r.meta.items : [];
-const foodSummary = date => { const r = foodRec(date); if (!r) return ""; const t = [...foodItems(r), ...(r.meta && r.meta.note ? [r.meta.note] : [])]; return t.length ? "🛵 " + t.map(escapeHtml).join(" · ") : ""; };
-async function saveFood(date, items, note) {
-  const meta = (items.length || note) ? { items, ...(note ? { note } : {}) } : null, hit = foodRec(date);
+const foodBrand = (r, n) => (r && r.meta && r.meta.brands && r.meta.brands[n]) || "";
+const foodLabels = r => foodItems(r).map(n => { const br = foodBrand(r, n); return br ? `${n}(${br})` : n; });   // 치킨(BHC)
+const foodSummary = date => { const r = foodRec(date); if (!r) return ""; const t = [...foodLabels(r), ...(r.meta && r.meta.note ? [r.meta.note] : [])]; return t.length ? "🛵 " + t.map(escapeHtml).join(" · ") : ""; };
+/* 브랜드 자동완성: 전에 쓴 브랜드(최근 순) + 흔한 브랜드. 입력은 선택 */
+const FOOD_BRANDS = { "치킨": ["BHC", "교촌", "굽네", "처갓집", "네네", "푸라닭", "BBQ", "60계"], "피자": ["도미노", "피자헛", "파파존스", "반올림", "미스터피자"], "햄버거": ["맥도날드", "버거킹", "롯데리아", "맘스터치"], "떡볶이·분식": ["엽기떡볶이", "신전", "죠스"] };
+function brandHints(item) {
+  const set = new Set();
+  (lifeLog || []).filter(r => r.kind === "season" && r.label === FOOD_LABEL).sort((a, c) => c.on_date.localeCompare(a.on_date)).forEach(r => { const br = foodBrand(r, item); if (br) set.add(br); });
+  (FOOD_BRANDS[item] || []).forEach(x => set.add(x));
+  return [...set];
+}
+async function saveFood(date, items, brands, note) {
+  const bm = {}; items.forEach(n => { if (brands && brands[n]) bm[n] = brands[n]; });
+  const meta = (items.length || note) ? { items, ...(Object.keys(bm).length ? { brands: bm } : {}), ...(note ? { note } : {}) } : null, hit = foodRec(date);
   const { error } = hit ? await sb.from("life_log").update({ meta }).eq("id", hit.id)
                         : await sb.from("life_log").insert({ on_date: date, kind: "season", label: FOOD_LABEL, meta });
   if (error) { toast("기록 실패: " + error.message); return false; }
@@ -2819,22 +2835,32 @@ async function clearFood(date) {
   if (error) { toast("기록 실패: " + error.message); return false; }
   await loadLifeLog(); toast("배달·외식 기록을 지웠어요"); return true;
 }
-/* 고르는 창: 자주 먹는 것 칩(여러 개) + 기타 직접 입력(쉼표로 여러 개). 이미 기록된 날이면 현재 값을 보여 주고 고치거나 지울 수 있다. */
+/* 고르는 창: 자주 먹는 것 칩(여러 개) · 고른 것마다 브랜드 한 칸(선택) · 기타는 적고 Enter. 이미 기록된 날이면 현재 값을 보여 주고 고치거나 지울 수 있다. */
 function foodPickerEl(date, onDone) {
-  const rec = foodRec(date), cur = new Set(foodItems(rec)), box = document.createElement("div");
+  const rec = foodRec(date), cur = new Set(foodItems(rec)), brands = { ...((rec && rec.meta && rec.meta.brands) || {}) }, box = document.createElement("div");
+  const uid = "fb" + Math.floor(Math.random() * 1e6);
   box.className = "food-pick";
-  const names = [...FOOD_PRESETS, ...[...cur].filter(x => !FOOD_PRESETS.includes(x))];
-  box.innerHTML = `<h5>🛵 뭘 드셨나요? <small style="font-weight:400;color:var(--muted)">여러 개 고를 수 있어요</small></h5>
-    <div class="fp-chips">${names.map(n => `<button type="button" class="season-chip${cur.has(n) ? " on" : ""}" data-n="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join("")}</div>
-    <input class="fp-other" type="text" maxlength="60" placeholder="기타 — 직접 적기 (예: 곱창, 마라탕 — 쉼표로 여러 개)" value="">
+  box.innerHTML = `<h5>🛵 뭘 드셨나요? <small style="font-weight:400;color:var(--muted)">여러 개 · 브랜드는 선택</small></h5>
+    <div class="fp-chips"></div><div class="fp-brands"></div>
+    <input class="fp-other" type="text" maxlength="60" placeholder="기타 — 적고 Enter (예: 곱창, 마라탕)" value="">
     <div class="fp-act">${rec ? '<button type="button" class="fp-del">기록 지우기</button>' : ""}<button type="button" class="fp-close">닫기</button><button type="button" class="fp-save">${rec ? "고치기" : "기록하기"}</button></div>`;
-  box.querySelectorAll(".fp-chips button").forEach(b => b.addEventListener("click", () => { const n = b.dataset.n; if (cur.has(n)) cur.delete(n); else cur.add(n); b.classList.toggle("on", cur.has(n)); }));
+  const chipsEl = box.querySelector(".fp-chips"), brandsEl = box.querySelector(".fp-brands"), other = box.querySelector(".fp-other");
+  const paint = () => {
+    const names = [...FOOD_PRESETS, ...[...cur].filter(x => !FOOD_PRESETS.includes(x))];
+    chipsEl.innerHTML = names.map(n => `<button type="button" class="season-chip${cur.has(n) ? " on" : ""}" data-n="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join("");
+    chipsEl.querySelectorAll("button").forEach(bt => bt.addEventListener("click", () => { const n = bt.dataset.n; if (cur.has(n)) cur.delete(n); else cur.add(n); paint(); }));
+    brandsEl.innerHTML = [...cur].map((n, i) => `<label class="fp-brand"><b>${escapeHtml(n)}</b><input type="text" maxlength="30" list="${uid}_${i}" data-n="${escapeHtml(n)}" placeholder="브랜드 (선택)" value="${escapeHtml(brands[n] || "")}"><datalist id="${uid}_${i}">${brandHints(n).map(h => `<option value="${escapeHtml(h)}">`).join("")}</datalist></label>`).join("");
+    brandsEl.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => { brands[inp.dataset.n] = inp.value.trim(); }));
+  };
+  const addOther = () => { const xs = other.value.split(/[,，、]/).map(x => x.trim()).filter(Boolean); if (!xs.length) return false; xs.forEach(x => cur.add(x)); other.value = ""; paint(); return true; };
+  other.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addOther(); } });
+  paint();
   const done = () => { try { onDone(); } catch (e) { console.warn(e); } };
   box.querySelector(".fp-close").addEventListener("click", done);
   const del = box.querySelector(".fp-del"); if (del) del.addEventListener("click", async () => { if (await clearFood(date)) done(); });
   box.querySelector(".fp-save").addEventListener("click", async () => {
-    const extra = box.querySelector(".fp-other").value.split(/[,，、]/).map(x => x.trim()).filter(Boolean);   // 기타로 적은 것도 항목으로 세어 통계에 잡히게
-    if (await saveFood(date, [...new Set([...cur, ...extra])], "")) done();
+    addOther();   // 적어 두고 Enter 를 안 눌렀어도 넣는다
+    if (await saveFood(date, [...cur], brands, "")) done();
   });
   return box;
 }
@@ -3140,10 +3166,10 @@ function lifeCard() {
     const avg = Math.round(cur.length / Math.min(12, Math.max(1, spanDays / 30.4)) * 10) / 10, showPrev = lifeDietYear - 1 >= startY;
     return `<div class="dt"><div class="dt-top"><b>${d.ico} ${dietName(d)}</b><span class="dt-n">${cur.length}<small>일</small></span></div>
       <div class="dt-sub">${showPrev ? `${lifeDietYear - 1}년 ${prev.length}일${lifeDietYear - 1 === startY ? "(" + md(DIET_START) + "부터)" : ""} · ` : ""}월 평균 ${avg}일${last ? ` · ${n === 0 ? "오늘 했어요" : `마지막 ${n}일 전(${md(last)})`}` : ""}</div>
-      ${d.k === FOOD_LABEL ? (() => { const t = {}; lifeLog.filter(r => r.kind === "season" && r.label === FOOD_LABEL && r.on_date >= DIET_START && r.on_date.startsWith(String(lifeDietYear))).forEach(r => { foodItems(r).forEach(n => { t[n] = (t[n] || 0) + 1; }); }); const top = Object.entries(t).sort((a, b) => b[1] - a[1]).slice(0, 6); return top.length ? `<div class="dt-sub" style="margin-top:2px">${top.map(([n, c]) => escapeHtml(n) + " " + c).join(" · ")}</div>` : ""; })() : ""}
+      ${d.k === FOOD_LABEL ? (() => { const t = {}, bt = {}; lifeLog.filter(r => r.kind === "season" && r.label === FOOD_LABEL && r.on_date >= DIET_START && r.on_date.startsWith(String(lifeDietYear))).forEach(r => { foodItems(r).forEach(n => { t[n] = (t[n] || 0) + 1; const br = foodBrand(r, n); if (br) bt[br] = (bt[br] || 0) + 1; }); }); const top = Object.entries(t).sort((a, b) => b[1] - a[1]).slice(0, 6), tb = Object.entries(bt).sort((a, b) => b[1] - a[1]).slice(0, 4); return (top.length ? `<div class="dt-sub" style="margin-top:2px">${top.map(([n, c]) => escapeHtml(n) + " " + c).join(" · ")}</div>` : "") + (tb.length ? `<div class="dt-sub" style="margin-top:2px">자주 시킨 곳 · ${tb.map(([n, c]) => escapeHtml(n) + " " + c).join(" · ")}</div>` : ""); })() : ""}
       <div class="dt-bars">${per.map((v, i) => `<span class="dt-col${lifeDietYear === nowY && i + 1 === curM ? " now" : ""}"><b>${v || ""}</b><i style="height:${v ? Math.max(5, Math.round(v / mx * 34)) : 2}px;background:${v ? d.c : "var(--line)"}"></i><em>${i + 1}</em></span>`).join("")}</div></div>`;
   };
-  const dietBody = `<div class="sp-hint" style="margin:0 0 6px">${DIET_START.slice(5, 7).replace(/^0/, "")}월 ${Number(DIET_START.slice(8))}일부터 새로 세요</div><div class="dt-nav"><button type="button" data-dy="-1">‹</button><b>${lifeDietYear}년</b><button type="button" data-dy="1">›</button></div>` +
+  const dietBody = `<div class="dt-nav"><button type="button" data-dy="-1">‹</button><b>${lifeDietYear}년</b><button type="button" data-dy="1">›</button></div>` +
     DIET_KINDS.filter(d => SHOW_DIET || d.k === FOOD_LABEL).map(dietCard).join("") +
     `<div class="sp-hint">일기 탭이나 달력 날짜의 🛵 칩으로 기록해요 · 치킨·피자·돈까스·배달 먹은 날</div>`;
   const dietSub = SHOW_DIET ? `${nowY}년 술 ${dietDays("술 마심", nowY).length}일 · 배달·외식 ${dietDays(FOOD_LABEL, nowY).length}일` : `${nowY}년 ${dietDays(FOOD_LABEL, nowY).length}일`;
@@ -3261,6 +3287,7 @@ function renderCalendarView() {
     </div>
     <div class="cal-stats-row">
       <div class="ex-stats cal-ex"><span class="ex-icon">🏃</span><span>${calM + 1}월 운동 <b>${exMonth}</b>일</span>${exWeek}</div>
+      ${(() => { if (!SHOW_FOOD || !lifeLog) return ""; const n = lifeLog.filter(r => r.kind === "season" && r.label === FOOD_LABEL && r.on_date.startsWith(viewYm)).length; return `<div class="ex-stats cal-ex"><span class="ex-icon">🛵</span><span>${calM + 1}월 배달·외식 <b>${n}</b>일</span></div>`; })()}
       ${(() => { const h = lastHaircutDate(); if (!h) return ""; const n = daysSince(h);
                  return `<div class="ex-stats cal-ex hair-stats"><span class="ex-icon">✂️</span><span>${n === 0 ? "오늘 이발" : `이발한 지 <b>${n}</b>일`}</span></div>`; })()}
     </div>
@@ -3289,7 +3316,7 @@ function renderCalendarView() {
       const marks = (dueN ? `<span class="day-mark" title="할 일 ${dueN}개">📌</span>` : "") + (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
                   + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "")
                   + seasonOn(c.dateStr).filter(r => SHOW_DIET || (SHOW_FOOD && r.label === FOOD_LABEL) || SEASON_KINDS.some(x => x.k === r.label)).map(r => { const s = [...SEASON_KINDS, ...DIET_KINDS].find(x => x.k === r.label);
-                      const fi = r.label === FOOD_LABEL ? foodItems(r) : []; return `<span class="day-mark" title="${s ? dietName(s) : r.label}${fi.length ? " — " + fi.join(", ") : ""}">${s ? s.ico : "•"}</span>`; }).join("");
+                      const fi = r.label === FOOD_LABEL ? foodLabels(r) : []; return `<span class="day-mark" title="${s ? dietName(s) : r.label}${fi.length ? " — " + fi.join(", ") : ""}">${s ? s.ico : "•"}</span>`; }).join("");
       cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${marks ? `<span class="day-marks">${marks}</span>` : ""}`;
       cell.addEventListener("click", () => {
         calSel = c.dateStr;
@@ -3383,7 +3410,7 @@ function renderCalendarView() {
     mk(hairDone ? "✂️ 이발함" : "✂️ 이발", hairDone, hairDone ? "누르면 이발 기록을 지워요" : "이 날 이발했어요", () => toggleHaircut(calSel));
     if (lifeLog) {
       const sumHtml = () => foodSummary(calSel) ? `<div class="food-sum">${foodSummary(calSel)}</div>` : "";
-      if ((SHOW_DIET || SHOW_FOOD) && calSel >= DIET_START) {
+      if ((SHOW_DIET || SHOW_FOOD) && calSel >= DIET_START) {   // 올해 1월 이후면 지난 날짜도
         if (SHOW_DIET) mk("🍺 술", seasonOn(calSel).some(r => r.label === "술 마심"), "술 마신 날 — 누르면 기록/취소", () => toggleSeason(calSel, "술 마심"));
         mk("🛵 배달·외식", !!foodRec(calSel), "치킨·피자·돈까스·배달 먹은 날 — 뭘 먹었는지 고르거나 적어요", () => {
           if (sub.dataset.open === "food") { sub.dataset.open = ""; sub.innerHTML = sumHtml(); return; }
