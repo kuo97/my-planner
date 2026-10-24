@@ -525,6 +525,23 @@
   .pv-card .pub-ch { margin-top: 6px; }
   .pv-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
   .pv-dot.s-todo { background: var(--coral); } .pv-dot.s-ready, .pv-dot.s-published { background: var(--sage); } .pv-dot.s-scheduled { background: var(--gcal); }
+
+  /* 발행 탭 v4 (2026-10-24 찬진: "뭐가 언제 올라가는지 더 보기 좋게") — 작품 하나 아래 시각별 줄(19:00 · 21:00) + 채널 칩(이름 + 상태 글자) */
+  .pv-tl { margin-top: 9px; display: flex; flex-direction: column; gap: 7px; }
+  .pv-tr { display: flex; align-items: flex-start; gap: 10px; }
+  .pv-tm { flex: none; width: 46px; padding-top: 5px; font-size: 13px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .pv-cs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pv-chip { font-family: inherit; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: #fff; color: var(--muted); text-decoration: none; }
+  .pv-chip b { font-weight: 800; margin-left: 3px; }
+  .pv-chip.me { border-style: solid; }
+  button.pv-chip { cursor: pointer; }
+  .pv-chip.s-scheduled { border-color: var(--gcal); color: var(--gcal); background: var(--gcal-soft); }
+  .pv-chip.s-published, .pv-chip.s-ready { border-color: var(--sage); color: var(--sage); background: var(--sage-soft); }
+  .pv-chip.s-todo.me { border-color: var(--coral); color: var(--coral); background: #FFF6F3; }
+  .pv-chip.s-skip { text-decoration: line-through; opacity: .55; }
+  .pv-card .tt .nm { flex: 1; min-width: 0; }
+  .pv-lg { display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 11.5px; font-weight: 700; color: var(--muted); margin: 2px 0 6px; }
+  .pv-lg i { font-style: normal; }
   .pub-updated { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: 10px; }
   .pub-more { width: 100%; padding: 10px; border-radius: 12px; border: 1.5px dashed var(--line); background: transparent; color: var(--muted); font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 6px; }
 
@@ -4796,6 +4813,9 @@ function renderPublish() {
     });
   }
   list.appendChild(box);
+  const lg = document.createElement("div"); lg.className = "pv-lg";
+  lg.innerHTML = '<span>시각별로 어디에 올라가는지 보여요</span><i>🟢 올라감</i><i>🔵 예약</i><i>🟠 대기(내 몫)</i><i>실선 칩 = 내가 누르는 것 · 점선 = 자동</i>';
+  list.appendChild(lg);
 
   /* 3) 날짜별 — 짧게: 제목 + (내 몫 칩) + 자동은 접어서 한 줄 */
   const drawDays = function (arr, isPast) {
@@ -4811,44 +4831,37 @@ function renderPublish() {
           + (n === 0 ? '<span class="w">오늘</span>' : n === 1 ? '<span class="w">내일</span>' : '') + '<span class="n">' + cnt + '편</span>';
         list.appendChild(dayEl);
       }
-      const mine = mineOf(slot), auto = autoOf(slot);
-      const needMe = mine.some(function (e) { return ["published", "skip"].indexOf(pubChipState(slot, e[0], e[1]).status) < 0; });
       const card = document.createElement("div");
       card.className = "pv-card" + (isPast ? " done" : "");
-      card.innerHTML = '<div class="tt"><span class="kind">' + (slot.kind || "") + '</span><span>' + pubShort(slot) + '</span></div>';
-      if (mine.length && !isPast) {
-        const row = document.createElement("div"); row.className = "me";
-        mine.forEach(function (e) {
+      card.innerHTML = '<div class="tt"><span class="kind">' + (slot.kind || "") + '</span><span class="nm">' + pubShort(slot) + '</span></div>';
+      const byHM = {};
+      Object.entries(slot.channels || {}).forEach(function (e) { const hm = pubHM(e[1].due, slot, e[0]); (byHM[hm] = byHM[hm] || []).push(e); });
+      const tl = document.createElement("div"); tl.className = "pv-tl";
+      Object.keys(byHM).sort().forEach(function (hm) {
+        const tr = document.createElement("div"); tr.className = "pv-tr";
+        const tm = document.createElement("span"); tm.className = "pv-tm"; tm.textContent = hm; tr.appendChild(tm);
+        const cs = document.createElement("div"); cs.className = "pv-cs";
+        byHM[hm].forEach(function (e) {
           const ch = e[0], conf = e[1], st = pubChipState(slot, ch, conf);
-          const btn = document.createElement("button"); btn.className = "pv-btn s-" + st.status;
-          btn.innerHTML = (PUB_CH[ch] || ch) + ' ' + pubHM(conf.due, slot, ch) + ' · ' + (PUB_ST[st.status] || st.status);
-          btn.addEventListener("click", function () { pubCycle(slot, ch, conf, btn); });
-          row.appendChild(btn);
+          const stat = st.status === "todo" && conf.ready ? "ready" : st.status;
+          if (stat === "skip") return;   // 안 올리는 채널은 칩 자체를 숨긴다(깔끔하게)
+          const word = { published: "올라감", scheduled: "예약", ready: "준비됨", todo: "대기", skip: "안 올림" }[stat] || stat;
+          const mine = conf.who === "chanjin";
+          const cls = "pv-chip s-" + stat + (mine ? " me" : "");
+          const html = (PUB_CH[ch] || ch) + "<b>" + word + "</b>";
+          if (mine && !isPast) {
+            const bt = document.createElement("button"); bt.className = cls; bt.innerHTML = html;
+            bt.addEventListener("click", function () { pubCycle(slot, ch, conf, bt); });
+            cs.appendChild(bt);
+          } else if (st.url) {
+            const an = document.createElement("a"); an.className = cls; an.href = st.url; an.target = "_blank"; an.innerHTML = html + " ↗"; cs.appendChild(an);
+          } else {
+            const sp = document.createElement("span"); sp.className = cls; sp.innerHTML = html; cs.appendChild(sp);
+          }
         });
-        card.appendChild(row);
-      }
-      if (auto.length) {
-        const sts = auto.map(function (e) { const st = pubChipState(slot, e[0], e[1]); return st.status === "todo" && e[1].ready ? "ready" : st.status; });
-        const cnt = function (k) { return sts.filter(function (x) { return x === k; }).length; };
-        const bits = [];
-        if (cnt("published")) bits.push('<span class="pv-dot s-published"></span>발행 ' + cnt("published"));
-        if (cnt("scheduled")) bits.push('<span class="pv-dot s-scheduled"></span>예약 ' + cnt("scheduled"));
-        if (cnt("ready")) bits.push('<span class="pv-dot s-ready"></span>준비됨 ' + cnt("ready"));
-        if (cnt("todo")) bits.push('<span class="pv-dot s-todo"></span>대기 ' + cnt("todo"));
-        const det = document.createElement("details"); det.className = "auto";
-        det.innerHTML = '<summary>자동 ' + auto.length + '건 · ' + bits.join(" · ") + '</summary>';
-        const r2 = document.createElement("div"); r2.className = "pub-ch auto";
-        auto.forEach(function (e) {
-          const ch = e[0], conf = e[1], st = pubChipState(slot, ch, conf);
-          const label = st.status === "todo" && conf.ready ? "준비됨" : (PUB_ST[st.status] || st.status);
-          const txt = (PUB_CH[ch] || ch) + " " + pubHM(conf.due, slot, ch) + " · " + label;
-          const cls = "s-" + st.status + " s-session" + (st.status === "todo" && conf.ready ? " s-ready" : "");
-          if (st.url) { const a2 = document.createElement("a"); a2.href = st.url; a2.target = "_blank"; a2.className = cls; a2.innerHTML = txt + " ↗"; r2.appendChild(a2); }
-          else { const sp = document.createElement("span"); sp.className = cls; sp.textContent = txt; r2.appendChild(sp); }
-        });
-        det.appendChild(r2);
-        card.appendChild(det);
-      }
+        tr.appendChild(cs); tl.appendChild(tr);
+      });
+      card.appendChild(tl);
       list.appendChild(card);
     });
   };
