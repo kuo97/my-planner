@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-25T13:07+09:00",
+ "updated": "2026-10-25T13:08+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -2403,7 +2403,9 @@
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/ssOBZlFhpnk",
+     "publishAt": "2026-10-26T19:00:00+09:00",
      "due": "2026-10-26T19:00:00+09:00",
      "ready": false
     },
