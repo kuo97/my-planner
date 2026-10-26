@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T15:07+09:00",
+ "updated": "2026-10-26T15:13+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -2440,192 +2440,35 @@
    }
   },
   {
-   "id": "2026-10-28_19",
-   "date": "2026-10-28",
-   "time": "19:00",
-   "kind": "작품",
-   "work": "31번",
-   "title": "31번(신랑입장영상 5호 「웨딩 그랑프리」 — F1 컨셉, 영어 무전+한글 자막) — 수요일 작품 칸(신작 우선)",
-   "memo": "10-24 찬진 내보내기 완료. 세트 완성: 완성본·숏폼 3종(쇼츠=카카오 엔딩, 클립·인스타=카카오 없는 엔딩)·썸네일 2종(G 대조 「결승선 말고, 출발선」)·블로그 이미지 7장·7채널_원고.md(점검 통과). 유튜브 업로드·인스타/쓰레드 클라우드 큐는 찬진이 제목·캡션 OK 한 뒤(11-02 주 배치). 카카오 소식은 kakao_last +10일 지났고 그사이 다른 편이 안 썼을 때만. ★10-24 찬진 \"11-06은 너무 나중\" → 신작이라 10-28(수) 작품 칸으로 당김(시네마틱 재고는 11-01 일 작품③ 후보). 10-24 찬진 블로그·클립 예약 완료(클립 블로그 링크는 월요일 연결).",
-   "short": "31번 F1 신랑입장영상",
-   "prep": [
-    {
-     "text": "네이버 블로그 예약발행 (10-28 19:00) — 7채널_원고.md 1번 · 블로그_붙여넣기.html",
-     "done": true,
-     "ch": "blog"
-    },
-    {
-     "text": "네이버 클립 업로드 (10-28 21:00, 블로그 링크는 월요일 연결)",
-     "done": true,
-     "ch": "clip"
-    }
-   ],
+   "id": "2026-10-27_1230",
+   "date": "2026-10-27",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 결혼하고 나서야 알게 된 부모님의 12가지",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Starlight on the Water - Chris Haugen. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
+   "short": "결혼하고 나서야 알게 된 부모님의 12가지",
+   "prep": [],
    "channels": {
-    "youtube": {
+    "instagram": {
      "who": "session",
      "status": "scheduled",
-     "url": "https://youtu.be/E-ASczD7G_I",
-     "publishAt": "2026-10-28T19:00:00+09:00",
-     "due": "2026-10-28T19:00:00+09:00",
-     "ready": false
+     "due": "2026-10-27T12:30:00+09:00",
+     "ready": true
     },
     "shorts": {
      "who": "session",
      "status": "scheduled",
-     "url": "https://youtu.be/gnbR-IUdKRo",
-     "publishAt": "2026-10-28T12:30:00+09:00",
-     "due": "2026-10-28T19:00:00+09:00",
+     "url": "https://youtu.be/1wAZ_1T6Tsg",
+     "publishAt": "2026-10-27T12:30:00+09:00",
+     "due": "2026-10-27T19:00:00+09:00",
      "ready": false
-    },
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-28T21:00:00+09:00",
-     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-10-28T21:00:00+09:00",
+     "due": "2026-10-27T12:30:00+09:00",
      "ready": true
-    },
-    "blog": {
-     "who": "chanjin",
-     "status": "scheduled",
-     "due": "2026-10-28T19:00:00+09:00",
-     "ready": false
-    },
-    "clip": {
-     "who": "chanjin",
-     "status": "scheduled",
-     "due": "2026-10-28T21:00:00+09:00",
-     "ready": false
-    }
-   }
-  },
-  {
-   "id": "2026-10-29_19",
-   "date": "2026-10-29",
-   "time": "19:00",
-   "kind": "작품",
-   "work": "32번",
-   "title": "32번(결혼기념일 1호 「같은 벽, 다섯 장의 사진」 5주년 부부, 대사형) — 목요일 작품② 칸",
-   "memo": "10-24 찬진 내보내기 완료 → 세트 완성(완성본 85.9초 카카오 엔딩·숏폼 3종 53초 하이라이트·썸네일 Q틀·블로그 이미지 7장·7채널 원고 점검 통과). 유튜브 롱폼·쇼츠 업로드와 인스타·쓰레드 클라우드 큐는 찬진이 문구 OK 한 뒤. 본편 음량 -21 LUFS(숏폼은 -16.3 로 맞춤). 같은 주 짝 = 33번(부모님 30주년) 준비 중. 10-24 찬진 블로그·클립 예약 완료(클립 블로그 링크는 월요일 연결).",
-   "short": "32번 5주년 부부 결혼기념일영상",
-   "prep": [
-    {
-     "text": "네이버 블로그 예약발행 (10-29 19:00) — 32번 폴더 예약_붙여넣기.html(블로그 탭) · 7채널_원고.md 1번",
-     "done": true,
-     "ch": "blog"
-    },
-    {
-     "text": "네이버 클립 업로드 (10-29 21:00, 블로그 링크는 월요일 연결) — 예약_붙여넣기.html(클립 탭)",
-     "done": true,
-     "ch": "clip"
-    }
-   ],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/NS480YZm8xA",
-     "publishAt": "2026-10-29T19:00:00+09:00",
-     "due": "2026-10-29T19:00:00+09:00",
-     "ready": false
-    },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/Ha0cWja4JEk",
-     "publishAt": "2026-10-29T12:30:00+09:00",
-     "due": "2026-10-29T19:00:00+09:00",
-     "ready": false
-    },
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-29T21:00:00+09:00",
-     "ready": true
-    },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-29T21:00:00+09:00",
-     "ready": true
-    },
-    "blog": {
-     "who": "chanjin",
-     "status": "scheduled",
-     "due": "2026-10-29T19:00:00+09:00",
-     "ready": false
-    },
-    "clip": {
-     "who": "chanjin",
-     "status": "scheduled",
-     "due": "2026-10-29T21:00:00+09:00",
-     "ready": false
-    }
-   }
-  },
-  {
-   "id": "2026-10-30_19",
-   "date": "2026-10-30",
-   "time": "19:00",
-   "kind": "작품",
-   "work": "30번",
-   "title": "30번(신랑입장영상 6호 「선수 카드」, 게임 카드 컨셉) — 금요일 정기 발행",
-   "memo": "10-24 발행 세트 완성. 영상 37.7초(본편 27초 + 엔딩 표준 검정 6.17초 + 브랜드 엔딩 4.47초) → 60초 이하라 쇼츠 하나, 롱폼 없음. 인스타·클립 = 카카오 없는 엔딩 / 쇼츠·블로그 동영상 = 카카오 엔딩. 썸네일 N 틀 「장모님 99, 코골이 3」. 유튜브 쇼츠·인스타·쓰레드는 찬진이 제목·캡션 OK 한 뒤 예약. 카카오 소식은 kakao_last(10-14)+10일 지났으나 31번(10-28)이 먼저 쓰면 건너뜀. 10-24 찬진 블로그·클립 예약 완료.",
-   "short": "30번 게임 카드 신랑입장영상",
-   "prep": [
-    {
-     "text": "네이버 블로그 예약발행 (10-30 19:00) — 30번 폴더 블로그_붙여넣기.html · 7채널_원고.md 1번",
-     "done": true,
-     "ch": "blog"
-    },
-    {
-     "text": "네이버 클립 업로드 (10-30 21:00, 블로그 링크는 월요일 연결) — 클립_예약.html",
-     "done": true,
-     "ch": "clip"
-    }
-   ],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "skip",
-     "due": "2026-10-30T19:00:00+09:00",
-     "ready": false
-    },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/5psPkqbx7CA",
-     "publishAt": "2026-10-30T12:30:00+09:00",
-     "due": "2026-10-30T19:00:00+09:00",
-     "ready": false
-    },
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-30T21:00:00+09:00",
-     "ready": true
-    },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-30T21:00:00+09:00",
-     "ready": true
-    },
-    "blog": {
-     "who": "chanjin",
-     "status": "scheduled",
-     "due": "2026-10-30T19:00:00+09:00",
-     "ready": false
-    },
-    "clip": {
-     "who": "chanjin",
-     "status": "scheduled",
-     "due": "2026-10-30T21:00:00+09:00",
-     "ready": false
     }
    }
   },
@@ -2701,6 +2544,328 @@
    }
   },
   {
+   "id": "2026-10-28_1230",
+   "date": "2026-10-28",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 할머니 집에 가면 늘 있던 12가지",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Kate_s Waltz - Bad Snacks. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
+   "short": "할머니 집에 가면 늘 있던 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-28T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/gnbR-IUdKRo",
+     "publishAt": "2026-10-28T12:30:00+09:00",
+     "due": "2026-10-28T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-28T12:30:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "2026-10-28_19",
+   "date": "2026-10-28",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "31번",
+   "title": "31번(신랑입장영상 5호 「웨딩 그랑프리」 — F1 컨셉, 영어 무전+한글 자막) — 수요일 작품 칸(신작 우선)",
+   "memo": "10-24 찬진 내보내기 완료. 세트 완성: 완성본·숏폼 3종(쇼츠=카카오 엔딩, 클립·인스타=카카오 없는 엔딩)·썸네일 2종(G 대조 「결승선 말고, 출발선」)·블로그 이미지 7장·7채널_원고.md(점검 통과). 유튜브 업로드·인스타/쓰레드 클라우드 큐는 찬진이 제목·캡션 OK 한 뒤(11-02 주 배치). 카카오 소식은 kakao_last +10일 지났고 그사이 다른 편이 안 썼을 때만. ★10-24 찬진 \"11-06은 너무 나중\" → 신작이라 10-28(수) 작품 칸으로 당김(시네마틱 재고는 11-01 일 작품③ 후보). 10-24 찬진 블로그·클립 예약 완료(클립 블로그 링크는 월요일 연결).",
+   "short": "31번 F1 신랑입장영상",
+   "prep": [
+    {
+     "text": "네이버 블로그 예약발행 (10-28 19:00) — 7채널_원고.md 1번 · 블로그_붙여넣기.html",
+     "done": true,
+     "ch": "blog"
+    },
+    {
+     "text": "네이버 클립 업로드 (10-28 21:00, 블로그 링크는 월요일 연결)",
+     "done": true,
+     "ch": "clip"
+    }
+   ],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/E-ASczD7G_I",
+     "publishAt": "2026-10-28T19:00:00+09:00",
+     "due": "2026-10-28T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/gnbR-IUdKRo",
+     "publishAt": "2026-10-28T12:30:00+09:00",
+     "due": "2026-10-28T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-28T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-28T21:00:00+09:00",
+     "ready": true
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "scheduled",
+     "due": "2026-10-28T19:00:00+09:00",
+     "ready": false
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "scheduled",
+     "due": "2026-10-28T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-29_1230",
+   "date": "2026-10-29",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 오래 함께한 부부가 알게 되는 12가지",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM You and I - Telecasted. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
+   "short": "오래 함께한 부부가 알게 되는 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-29T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/Ha0cWja4JEk",
+     "publishAt": "2026-10-29T12:30:00+09:00",
+     "due": "2026-10-29T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-29T12:30:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "2026-10-29_19",
+   "date": "2026-10-29",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "32번",
+   "title": "32번(결혼기념일 1호 「같은 벽, 다섯 장의 사진」 5주년 부부, 대사형) — 목요일 작품② 칸",
+   "memo": "10-24 찬진 내보내기 완료 → 세트 완성(완성본 85.9초 카카오 엔딩·숏폼 3종 53초 하이라이트·썸네일 Q틀·블로그 이미지 7장·7채널 원고 점검 통과). 유튜브 롱폼·쇼츠 업로드와 인스타·쓰레드 클라우드 큐는 찬진이 문구 OK 한 뒤. 본편 음량 -21 LUFS(숏폼은 -16.3 로 맞춤). 같은 주 짝 = 33번(부모님 30주년) 준비 중. 10-24 찬진 블로그·클립 예약 완료(클립 블로그 링크는 월요일 연결).",
+   "short": "32번 5주년 부부 결혼기념일영상",
+   "prep": [
+    {
+     "text": "네이버 블로그 예약발행 (10-29 19:00) — 32번 폴더 예약_붙여넣기.html(블로그 탭) · 7채널_원고.md 1번",
+     "done": true,
+     "ch": "blog"
+    },
+    {
+     "text": "네이버 클립 업로드 (10-29 21:00, 블로그 링크는 월요일 연결) — 예약_붙여넣기.html(클립 탭)",
+     "done": true,
+     "ch": "clip"
+    }
+   ],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/NS480YZm8xA",
+     "publishAt": "2026-10-29T19:00:00+09:00",
+     "due": "2026-10-29T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/Ha0cWja4JEk",
+     "publishAt": "2026-10-29T12:30:00+09:00",
+     "due": "2026-10-29T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-29T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-29T21:00:00+09:00",
+     "ready": true
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "scheduled",
+     "due": "2026-10-29T19:00:00+09:00",
+     "ready": false
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "scheduled",
+     "due": "2026-10-29T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-30_1230",
+   "date": "2026-10-30",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 결혼 전날 밤 부모님이 하신 12가지",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Sleep Music No. 1 - Chris Haugen. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
+   "short": "결혼 전날 밤 부모님이 하신 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-30T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/5psPkqbx7CA",
+     "publishAt": "2026-10-30T12:30:00+09:00",
+     "due": "2026-10-30T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-30T12:30:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "2026-10-30_19",
+   "date": "2026-10-30",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "30번",
+   "title": "30번(신랑입장영상 6호 「선수 카드」, 게임 카드 컨셉) — 금요일 정기 발행",
+   "memo": "10-24 발행 세트 완성. 영상 37.7초(본편 27초 + 엔딩 표준 검정 6.17초 + 브랜드 엔딩 4.47초) → 60초 이하라 쇼츠 하나, 롱폼 없음. 인스타·클립 = 카카오 없는 엔딩 / 쇼츠·블로그 동영상 = 카카오 엔딩. 썸네일 N 틀 「장모님 99, 코골이 3」. 유튜브 쇼츠·인스타·쓰레드는 찬진이 제목·캡션 OK 한 뒤 예약. 카카오 소식은 kakao_last(10-14)+10일 지났으나 31번(10-28)이 먼저 쓰면 건너뜀. 10-24 찬진 블로그·클립 예약 완료.",
+   "short": "30번 게임 카드 신랑입장영상",
+   "prep": [
+    {
+     "text": "네이버 블로그 예약발행 (10-30 19:00) — 30번 폴더 블로그_붙여넣기.html · 7채널_원고.md 1번",
+     "done": true,
+     "ch": "blog"
+    },
+    {
+     "text": "네이버 클립 업로드 (10-30 21:00, 블로그 링크는 월요일 연결) — 클립_예약.html",
+     "done": true,
+     "ch": "clip"
+    }
+   ],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "skip",
+     "due": "2026-10-30T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/5psPkqbx7CA",
+     "publishAt": "2026-10-30T12:30:00+09:00",
+     "due": "2026-10-30T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-30T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-30T21:00:00+09:00",
+     "ready": true
+    },
+    "blog": {
+     "who": "chanjin",
+     "status": "scheduled",
+     "due": "2026-10-30T19:00:00+09:00",
+     "ready": false
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "scheduled",
+     "due": "2026-10-30T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-31_1230",
+   "date": "2026-10-31",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 아이가 태어나고 처음 알게 된 12가지",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Calm Cam - TrackTribe. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
+   "short": "아이가 태어나고 처음 알게 된 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-31T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/34hhWXQym6Q",
+     "publishAt": "2026-10-31T12:30:00+09:00",
+     "due": "2026-10-31T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-31T12:30:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "2026-10-31_19",
    "date": "2026-10-31",
    "time": "19:00",
@@ -2729,6 +2894,39 @@
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-31T21:00:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "2026-11-01_1230",
+   "date": "2026-11-01",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 부모님과 마지막으로 한 게 언제인가요 12",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Just Stay - Aakash Gandhi. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
+   "short": "부모님과 마지막으로 한 게 언제인가요 12",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-01T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/GV4WcpZLx60",
+     "publishAt": "2026-11-01T12:30:00+09:00",
+     "due": "2026-11-01T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-01T12:30:00+09:00",
      "ready": true
     }
    }
@@ -2767,200 +2965,66 @@
    }
   },
   {
-   "id": "2026-10-27_1230",
-   "date": "2026-10-27",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 결혼하고 나서야 알게 된 부모님의 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Starlight on the Water - Chris Haugen. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
-   "short": "결혼하고 나서야 알게 된 부모님의 12가지",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-27T12:30:00+09:00",
-     "ready": true
+   "id": "2026-11-02_19",
+   "date": "2026-11-02",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "33번",
+   "title": "33번(결혼기념일 2호 「서른 번째 꽃 한 송이」 부모님 30주년, 대사형) — 다음 주 첫 작품 칸",
+   "memo": "10-26 찬진 내보내기 → 세트 완성(완성본 104.3초 카카오 엔딩·숏폼 3종 52.2초 하이라이트·썸네일 E3틀 「또 사 왔어? 아깝게」·블로그 이미지 7장·7채널 원고 점검 통과). 10-26 찬진 발행 OK → 유튜브 예약·인스타/쓰레드 큐. 찬진 블로그·클립 예약 완료(10-26). 카카오 소식은 kakao_last 10-26 +10일 전이라 이번엔 건너뜀. 10-29 32번·11-01 정보형에 이어 결혼기념일 라인 연속(찬진 확인 후 진행).",
+   "short": "33번 부모님 30주년 결혼기념일영상",
+   "prep": [
+    {
+     "text": "네이버 블로그 예약발행 (11-02 19:00) — 33번 폴더 예약_붙여넣기.html(블로그 탭) · 7채널_원고.md 1번",
+     "done": true,
+     "ch": "blog"
     },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/1wAZ_1T6Tsg",
-     "publishAt": "2026-10-27T12:30:00+09:00",
-     "due": "2026-10-27T19:00:00+09:00",
-     "ready": false
-    },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-27T12:30:00+09:00",
-     "ready": true
+    {
+     "text": "네이버 클립 업로드 (11-02 21:00, 블로그 링크는 월요일 연결) — 예약_붙여넣기.html(클립 탭)",
+     "done": true,
+     "ch": "clip"
     }
-   }
-  },
-  {
-   "id": "2026-10-28_1230",
-   "date": "2026-10-28",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 할머니 집에 가면 늘 있던 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Kate_s Waltz - Bad Snacks. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
-   "short": "할머니 집에 가면 늘 있던 12가지",
-   "prep": [],
+   ],
    "channels": {
-    "instagram": {
+    "youtube": {
      "who": "session",
      "status": "scheduled",
-     "due": "2026-10-28T12:30:00+09:00",
-     "ready": true
+     "url": "https://youtu.be/ZV3XaK1sJcw",
+     "publishAt": "2026-11-02T19:00:00+09:00",
+     "due": "2026-11-02T19:00:00+09:00",
+     "ready": false
     },
     "shorts": {
      "who": "session",
      "status": "scheduled",
-     "url": "https://youtu.be/gnbR-IUdKRo",
-     "publishAt": "2026-10-28T12:30:00+09:00",
-     "due": "2026-10-28T19:00:00+09:00",
+     "url": "https://youtu.be/E3-jr3fI0SE",
+     "publishAt": "2026-11-02T19:00:00+09:00",
+     "due": "2026-11-02T19:00:00+09:00",
      "ready": false
     },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-28T12:30:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "2026-10-29_1230",
-   "date": "2026-10-29",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 오래 함께한 부부가 알게 되는 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM You and I - Telecasted. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
-   "short": "오래 함께한 부부가 알게 되는 12가지",
-   "prep": [],
-   "channels": {
     "instagram": {
      "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-29T12:30:00+09:00",
+     "status": "todo",
+     "due": "2026-11-02T21:00:00+09:00",
      "ready": true
-    },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/Ha0cWja4JEk",
-     "publishAt": "2026-10-29T12:30:00+09:00",
-     "due": "2026-10-29T19:00:00+09:00",
-     "ready": false
     },
     "threads": {
      "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-29T12:30:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "2026-10-30_1230",
-   "date": "2026-10-30",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 결혼 전날 밤 부모님이 하신 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Sleep Music No. 1 - Chris Haugen. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
-   "short": "결혼 전날 밤 부모님이 하신 12가지",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-30T12:30:00+09:00",
+     "status": "todo",
+     "due": "2026-11-02T21:00:00+09:00",
      "ready": true
     },
-    "shorts": {
-     "who": "session",
+    "blog": {
+     "who": "chanjin",
      "status": "scheduled",
-     "url": "https://youtu.be/5psPkqbx7CA",
-     "publishAt": "2026-10-30T12:30:00+09:00",
-     "due": "2026-10-30T19:00:00+09:00",
+     "due": "2026-11-02T19:00:00+09:00",
      "ready": false
     },
-    "threads": {
-     "who": "session",
+    "clip": {
+     "who": "chanjin",
      "status": "scheduled",
-     "due": "2026-10-30T12:30:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "2026-10-31_1230",
-   "date": "2026-10-31",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 아이가 태어나고 처음 알게 된 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Calm Cam - TrackTribe. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
-   "short": "아이가 태어나고 처음 알게 된 12가지",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-31T12:30:00+09:00",
-     "ready": true
-    },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/34hhWXQym6Q",
-     "publishAt": "2026-10-31T12:30:00+09:00",
-     "due": "2026-10-31T19:00:00+09:00",
+     "due": "2026-11-02T21:00:00+09:00",
      "ready": false
-    },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-10-31T12:30:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "2026-11-01_1230",
-   "date": "2026-11-01",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 부모님과 마지막으로 한 게 언제인가요 12",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Just Stay - Aakash Gandhi. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
-   "short": "부모님과 마지막으로 한 게 언제인가요 12",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-01T12:30:00+09:00",
-     "ready": true
-    },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/GV4WcpZLx60",
-     "publishAt": "2026-11-01T12:30:00+09:00",
-     "due": "2026-11-01T19:00:00+09:00",
-     "ready": false
-    },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-01T12:30:00+09:00",
-     "ready": true
     }
    }
   }
