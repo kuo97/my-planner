@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T15:25+09:00",
+ "updated": "2026-10-26T17:25+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3040,14 +3040,14 @@
    "prep": [
     {
      "text": "네이버 블로그 예약발행 (10-31(토) 19:00) — 블로그_붙여넣기.html",
-     "done": false,
+     "done": true,
      "ch": "blog"
     }
    ],
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-10-31T19:00:00+09:00",
      "ready": false
     }
@@ -3065,14 +3065,14 @@
    "prep": [
     {
      "text": "네이버 블로그 예약발행 (11-01(일) 19:00) — 블로그_붙여넣기.html",
-     "done": false,
+     "done": true,
      "ch": "blog"
     }
    ],
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-01T19:00:00+09:00",
      "ready": false
     }
