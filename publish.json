@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-25T14:22+09:00",
+ "updated": "2026-10-26T14:05+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -2335,16 +2335,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-25T21:02:10+09:00",
      "due": "2026-10-25T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-25T21:02:10+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-10-25T21:03:23+09:00",
      "due": "2026-10-25T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-10-25T21:03:23+09:00"
+     "ready": true
     }
    }
   },
@@ -2367,7 +2367,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
+     "url": "https://blog.naver.com/chanjakstudio/224446747867",
+     "at": "2026-10-25T19:10:00+09:00",
      "due": "2026-10-25T19:00:00+09:00",
      "ready": false
     }
@@ -2434,6 +2436,77 @@
      "status": "scheduled",
      "due": "2026-10-26T21:00:00+09:00",
      "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-27_19",
+   "date": "2026-10-27",
+   "time": "19:00",
+   "kind": "정보형",
+   "work": "16번",
+   "title": "16번의 파생물 — 정보형 「칠순 잔치, 이 순서로 준비하세요」(칠순 준비 5편 중 2편)",
+   "memo": "10-26 아침 배치가 릴스 제작, 총괄 세션이 세트 완성. ★10-26 분석·찬진 확정: 칠순 정보형은 유튜브 쇼츠+블로그 전용(인스타 6연속 바닥·유튜브 1,087) — 인스타·쓰레드 21:00 칸은 2026-10-27_21 상견례 2편.",
+   "short": "칠순 잔치, 이 순서로 준비하세요",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/v2LSxh2pJGc",
+     "publishAt": "2026-10-27T19:00:00+09:00",
+     "due": "2026-10-27T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-27_19b",
+   "date": "2026-10-27",
+   "time": "19:00",
+   "kind": "정보형",
+   "work": "16번",
+   "title": "16번 파생 정보형 블로그 — 칠순 잔치 준비, 두 달 전부터 하나씩 하면 되는 일정표",
+   "memo": "검색의도 = 칠순 잔치 준비 일정(두 달 전~전날). 10-08 식순·10-13 사진·10-20 선물과 다름.",
+   "short": "칠순 잔치 준비, 두 달 전부터 일정표",
+   "prep": [
+    {
+     "text": "네이버 블로그 예약발행 (10-27(화) 19:00) — 블로그_붙여넣기.html",
+     "done": false,
+     "ch": "blog"
+    }
+   ],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-10-27T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-27_21",
+   "date": "2026-10-27",
+   "time": "21:00",
+   "kind": "정보형",
+   "work": "7번",
+   "title": "7번의 파생물 — 정보형 「상견례에서 침묵이 흐를 때 꺼내면 좋은 말 5가지」(상견례 2편)",
+   "memo": "10-26 분석 반영: 칠순 대신 화요일 인스타·쓰레드 칸. 1편(7,033·저장107·공유106)의 짝. 프로필 방문 장치 = 첫 장면 '7,000번 넘게 본 상견례 1편, 그다음 편' + 끝 '1편은 프로필에'. Codex 새 이미지 7장.",
+   "short": "상견례 침묵이 흐를 때 꺼낼 말 5가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-27T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-27T21:00:00+09:00",
+     "ready": true
     }
    }
   },
@@ -2624,6 +2697,72 @@
      "status": "scheduled",
      "due": "2026-10-30T21:00:00+09:00",
      "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-10-31_19",
+   "date": "2026-10-31",
+   "time": "19:00",
+   "kind": "정보형",
+   "work": "11번",
+   "title": "11번의 파생물 — 정보형 「돌잔치 끝나고 후회하기 쉬운 5가지」",
+   "memo": "회피형(대비형 보류). Codex 새 이미지 7장(서준 가족). 끝 '돌잔치 지난 편들은 프로필에'.",
+   "short": "돌잔치 끝나고 후회하기 쉬운 5가지",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/Lb02n9AH_wQ",
+     "publishAt": "2026-10-31T19:00:00+09:00",
+     "due": "2026-10-31T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-31T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-31T21:00:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "2026-11-01_19",
+   "date": "2026-11-01",
+   "time": "19:00",
+   "kind": "정보형",
+   "work": "32번",
+   "title": "32번의 파생물 — 정보형 「결혼기념일 선물, 받고도 서운한 5가지」",
+   "memo": "결혼기념일 라인 첫 정보형. 32번 컷 사용, 끝 '해마다 한 장씩 남긴 부부 이야기, 전체 영상은 프로필에'(32번 10-29 발행).",
+   "short": "결혼기념일 선물, 받고도 서운한 5가지",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/yZIP_YRlAFk",
+     "publishAt": "2026-11-01T19:00:00+09:00",
+     "due": "2026-11-01T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-01T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-01T21:00:00+09:00",
+     "ready": true
     }
    }
   }
