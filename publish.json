@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T15:13+09:00",
+ "updated": "2026-10-26T15:14+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -1393,7 +1393,7 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/ZrAWSIeLYYs",
      "publishAt": "2026-10-14T10:00:00Z",
      "due": "2026-10-14T19:00:00+09:00",
@@ -1401,7 +1401,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/b1exF2YXJ74",
      "publishAt": "2026-10-14T10:00:00Z",
      "due": "2026-10-14T19:00:00+09:00",
@@ -1496,7 +1496,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/w_qa64ASfdM",
      "publishAt": "2026-10-15T10:00:00Z",
      "due": "2026-10-15T19:00:00+09:00",
@@ -1613,7 +1613,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/YZcvb5TCWNQ",
      "publishAt": "2026-10-16T10:00:00Z",
      "due": "2026-10-16T19:00:00+09:00",
@@ -1675,7 +1675,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/VTSnp5HizZw",
      "publishAt": "2026-10-17T10:00:00Z",
      "due": "2026-10-17T19:00:00+09:00",
@@ -1750,7 +1750,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/UyZjJaeueC0",
      "publishAt": "2026-10-18T10:00:00Z",
      "due": "2026-10-18T19:00:00+09:00",
@@ -1798,7 +1798,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/mgUD1uSjVuo",
      "publishAt": "2026-10-19T10:00:00Z",
      "due": "2026-10-19T19:00:00+09:00",
@@ -1880,7 +1880,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/9jlkeQgdgSs",
      "publishAt": "2026-10-20T19:00:00+09:00",
      "due": "2026-10-20T19:00:00+09:00",
@@ -1973,7 +1973,7 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/5laOwTacZJA",
      "publishAt": "2026-10-21T19:00:00+09:00",
      "due": "2026-10-21T19:00:00+09:00",
@@ -1981,7 +1981,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/zZbtyXTL3uA",
      "publishAt": "2026-10-21T19:00:00+09:00",
      "due": "2026-10-21T19:00:00+09:00",
@@ -2062,7 +2062,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/3xy45TpqSUQ",
      "publishAt": "2026-10-22T19:00:00+09:00",
      "due": "2026-10-22T19:00:00+09:00",
@@ -2155,7 +2155,7 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/feMprw2t8PI",
      "publishAt": "2026-10-23T10:00:00Z",
      "due": "2026-10-23T19:00:00+09:00",
@@ -2163,7 +2163,7 @@
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/MrtzrohYAlo",
      "publishAt": "2026-10-23T10:00:00Z",
      "due": "2026-10-23T19:00:00+09:00",
@@ -2244,7 +2244,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/Cy2HFeaXznw",
      "publishAt": "2026-10-24T19:00:00+09:00",
      "due": "2026-10-24T19:00:00+09:00",
@@ -2326,7 +2326,7 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "url": "https://youtu.be/bNxa0unqH08",
      "publishAt": "2026-10-25T19:00:00+09:00",
      "due": "2026-10-25T19:00:00+09:00",
@@ -2401,7 +2401,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/iIrifvsYM5c",
-     "publishAt": "2026-10-26T19:00:00+09:00",
+     "publishAt": "2026-10-26T10:00:00Z",
      "due": "2026-10-26T19:00:00+09:00",
      "ready": false
     },
@@ -2409,7 +2409,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/ssOBZlFhpnk",
-     "publishAt": "2026-10-26T19:00:00+09:00",
+     "publishAt": "2026-10-26T10:00:00Z",
      "due": "2026-10-26T19:00:00+09:00",
      "ready": false
     },
@@ -2460,7 +2460,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/1wAZ_1T6Tsg",
-     "publishAt": "2026-10-27T12:30:00+09:00",
+     "publishAt": "2026-10-27T03:30:00Z",
      "due": "2026-10-27T19:00:00+09:00",
      "ready": false
     },
@@ -2487,7 +2487,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/1wAZ_1T6Tsg",
-     "publishAt": "2026-10-27T12:30:00+09:00",
+     "publishAt": "2026-10-27T03:30:00Z",
      "due": "2026-10-27T19:00:00+09:00",
      "ready": false
     }
@@ -2564,7 +2564,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/gnbR-IUdKRo",
-     "publishAt": "2026-10-28T12:30:00+09:00",
+     "publishAt": "2026-10-28T03:30:00Z",
      "due": "2026-10-28T19:00:00+09:00",
      "ready": false
     },
@@ -2602,7 +2602,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/E-ASczD7G_I",
-     "publishAt": "2026-10-28T19:00:00+09:00",
+     "publishAt": "2026-10-28T10:00:00Z",
      "due": "2026-10-28T19:00:00+09:00",
      "ready": false
     },
@@ -2610,7 +2610,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/gnbR-IUdKRo",
-     "publishAt": "2026-10-28T12:30:00+09:00",
+     "publishAt": "2026-10-28T03:30:00Z",
      "due": "2026-10-28T19:00:00+09:00",
      "ready": false
     },
@@ -2661,7 +2661,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/Ha0cWja4JEk",
-     "publishAt": "2026-10-29T12:30:00+09:00",
+     "publishAt": "2026-10-29T03:30:00Z",
      "due": "2026-10-29T19:00:00+09:00",
      "ready": false
     },
@@ -2699,7 +2699,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/NS480YZm8xA",
-     "publishAt": "2026-10-29T19:00:00+09:00",
+     "publishAt": "2026-10-29T10:00:00Z",
      "due": "2026-10-29T19:00:00+09:00",
      "ready": false
     },
@@ -2707,7 +2707,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/Ha0cWja4JEk",
-     "publishAt": "2026-10-29T12:30:00+09:00",
+     "publishAt": "2026-10-29T03:30:00Z",
      "due": "2026-10-29T19:00:00+09:00",
      "ready": false
     },
@@ -2758,7 +2758,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/5psPkqbx7CA",
-     "publishAt": "2026-10-30T12:30:00+09:00",
+     "publishAt": "2026-10-30T03:30:00Z",
      "due": "2026-10-30T19:00:00+09:00",
      "ready": false
     },
@@ -2802,7 +2802,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/5psPkqbx7CA",
-     "publishAt": "2026-10-30T12:30:00+09:00",
+     "publishAt": "2026-10-30T03:30:00Z",
      "due": "2026-10-30T19:00:00+09:00",
      "ready": false
     },
@@ -2853,7 +2853,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/34hhWXQym6Q",
-     "publishAt": "2026-10-31T12:30:00+09:00",
+     "publishAt": "2026-10-31T03:30:00Z",
      "due": "2026-10-31T19:00:00+09:00",
      "ready": false
     },
@@ -2880,7 +2880,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/34hhWXQym6Q",
-     "publishAt": "2026-10-31T12:30:00+09:00",
+     "publishAt": "2026-10-31T03:30:00Z",
      "due": "2026-10-31T19:00:00+09:00",
      "ready": false
     },
@@ -2919,7 +2919,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/GV4WcpZLx60",
-     "publishAt": "2026-11-01T12:30:00+09:00",
+     "publishAt": "2026-11-01T03:30:00Z",
      "due": "2026-11-01T19:00:00+09:00",
      "ready": false
     },
@@ -2946,7 +2946,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/GV4WcpZLx60",
-     "publishAt": "2026-11-01T12:30:00+09:00",
+     "publishAt": "2026-11-01T03:30:00Z",
      "due": "2026-11-01T19:00:00+09:00",
      "ready": false
     },
@@ -2990,7 +2990,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/ZV3XaK1sJcw",
-     "publishAt": "2026-11-02T19:00:00+09:00",
+     "publishAt": "2026-11-02T10:00:00Z",
      "due": "2026-11-02T19:00:00+09:00",
      "ready": false
     },
@@ -2998,7 +2998,7 @@
      "who": "session",
      "status": "scheduled",
      "url": "https://youtu.be/E3-jr3fI0SE",
-     "publishAt": "2026-11-02T19:00:00+09:00",
+     "publishAt": "2026-11-02T10:00:00Z",
      "due": "2026-11-02T19:00:00+09:00",
      "ready": false
     },
