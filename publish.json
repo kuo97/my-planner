@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-26T15:06+09:00",
+ "updated": "2026-10-26T15:07+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -2773,11 +2773,25 @@
    "kind": "슬라이드릴스",
    "work": null,
    "title": "[슬라이드릴스] 결혼하고 나서야 알게 된 부모님의 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Starlight on the Water - Chris Haugen.",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Starlight on the Water - Chris Haugen. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
    "short": "결혼하고 나서야 알게 된 부모님의 12가지",
    "prep": [],
    "channels": {
     "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-27T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/1wAZ_1T6Tsg",
+     "publishAt": "2026-10-27T12:30:00+09:00",
+     "due": "2026-10-27T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-27T12:30:00+09:00",
@@ -2792,11 +2806,25 @@
    "kind": "슬라이드릴스",
    "work": null,
    "title": "[슬라이드릴스] 할머니 집에 가면 늘 있던 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Kate_s Waltz - Bad Snacks.",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Kate_s Waltz - Bad Snacks. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
    "short": "할머니 집에 가면 늘 있던 12가지",
    "prep": [],
    "channels": {
     "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-28T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/gnbR-IUdKRo",
+     "publishAt": "2026-10-28T12:30:00+09:00",
+     "due": "2026-10-28T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-28T12:30:00+09:00",
@@ -2811,11 +2839,25 @@
    "kind": "슬라이드릴스",
    "work": null,
    "title": "[슬라이드릴스] 오래 함께한 부부가 알게 되는 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM You and I - Telecasted.",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM You and I - Telecasted. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
    "short": "오래 함께한 부부가 알게 되는 12가지",
    "prep": [],
    "channels": {
     "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-29T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/Ha0cWja4JEk",
+     "publishAt": "2026-10-29T12:30:00+09:00",
+     "due": "2026-10-29T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-29T12:30:00+09:00",
@@ -2830,11 +2872,25 @@
    "kind": "슬라이드릴스",
    "work": null,
    "title": "[슬라이드릴스] 결혼 전날 밤 부모님이 하신 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Sleep Music No. 1 - Chris Haugen.",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Sleep Music No. 1 - Chris Haugen. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
    "short": "결혼 전날 밤 부모님이 하신 12가지",
    "prep": [],
    "channels": {
     "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-30T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/5psPkqbx7CA",
+     "publishAt": "2026-10-30T12:30:00+09:00",
+     "due": "2026-10-30T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-30T12:30:00+09:00",
@@ -2849,11 +2905,25 @@
    "kind": "슬라이드릴스",
    "work": null,
    "title": "[슬라이드릴스] 아이가 태어나고 처음 알게 된 12가지",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Calm Cam - TrackTribe.",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Calm Cam - TrackTribe. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
    "short": "아이가 태어나고 처음 알게 된 12가지",
    "prep": [],
    "channels": {
     "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-10-31T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/34hhWXQym6Q",
+     "publishAt": "2026-10-31T12:30:00+09:00",
+     "due": "2026-10-31T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-10-31T12:30:00+09:00",
@@ -2868,11 +2938,25 @@
    "kind": "슬라이드릴스",
    "work": null,
    "title": "[슬라이드릴스] 부모님과 마지막으로 한 게 언제인가요 12",
-   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Just Stay - Aakash Gandhi.",
+   "memo": "10-26 아침 배치 제작(Codex 인포그래픽 12칸 1장, 19.5초) · 총괄 세션이 오타 확인·캡션·큐 등록. 캡션에 그날 21:00 편 예고 줄(팔로우·프로필 방문 장치). BGM Just Stay - Aakash Gandhi. ★10-26 시험(찬진 확정): 유튜브 쇼츠·쓰레드에도 12:30 — 11-02 판정(쇼츠 평균이 같은 주 19:00 쇼츠의 절반↑면 계속, 쓰레드는 평균 약 200회와 비교).",
    "short": "부모님과 마지막으로 한 게 언제인가요 12",
    "prep": [],
    "channels": {
     "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-01T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/GV4WcpZLx60",
+     "publishAt": "2026-11-01T12:30:00+09:00",
+     "due": "2026-11-01T19:00:00+09:00",
+     "ready": false
+    },
+    "threads": {
      "who": "session",
      "status": "scheduled",
      "due": "2026-11-01T12:30:00+09:00",
