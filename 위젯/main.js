@@ -128,10 +128,29 @@ ipcMain.on("idle-opacity", (_e, v) => {
   clearTimeout(save.t); save.t = setTimeout(save, 400);
 });
 // Claude 가 할 일을 넣어 두는 우편함: %APPDATA%\todo-widget\inbox.json = [{"title":"…","due":"YYYY-MM-DD"}] (읽으면 지운다)
+// 10-27: Claude 데스크톱 앱(스토어 설치판)은 %APPDATA% 에 쓴 파일을 앱 전용 가상 폴더(Packages\Claude_*\LocalCache\Roaming)로 돌린다.
+//        그래서 10월 중순부터 우편함이 위젯에 안 보여 할 일이 쌓였다 → 그 가상 폴더의 우편함도 같이 꺼낸다.
+function inboxFiles() {
+  const out = [path.join(app.getPath("userData"), "inbox.json")];
+  try {
+    const pk = path.join(process.env.LOCALAPPDATA || "", "Packages");
+    fs.readdirSync(pk).filter(d => /^Claude_/i.test(d)).forEach(d => out.push(path.join(pk, d, "LocalCache", "Roaming", "todo-widget", "inbox.json")));
+  } catch {}
+  return out;
+}
 ipcMain.handle("inbox", () => {
-  const f = path.join(app.getPath("userData"), "inbox.json");
-  try { const t = JSON.parse(fs.readFileSync(f, "utf8")); fs.unlinkSync(f); return Array.isArray(t) ? t : []; } catch { return []; }
+  const all = [];
+  for (const f of inboxFiles()) {
+    if (!fs.existsSync(f)) continue;
+    try { const t = JSON.parse(fs.readFileSync(f, "utf8").replace(/^﻿/, "")); fs.unlinkSync(f); if (Array.isArray(t)) all.push(...t); wlog("우편함 " + (Array.isArray(t) ? t.length : 0) + "개 꺼냄 — " + f); }
+    catch (e) { wlog("우편함 읽기 실패: " + f + " / " + e.message); }
+  }
+  return all;
 });
+// 위젯 기록(문제 찾기용) — %APPDATA%/todo-widget/widget.log, 200KB 넘으면 새로
+const WLOG = path.join(app.getPath("userData"), "widget.log");
+function wlog(s) { try { if (fs.existsSync(WLOG) && fs.statSync(WLOG).size > 200000) fs.unlinkSync(WLOG); fs.appendFileSync(WLOG, new Date().toISOString() + " " + s + "\n"); } catch {} }
+ipcMain.on("log", (_e, s) => wlog(String(s)));
 // 로그인 정보를 이 컴퓨터에서만 풀 수 있게 암호화(Windows 계정 DPAPI)해 두고, 로그인이 풀리면 위젯이 알아서 다시 로그인한다 (10-09 찬진: "매번 로그인 안 해도 되게")
 const CRED = path.join(app.getPath("userData"), "cred.bin");
 ipcMain.handle("cred-save", (_e, email, password) => {

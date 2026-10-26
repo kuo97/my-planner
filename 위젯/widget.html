@@ -518,14 +518,24 @@ async function refresh(force) {
     else { if ($("login")) $("list").innerHTML = `<div class="empty">불러오지 못했어요. 잠시 뒤 다시 시도해요…</div>`; setTimeout(() => refresh(true), 15000); }
   } finally { busy = false; }
 }
+let inboxBusy = false, inboxWarned = "";
 async function pullInbox() {
-  const { data: { session } } = await sb.auth.getSession(); if (!session) return;
-  let items = []; try { items = await widget.inbox(); } catch {}
+  if (inboxBusy) return; inboxBusy = true;
+  try { await pullInbox_(); } catch (e) { widget.log("우편함 오류: " + (e && e.message)); } finally { inboxBusy = false; }
+}
+async function pullInbox_() {
+  // getSession 이 5초 넘게 안 끝나면(인증 잠금 대기) 이번 차례는 건너뛰고 기록을 남긴다
+  const r = await Promise.race([sb.auth.getSession(), new Promise(res => setTimeout(() => res("timeout"), 5000))]);
+  if (r === "timeout") { if (inboxWarned !== "timeout") { inboxWarned = "timeout"; widget.log("우편함: 로그인 확인이 5초 넘게 안 끝남"); } return; }
+  const session = r && r.data && r.data.session;
+  if (!session) { if (inboxWarned !== "nosession") { inboxWarned = "nosession"; widget.log("우편함: 로그인 세션 없음"); } return; }
+  inboxWarned = "";
+  let items = []; try { items = await widget.inbox(); } catch (e) { widget.log("우편함 꺼내기 오류: " + e.message); }
   if (!items.length) return;
   for (const it of items) {
     if (!it || !it.title) continue;
     const { data, error } = await sb.from("tasks").insert({ title: String(it.title), due: it.due || today() }).select().single();
-    if (!error) tasks.push(data); else msg("우편함 추가 실패: " + error.message);
+    if (!error) tasks.push(data); else { msg("우편함 추가 실패: " + error.message); widget.log("할 일 추가 실패: " + it.title + " / " + error.message); }
   }
   render();
 }
