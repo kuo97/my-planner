@@ -2454,9 +2454,10 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "due": "2026-10-27T12:30:00+09:00",
-     "ready": true
+     "ready": true,
+     "at": "2026-10-27T12:34:28+09:00"
     },
     "shorts": {
      "who": "session",
