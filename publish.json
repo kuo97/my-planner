@@ -2631,9 +2631,10 @@
     },
     "threads": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "due": "2026-10-28T21:00:00+09:00",
-     "ready": true
+     "ready": true,
+     "at": "2026-10-28T21:04:10+09:00"
     },
     "blog": {
      "who": "chanjin",
