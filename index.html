@@ -302,6 +302,7 @@
   .life-tbl tr.tot small { color: var(--muted); font-weight: 400; }
   .life-tbl .x { border: none; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 13px; }
   .life-tbl.season td, .life-tbl.season th { text-align: center; }
+  .life-tbl.season td.sk { text-align: left; white-space: nowrap; }
   .life-tbl .tag { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--paper); color: var(--muted); }
   .life-tbl .tag.biz { background: #fbf0d9; color: #8a5a00; }
   .life-tbl .soon { font-size: 11px; padding: 0 6px; border-radius: 999px; background: var(--danger-soft); color: var(--danger); }
@@ -2812,6 +2813,7 @@ async function toggleHaircut(date) {
 const SEASON_KINDS = [
   { k: "에어컨 켬", ico: "❄️" }, { k: "에어컨 끔", ico: "🌬️" },
   { k: "난방 켬", ico: "🔥" }, { k: "난방 끔", ico: "🌤️" },
+  { k: "창문 닫음", ico: "🪟", t: "추워서 하루 종일 창문 닫고 지내기 시작" }, { k: "창문 엶", ico: "🌿", t: "따뜻해서 창문 열어 두고 지내기 시작" },
 ];
 const BILL_KINDS = ["전기", "가스", "수도", "관리비", "통신", "기타"];
 /* 술·몸에 안 좋은 음식(치킨·피자·야식·단 것…)을 한 날 — season 과 같은 life_log 표에 label 만 달리 쓴다(표 변경 없음) */
@@ -3165,8 +3167,8 @@ function lifeCard() {
 
   /* 계절 섹션 */
   const years = [...new Set(seasons.map(s => s.on_date.slice(0, 4)))].sort().reverse();
-  const seasonBody = years.length ? `<table class="life-tbl season"><tr><th></th>${SEASON_KINDS.map(s => `<th>${s.ico} ${s.k}</th>`).join("")}</tr>
-      ${years.map(y => `<tr><td>${y}</td>${SEASON_KINDS.map(s => {
+  const seasonBody = years.length ? `<table class="life-tbl season"><tr><th></th>${years.map(y => `<th>${y}</th>`).join("")}</tr>
+      ${SEASON_KINDS.map(s => `<tr><td class="sk">${s.ico} ${s.k}</td>${years.map(y => {
         const hit = seasons.filter(r => r.label === s.k && r.on_date.slice(0, 4) === y).map(r => md(r.on_date)).sort();
         return `<td>${hit.length ? hit.join(", ") : "—"}</td>`; }).join("")}</tr>`).join("")}</table>
       <div class="sp-hint">달력에서 날짜를 누르고 칩으로 기록해요</div>` : `<div class="cd-empty">달력에서 날짜를 누르고 칩으로 기록해요</div>`;
@@ -3435,7 +3437,7 @@ function renderCalendarView() {
         });
       }
       const sOn = seasonOn(calSel).filter(r => SEASON_KINDS.some(s => s.k === r.label));   // 술·음식 기록은 제외
-      mk(sOn.length ? "🌡️ " + sOn.map(r => r.label).join(" · ") : "🌡️ 냉난방", sOn.length > 0, "에어컨·난방 켠 날/끈 날 기록", () => { calSeasonOpen = !calSeasonOpen; renderCalendarView(); });
+      mk(sOn.length ? "🌡️ " + sOn.map(r => r.label).join(" · ") : "🌡️ 계절", sOn.length > 0, "에어컨·난방 켠 날/끈 날, 창문 닫고/열고 지내기 시작한 날", () => { calSeasonOpen = !calSeasonOpen; renderCalendarView(); });
       detail.appendChild(tools);
       if (calSeasonOpen) {
         const row = document.createElement("div");
@@ -3445,6 +3447,7 @@ function renderCalendarView() {
           b2.type = "button";
           b2.className = "season-chip" + (seasonOn(calSel).some(r => r.label === s.k) ? " on" : "");
           b2.textContent = `${s.ico} ${s.k}`;
+          if (s.t) b2.title = s.t;
           b2.addEventListener("click", () => { calSeasonOpen = false; toggleSeason(calSel, s.k); });
           row.appendChild(b2);
         });
