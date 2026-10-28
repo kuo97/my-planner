@@ -175,7 +175,8 @@
   .ds-chip.on { color: var(--muted); }
   .ds-chip.on i { background: var(--sage); border-color: var(--sage); }
   .season-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .wx-head { display: flex; align-items: center; justify-content: space-between; }
+  .wx-head { display: flex; justify-content: flex-end; margin-top: 8px; }
+  .wx-card .wx-head + .wx-sub { margin-top: 2px; }
   .wx-head b { font-family: 'Gaegu', sans-serif; font-size: 15px; }
   .wx-add { border: 1.5px solid var(--line); background: none; border-radius: 999px; padding: 4px 12px; font-family: inherit; font-size: 12.5px; color: var(--ink); cursor: pointer; }
   .wx-form { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
@@ -2931,7 +2932,8 @@ async function toggleSeason(date, label) {
 const WX_PRESETS = [...SEASON_KINDS.map(s => s.k), "첫눈", "패딩 꺼냄", "반팔 시작"];
 const isWx = r => r.kind === "season" && ((r.meta && r.meta.w) || SEASON_KINDS.some(s => s.k === r.label));
 const wxIco = label => (SEASON_KINDS.find(s => s.k === label) || {}).ico || "🌡️";
-let wxFormOpen = false;
+let wxFormOpen = false, wxOpen = false;   // 10-28 찬진: 생활 기록처럼 접고 열게 — 처음엔 접힘, 연 상태는 기억
+try { wxOpen = localStorage.getItem("wx_open") === "1"; } catch {}
 async function addWx(date, label) {
   label = (label || "").trim();
   if (!date || !label) { toast("날짜와 무엇이 바뀌었는지 적어 주세요"); return false; }
@@ -2972,14 +2974,19 @@ function wxCard() {
   soon.sort((a, c) => a.left - c.left);
   mine.sort((a, c) => c.d.localeCompare(a.d));
 
-  const card = document.createElement("div");
-  card.className = "cal-card wx-card";
+  const card = document.createElement("details");
+  card.className = "cal-card life-card wx-card";
+  card.open = wxOpen || wxFormOpen;
+  card.addEventListener("toggle", () => { wxOpen = card.open; try { localStorage.setItem("wx_open", wxOpen ? "1" : "0"); } catch {} });
+  const lastWx = recs.slice().sort((a, c) => c.on_date.localeCompare(a.on_date))[0];
+  const sumTxt = soon.length ? `곧 ${soon[0].label} · ${soon[0].left > 0 ? `약 ${soon[0].left}일 뒤` : "이맘때"}` : lastWx ? `${lastWx.label} ${md(lastWx.on_date)}` : "";
   const soonHtml = soon.length ? soon.map(s => `<div class="wx-line"><span>${wxIco(s.label)} <b>${escapeHtml(s.label)}</b></span><small>${s.from.slice(0, 4)}년엔 ${md(s.from)} · ${s.left > 0 ? `약 ${s.left}일 뒤` : s.left === 0 ? "오늘쯤" : `${-s.left}일 지남 — 아직 안 왔어요`}</small></div>`).join("") : "";
   const mineHtml = mine.slice(0, 3).map(m => `<div class="wx-line"><span>${wxIco(m.label)} ${escapeHtml(m.label)} <small>${md(m.d)}</small></span><small>${escapeHtml(m.note)}</small></div>`).join("");
   /* 해마다 보기: 기점마다 한 줄, 해별 날짜. 줄 순서 = 가장 최근 기록의 월·일 순 */
   const rows = Object.entries(groups).sort((a, c) => a[1][0].on_date.slice(5).localeCompare(c[1][0].on_date.slice(5)));
   const histHtml = rows.map(([label, g]) => `<div class="wx-row"><span class="wx-lab">${wxIco(label)} ${escapeHtml(label)}</span><span class="wx-dates">${g.map(r => `<span class="wx-d">${r.on_date.slice(2, 4)}년 ${md(r.on_date)}<button type="button" class="x" data-wxdel="${r.id}" title="지우기">×</button></span>`).join("")}</span></div>`).join("");
-  card.innerHTML = `<div class="wx-head"><b>🌡️ 날씨 기점</b><button type="button" class="wx-add">${wxFormOpen ? "닫기" : "+ 기점 적기"}</button></div>
+  card.innerHTML = `<summary class="life-sum">날씨 기점${sumTxt ? ` <small>· ${escapeHtml(sumTxt)}</small>` : ""}</summary>
+    <div class="wx-head"><button type="button" class="wx-add">${wxFormOpen ? "닫기" : "+ 기점 적기"}</button></div>
     ${wxFormOpen ? `<div class="wx-form">
       <input type="date" class="wx-date" value="${today}" max="${today}">
       <div class="season-chips">${[...new Set([...WX_PRESETS, ...Object.keys(groups)])].map(l => `<button type="button" class="season-chip" data-wxp="${escapeHtml(l)}">${wxIco(l)} ${escapeHtml(l)}</button>`).join("")}</div>
