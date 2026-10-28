@@ -175,6 +175,24 @@
   .ds-chip.on { color: var(--muted); }
   .ds-chip.on i { background: var(--sage); border-color: var(--sage); }
   .season-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .wx-head { display: flex; align-items: center; justify-content: space-between; }
+  .wx-head b { font-family: 'Gaegu', sans-serif; font-size: 15px; }
+  .wx-add { border: 1.5px solid var(--line); background: none; border-radius: 999px; padding: 4px 12px; font-family: inherit; font-size: 12.5px; color: var(--ink); cursor: pointer; }
+  .wx-form { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .wx-form .season-chips { margin-top: 0; }
+  .wx-form input { padding: 8px 12px; border: 1.5px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 14px; background: #fff; }
+  .wx-form .wx-date { align-self: flex-start; }
+  .wx-act { display: flex; justify-content: flex-end; }
+  .wx-save { border: none; background: var(--coral); color: #fff; border-radius: 12px; padding: 7px 18px; font-family: 'Gaegu', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .wx-sub { margin: 10px 0 2px; font-size: 12px; color: var(--muted); }
+  .wx-line { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 3px 0; font-size: 13.5px; }
+  .wx-line small { color: var(--muted); font-size: 12px; text-align: right; }
+  .wx-hist { margin-top: 10px; }
+  .wx-hist > summary { cursor: pointer; color: var(--muted); font-size: 12.5px; }
+  .wx-row { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+  .wx-lab { flex: 0 0 auto; min-width: 104px; }
+  .wx-dates { display: flex; flex-wrap: wrap; gap: 4px 10px; color: var(--muted); }
+  .wx-d .x { border: none; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 12px; }
   .cal-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .season-chip { padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; }
   .diet-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -2907,6 +2925,82 @@ async function toggleSeason(date, label) {
   await loadLifeLog(); renderCalendarView();
   toast(hit ? `${label} 기록을 지웠어요` : `${label} — 기록했어요`);
 }
+/* ---------- 날씨 기점 (2026-10-28 찬진: "버튼 누르고 그날 날씨가 바뀐 기점을 적어 두고, 매년 비교해서 올해는 언제쯤 바뀌겠구나 예측") ----------
+   저장: life_log kind "season" + meta {w:1}, label = 적은 말. 예전 칩 기록(에어컨 켬·난방 켬 등)도 같은 기점으로 본다.
+   예측: 올해 아직 없는 기점은 지난해 같은 날짜를 올해로 옮겨 "약 N일 뒤"로, 올해 이미 적은 기점은 작년보다 며칠 빠른지/늦은지. */
+const WX_PRESETS = [...SEASON_KINDS.map(s => s.k), "첫눈", "패딩 꺼냄", "반팔 시작"];
+const isWx = r => r.kind === "season" && ((r.meta && r.meta.w) || SEASON_KINDS.some(s => s.k === r.label));
+const wxIco = label => (SEASON_KINDS.find(s => s.k === label) || {}).ico || "🌡️";
+let wxFormOpen = false;
+async function addWx(date, label) {
+  label = (label || "").trim();
+  if (!date || !label) { toast("날짜와 무엇이 바뀌었는지 적어 주세요"); return false; }
+  if ((lifeLog || []).some(r => isWx(r) && r.on_date === date && r.label === label)) { toast("이미 적혀 있어요"); return false; }
+  const { error } = await sb.from("life_log").insert({ on_date: date, kind: "season", label, meta: { w: 1 } });
+  if (error) { toast("기록 실패: " + error.message); return false; }
+  await loadLifeLog(); renderCalendarView();
+  toast(`${wxIco(label)} ${label} — ${Number(date.slice(5, 7))}/${Number(date.slice(8))} 기점으로 적었어요`);
+  return true;
+}
+async function delWx(id) {
+  const r = (lifeLog || []).find(x => x.id === id); if (!r) return;
+  if (!confirm(`${r.on_date} 「${r.label}」 기점을 지울까요?`)) return;
+  const { error } = await sb.from("life_log").delete().eq("id", id);
+  if (error) { toast("지우기 실패: " + error.message); return; }
+  await loadLifeLog(); renderCalendarView(); toast("지웠어요");
+}
+function wxCard() {
+  const today = todayStr(), Y = today.slice(0, 4), md = d => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
+  const dayDiff = (a, c) => Math.round((new Date(c + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
+  const recs = (lifeLog || []).filter(isWx);
+  const groups = {};
+  recs.forEach(r => { (groups[r.label] = groups[r.label] || []).push(r); });
+  Object.values(groups).forEach(g => g.sort((a, c) => c.on_date.localeCompare(a.on_date)));   // 최근 먼저
+  /* 예측: 지난해 날짜(가장 최근 해)를 올해로 옮긴다 */
+  const soon = [], mine = [];
+  Object.entries(groups).forEach(([label, g]) => {
+    const thisYear = g.find(r => r.on_date.slice(0, 4) === Y), past = g.find(r => r.on_date.slice(0, 4) < Y);
+    if (thisYear) {
+      if (past) { const shift = dayDiff(Y + past.on_date.slice(4), thisYear.on_date);
+        mine.push({ label, d: thisYear.on_date, note: `${past.on_date.slice(0, 4)}년 ${md(past.on_date)}보다 ${shift === 0 ? "같은 날" : Math.abs(shift) + "일 " + (shift < 0 ? "빠름" : "늦음")}` }); }
+      else mine.push({ label, d: thisYear.on_date, note: "첫 기록 — 내년부터 비교" });
+    } else if (past) {
+      const guess = Y + past.on_date.slice(4), left = dayDiff(today, guess);
+      if (left >= -21 && left <= 60) soon.push({ label, guess, left, from: past.on_date });
+    }
+  });
+  soon.sort((a, c) => a.left - c.left);
+  mine.sort((a, c) => c.d.localeCompare(a.d));
+
+  const card = document.createElement("div");
+  card.className = "cal-card wx-card";
+  const soonHtml = soon.length ? soon.map(s => `<div class="wx-line"><span>${wxIco(s.label)} <b>${escapeHtml(s.label)}</b></span><small>${s.from.slice(0, 4)}년엔 ${md(s.from)} · ${s.left > 0 ? `약 ${s.left}일 뒤` : s.left === 0 ? "오늘쯤" : `${-s.left}일 지남 — 아직 안 왔어요`}</small></div>`).join("") : "";
+  const mineHtml = mine.slice(0, 3).map(m => `<div class="wx-line"><span>${wxIco(m.label)} ${escapeHtml(m.label)} <small>${md(m.d)}</small></span><small>${escapeHtml(m.note)}</small></div>`).join("");
+  /* 해마다 보기: 기점마다 한 줄, 해별 날짜. 줄 순서 = 가장 최근 기록의 월·일 순 */
+  const rows = Object.entries(groups).sort((a, c) => a[1][0].on_date.slice(5).localeCompare(c[1][0].on_date.slice(5)));
+  const histHtml = rows.map(([label, g]) => `<div class="wx-row"><span class="wx-lab">${wxIco(label)} ${escapeHtml(label)}</span><span class="wx-dates">${g.map(r => `<span class="wx-d">${r.on_date.slice(2, 4)}년 ${md(r.on_date)}<button type="button" class="x" data-wxdel="${r.id}" title="지우기">×</button></span>`).join("")}</span></div>`).join("");
+  card.innerHTML = `<div class="wx-head"><b>🌡️ 날씨 기점</b><button type="button" class="wx-add">${wxFormOpen ? "닫기" : "+ 기점 적기"}</button></div>
+    ${wxFormOpen ? `<div class="wx-form">
+      <input type="date" class="wx-date" value="${today}" max="${today}">
+      <div class="season-chips">${[...new Set([...WX_PRESETS, ...Object.keys(groups)])].map(l => `<button type="button" class="season-chip" data-wxp="${escapeHtml(l)}">${wxIco(l)} ${escapeHtml(l)}</button>`).join("")}</div>
+      <input type="text" class="wx-text" maxlength="40" placeholder="무엇이 바뀌었나요? 예: 추워서 창문 닫고 지냄">
+      <div class="wx-act"><button type="button" class="wx-save">적기</button></div></div>` : ""}
+    ${soonHtml ? `<div class="wx-sub">곧 올 기점</div>${soonHtml}` : ""}
+    ${mineHtml ? `<div class="wx-sub">올해 기록</div>${mineHtml}` : ""}
+    ${!recs.length && !wxFormOpen ? `<div class="cd-empty">에어컨·난방·창문처럼 날씨가 바뀐 날을 적어 두면, 내년부터 "올해는 언제쯤" 알려 줘요</div>` : ""}
+    ${rows.length ? `<details class="wx-hist"><summary>해마다 보기 · ${recs.length}개</summary>${histHtml}</details>` : ""}`;
+  card.querySelector(".wx-add").addEventListener("click", () => { wxFormOpen = !wxFormOpen; renderCalendarView(); });
+  if (wxFormOpen) {
+    const txt = card.querySelector(".wx-text");
+    card.querySelectorAll("[data-wxp]").forEach(bt => bt.addEventListener("click", () => {
+      card.querySelectorAll("[data-wxp]").forEach(x => x.classList.toggle("on", x === bt)); txt.value = bt.dataset.wxp; }));
+    const save = async () => { if (await addWx(card.querySelector(".wx-date").value, txt.value)) { wxFormOpen = false; renderCalendarView(); } };
+    card.querySelector(".wx-save").addEventListener("click", save);
+    txt.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); save(); } });
+  }
+  card.querySelectorAll("[data-wxdel]").forEach(bt => bt.addEventListener("click", () => delWx(Number(bt.dataset.wxdel) || bt.dataset.wxdel)));
+  return card;
+}
 async function addBill(month, label, amount) {
   if (!month || !amount) { toast("월과 금액을 넣어 주세요"); return; }
   const { error } = await sb.from("life_log").insert({ on_date: month + "-01", kind: "bill", label, amount });
@@ -3001,7 +3095,6 @@ function lifeCard() {
     lifeSpendSel ? `${mLabel(spendMonths[0])} 지출 ${man(spendSum(spendMonths[0]))}원` : "",
     subs.length ? `구독 월 ${man(subTotal())}원` : "",
     billMonths[0] ? `${mLabel(billMonths[0])} 공과금 ${won(billSum(billMonths[0]))}` : "",
-    lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "",
   ].filter(Boolean);
 
   const sec = (key, title, sub, body) => `<details class="life-sec" data-sec="${key}" ${lifeSecOpen[key] ? "open" : ""}>
@@ -3212,8 +3305,7 @@ function lifeCard() {
     ${sec("sub", "구독", subs.length ? `월 ${won(subTotal())}` : "", subBody)}
     ${sec("bill", "공과금", billMonths[0] ? `${mLabel(billMonths[0])} ${won(billSum(billMonths[0]))}` : "", billBody)}
     ${SHOW_DIET || SHOW_FOOD ? sec("diet", SHOW_DIET ? "술·배달·외식" : "배달·외식", dietSub, dietBody) : ""}
-    ${sec("place", "🍜 가볼 맛집", placeTodo.length ? `${placeTodo.length}곳` : "", placeBody)}
-    ${sec("season", "계절", lastSeason ? `${lastSeason.label} ${md(lastSeason.on_date)}` : "", seasonBody)}`;
+    ${sec("place", "🍜 가볼 맛집", placeTodo.length ? `${placeTodo.length}곳` : "", placeBody)}`;
 
   card.querySelectorAll(".life-sec").forEach(d => d.addEventListener("toggle", () => { lifeSecOpen[d.dataset.sec] = d.open; }));
   card.querySelectorAll("[data-month]").forEach(el => el.addEventListener("click", () => {
@@ -3334,8 +3426,8 @@ function renderCalendarView() {
       const dueN = tasks.filter(t => !t.done_at && !(t.repeat_days && t.repeat_days.length) && t.due === c.dateStr).length;
       const marks = (dueN ? `<span class="day-mark" title="할 일 ${dueN}개">📌</span>` : "") + (entry && entry.exercised ? '<span class="day-mark ex" title="운동한 날">🏃</span>' : "")
                   + (entry && entry.haircut ? '<span class="day-mark hair" title="이발한 날">✂️</span>' : "")
-                  + seasonOn(c.dateStr).filter(r => SHOW_DIET || (SHOW_FOOD && r.label === FOOD_LABEL) || SEASON_KINDS.some(x => x.k === r.label)).map(r => { const s = [...SEASON_KINDS, ...DIET_KINDS].find(x => x.k === r.label);
-                      const fi = r.label === FOOD_LABEL ? foodLabels(r) : []; return `<span class="day-mark" title="${s ? dietName(s) : r.label}${fi.length ? " — " + fi.join(", ") : ""}">${s ? s.ico : "•"}</span>`; }).join("");
+                  + seasonOn(c.dateStr).filter(r => SHOW_DIET || (SHOW_FOOD && r.label === FOOD_LABEL) || isWx(r)).map(r => { const s = [...SEASON_KINDS, ...DIET_KINDS].find(x => x.k === r.label);
+                      const fi = r.label === FOOD_LABEL ? foodLabels(r) : []; return `<span class="day-mark" title="${escapeHtml(s ? dietName(s) : r.label)}${fi.length ? " — " + fi.join(", ") : ""}">${s ? s.ico : isWx(r) ? "🌡️" : "•"}</span>`; }).join("");
       cell.innerHTML = `${thumb ? `<img class="cal-thumb" src="${thumb.url}" alt="">` : ""}<span class="daynum">${c.d}</span>${hasText && !thumb ? '<span class="dot"></span>' : ""}${marks ? `<span class="day-marks">${marks}</span>` : ""}`;
       cell.addEventListener("click", () => {
         calSel = c.dateStr;
@@ -3436,23 +3528,7 @@ function renderCalendarView() {
           sub.dataset.open = "food"; sub.innerHTML = ""; sub.appendChild(foodPickerEl(calSel, () => { calSeasonOpen = false; renderCalendarView(); }));
         });
       }
-      const sOn = seasonOn(calSel).filter(r => SEASON_KINDS.some(s => s.k === r.label));   // 술·음식 기록은 제외
-      mk(sOn.length ? "🌡️ " + sOn.map(r => r.label).join(" · ") : "🌡️ 계절", sOn.length > 0, "에어컨·난방 켠 날/끈 날, 창문 닫고/열고 지내기 시작한 날", () => { calSeasonOpen = !calSeasonOpen; renderCalendarView(); });
       detail.appendChild(tools);
-      if (calSeasonOpen) {
-        const row = document.createElement("div");
-        row.className = "season-chips";
-        SEASON_KINDS.forEach(s => {
-          const b2 = document.createElement("button");
-          b2.type = "button";
-          b2.className = "season-chip" + (seasonOn(calSel).some(r => r.label === s.k) ? " on" : "");
-          b2.textContent = `${s.ico} ${s.k}`;
-          if (s.t) b2.title = s.t;
-          b2.addEventListener("click", () => { calSeasonOpen = false; toggleSeason(calSel, s.k); });
-          row.appendChild(b2);
-        });
-        detail.appendChild(row);
-      }
       sub.innerHTML = sumHtml();
       detail.appendChild(sub);
     } else detail.appendChild(tools);
@@ -3468,6 +3544,7 @@ function renderCalendarView() {
     });
     detail.appendChild(jump);
   }
+  if (lifeLog) { try { list.appendChild(wxCard()); } catch (e) { console.warn("날씨 기점", e); } }
   list.appendChild(lifeCard());
   try { list.appendChild(gcalBarEl()); } catch (e) {}
 }
