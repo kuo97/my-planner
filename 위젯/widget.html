@@ -264,7 +264,7 @@ async function loadEvents() {
         end = ds(d) < s.slice(0, 10) ? s.slice(0, 10) : ds(d);
       }
       return { id: ev.id, date: s.slice(0, 10), end, title: ev.summary || "(제목 없음)", link: ev.htmlLink };
-    }).filter(Boolean);
+    }).filter(e => e && !evHide[e.id]);
   } catch {}
 }
 
@@ -355,17 +355,28 @@ let evDone = {};
 try { evDone = JSON.parse(localStorage.getItem("evDone") || "{}"); } catch {}
 (() => { const cut = ds(new Date(Date.now() - 30 * 86400000));   // 30일 지난 기록은 정리
   for (const k in evDone) if (k.split("|")[1] < cut) delete evDone[k]; })();
+// 마음이 바뀐 캘린더 일정은 ×로 위젯에서만 지운다(캘린더 연결이 읽기 전용이라 구글 캘린더엔 남는다). 끝난 지 60일 지나면 기록 정리
+let evHide = {};
+try { evHide = JSON.parse(localStorage.getItem("evHide") || "{}"); } catch {}
+(() => { const cut = ds(new Date(Date.now() - 60 * 86400000));
+  for (const k in evHide) if (evHide[k] < cut) delete evHide[k]; })();
 function eventEl(ev, d) {
   const key = ev.id + "|" + d, done = !!evDone[key];
   const el = document.createElement("div");
   el.className = "item ev" + (done ? " done" : "");
-  el.innerHTML = `<div class="num"></div><div class="chk">${done ? "✓" : ""}</div><div class="t" title="누르면 구글 캘린더가 열려요">${esc(ev.title)}</div>`;
+  el.innerHTML = `<div class="num"></div><div class="chk">${done ? "✓" : ""}</div><div class="t" title="누르면 구글 캘린더가 열려요">${esc(ev.title)}</div><button class="del" title="위젯에서 지우기 (구글 캘린더엔 남아요)">×</button>`;
   el.querySelector(".chk").onclick = () => {
     if (done) delete evDone[key]; else evDone[key] = 1;
     try { localStorage.setItem("evDone", JSON.stringify(evDone)); } catch {}
     render();
   };
   el.querySelector(".t").onclick = () => ev.link && widget.open(ev.link);
+  el.querySelector(".del").onclick = () => {
+    evHide[ev.id] = ev.end;
+    try { localStorage.setItem("evHide", JSON.stringify(evHide)); } catch {}
+    events = events.filter(e => e.id !== ev.id);
+    render();
+  };
   return el;
 }
 let doneOpen = false;
