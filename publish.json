@@ -2983,9 +2983,10 @@
     },
     "threads": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "due": "2026-11-01T21:00:00+09:00",
-     "ready": true
+     "ready": true,
+     "at": "2026-11-01T21:04:06+09:00"
     }
    }
   },
