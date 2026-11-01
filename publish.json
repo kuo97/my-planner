@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-01T22:31+09:00",
+ "updated": "2026-11-01T22:32+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3117,6 +3117,233 @@
      "ready": false
     }
    }
+  },
+  {
+   "id": "mk_Dh9dEfEU4JY",
+   "date": "2026-11-07",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "2090년, 65살이 경로당 막내가 되는 이유",
+   "memo": "",
+   "short": "2090년, 65살이 경로당 막내가 되는 이유",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-07T10:00:00Z",
+     "url": "https://youtu.be/Dh9dEfEU4JY",
+     "due": "2026-11-07T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_8yfY-jK_60U",
+   "date": "2026-11-06",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "인구가 절반이면 집값도 반값이 될까?",
+   "memo": "",
+   "short": "인구가 절반이면 집값도 반값이 될까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-06T10:00:00Z",
+     "url": "https://youtu.be/8yfY-jK_60U",
+     "due": "2026-11-06T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_5yvowoyY-YQ",
+   "date": "2026-11-05",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "인구가 절반이 되면 지하철이 한산해질까?",
+   "memo": "",
+   "short": "인구가 절반이 되면 지하철이 한산해질까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-05T10:00:00Z",
+     "url": "https://youtu.be/5yvowoyY-YQ",
+     "due": "2026-11-05T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk__YUhyr7sbyI",
+   "date": "2026-11-04",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "조선의 온돌방, 정말 따뜻했을까?",
+   "memo": "",
+   "short": "조선의 온돌방, 정말 따뜻했을까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-04T10:00:00Z",
+     "url": "https://youtu.be/_YUhyr7sbyI",
+     "due": "2026-11-04T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_XDc2MjfHjBU",
+   "date": "2026-11-03",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "온돌은 원래 가난한 사람의 것이었다",
+   "memo": "",
+   "short": "온돌은 원래 가난한 사람의 것이었다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-03T10:00:00Z",
+     "url": "https://youtu.be/XDc2MjfHjBU",
+     "due": "2026-11-03T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_dNPcqhXb8aY",
+   "date": "2026-11-02",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "온돌이 조선의 산을 먹어 치웠다",
+   "memo": "",
+   "short": "온돌이 조선의 산을 먹어 치웠다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-02T10:00:00Z",
+     "url": "https://youtu.be/dNPcqhXb8aY",
+     "due": "2026-11-02T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_JNQe3r6G2Jo",
+   "date": "2026-10-30",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "보일러 없던 조선 사람들은 겨울밤을 어떻게 버텼을까?",
+   "memo": "",
+   "short": "보일러 없던 조선 사람들은 겨울밤을 어떻게 버텼을까?",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/JNQe3r6G2Jo",
+     "due": "2026-10-30T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_hHhhKMHqSX4",
+   "date": "2026-11-03",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "AI가 일자리를 뺏는다면, 정말 공장부터일까?",
+   "memo": "",
+   "short": "AI가 일자리를 뺏는다면, 정말 공장부터일까?",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-03T10:00:00Z",
+     "url": "https://youtu.be/hHhhKMHqSX4",
+     "due": "2026-11-03T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_ay0xJz6LmHk",
+   "date": "2026-10-28",
+   "time": "23:19",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "지금 태어난 아이가 65살이 되면 한국에 벌어지는 일",
+   "memo": "",
+   "short": "지금 태어난 아이가 65살이 되면 한국에 벌어지는 일",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/ay0xJz6LmHk",
+     "due": "2026-10-28T23:19+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_plan_2026-11-06_youtube",
+   "date": "2026-11-06",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "6편 임진왜란에 기관총이 있었다면",
+   "memo": "11-04 Codex 초기화 뒤 그림 24장 → 그록 5컷 → 조립",
+   "short": "6편 임진왜란에 기관총이 있었다면",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-06T19:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "mk_plan_2026-11-10_youtube",
+   "date": "2026-11-10",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "5편 한반도 전쟁 첫 24시간",
+   "memo": "그림 43장 · 그록 6컷 남음",
+   "short": "5편 한반도 전쟁 첫 24시간",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-10T19:00+09:00",
+     "ready": false
+    }
+   }
   }
  ],
  "deadlines": [
@@ -3127,6 +3354,14 @@
    "kind": "의뢰작 납기",
    "memo": "09-19 초안 전달 → 1분30초 확정(추가금 12만 입금). 09-21(월) 고객 자막 수정본 → 최종본 → 09-25 납기 · 09-22 최종본 전달 완료(납기 3일 앞당김)",
    "status": "done"
+  },
+  {
+   "id": "mk_6편그림",
+   "title": "만약상자 6편 그림 시작 — 오후 4시 43분 뒤 「6편 그려」라고 말하기",
+   "due": "2026-11-04",
+   "kind": "만약상자 · 찬진 할 일",
+   "memo": "Codex 주간 한도 초기화 뒤에만, 고객 의뢰작이 먼저",
+   "status": "todo"
   }
  ]
 }
