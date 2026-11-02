@@ -2251,6 +2251,9 @@ async function renderDiary() {
   addBtn.addEventListener("click", addCity);
   grid.appendChild(addBtn);
   list.appendChild(cityWeatherCard());
+  /* 날씨 기점(에어컨·난방·창문) — 날씨 카드끼리 모은다 (11-02 찬진: 일기 탭 날씨 쪽에서 찾음) */
+  const wxSlot = document.createElement("div"); list.appendChild(wxSlot);
+  (lifeLoaded ? Promise.resolve() : loadLifeLog()).then(() => { if (lifeLog) wxSlot.replaceWith(wxCard()); else wxSlot.remove(); }).catch(() => wxSlot.remove());
 
   /* 지난 일기 (월별로 묶어서, 클릭하면 펼쳐지게 표시) */
   const { data: past } = await sb.from("diary").select("*").lt("on_date", todayStr()).gte("on_date", "2000-01-01").order("on_date", { ascending: false }).limit(60);
@@ -2934,13 +2937,17 @@ const isWx = r => r.kind === "season" && ((r.meta && r.meta.w) || SEASON_KINDS.s
 const wxIco = label => (SEASON_KINDS.find(s => s.k === label) || {}).ico || "🌡️";
 let wxFormOpen = false, wxOpen = false;   // 10-28 찬진: 생활 기록처럼 접고 열게 — 처음엔 접힘, 연 상태는 기억
 try { wxOpen = localStorage.getItem("wx_open") === "1"; } catch {}
+function wxRefresh() {
+  document.querySelectorAll(".wx-card").forEach(c => c.replaceWith(wxCard()));
+  renderCalendarView();
+}
 async function addWx(date, label) {
   label = (label || "").trim();
   if (!date || !label) { toast("날짜와 무엇이 바뀌었는지 적어 주세요"); return false; }
   if ((lifeLog || []).some(r => isWx(r) && r.on_date === date && r.label === label)) { toast("이미 적혀 있어요"); return false; }
   const { error } = await sb.from("life_log").insert({ on_date: date, kind: "season", label, meta: { w: 1 } });
   if (error) { toast("기록 실패: " + error.message); return false; }
-  await loadLifeLog(); renderCalendarView();
+  await loadLifeLog();
   toast(`${wxIco(label)} ${label} — ${Number(date.slice(5, 7))}/${Number(date.slice(8))} 기점으로 적었어요`);
   return true;
 }
@@ -2949,7 +2956,7 @@ async function delWx(id) {
   if (!confirm(`${r.on_date} 「${r.label}」 기점을 지울까요?`)) return;
   const { error } = await sb.from("life_log").delete().eq("id", id);
   if (error) { toast("지우기 실패: " + error.message); return; }
-  await loadLifeLog(); renderCalendarView(); toast("지웠어요");
+  await loadLifeLog(); wxRefresh(); toast("지웠어요");
 }
 function wxCard() {
   const today = todayStr(), Y = today.slice(0, 4), md = d => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
@@ -2975,7 +2982,7 @@ function wxCard() {
   mine.sort((a, c) => c.d.localeCompare(a.d));
 
   const card = document.createElement("details");
-  card.className = "cal-card life-card wx-card";
+  card.className = "dcard cal-card life-card wx-card";
   card.open = wxOpen || wxFormOpen;
   card.addEventListener("toggle", () => { wxOpen = card.open; try { localStorage.setItem("wx_open", wxOpen ? "1" : "0"); } catch {} });
   const lastWx = recs.slice().sort((a, c) => c.on_date.localeCompare(a.on_date))[0];
@@ -2996,12 +3003,12 @@ function wxCard() {
     ${mineHtml ? `<div class="wx-sub">올해 기록</div>${mineHtml}` : ""}
     ${!recs.length && !wxFormOpen ? `<div class="cd-empty">에어컨·난방·창문처럼 날씨가 바뀐 날을 적어 두면, 내년부터 "올해는 언제쯤" 알려 줘요</div>` : ""}
     ${rows.length ? `<details class="wx-hist"><summary>해마다 보기 · ${recs.length}개</summary>${histHtml}</details>` : ""}`;
-  card.querySelector(".wx-add").addEventListener("click", () => { wxFormOpen = !wxFormOpen; renderCalendarView(); });
+  card.querySelector(".wx-add").addEventListener("click", () => { wxFormOpen = !wxFormOpen; wxRefresh(); });
   if (wxFormOpen) {
     const txt = card.querySelector(".wx-text");
     card.querySelectorAll("[data-wxp]").forEach(bt => bt.addEventListener("click", () => {
       card.querySelectorAll("[data-wxp]").forEach(x => x.classList.toggle("on", x === bt)); txt.value = bt.dataset.wxp; }));
-    const save = async () => { if (await addWx(card.querySelector(".wx-date").value, txt.value)) { wxFormOpen = false; renderCalendarView(); } };
+    const save = async () => { if (await addWx(card.querySelector(".wx-date").value, txt.value)) { wxFormOpen = false; wxRefresh(); } };
     card.querySelector(".wx-save").addEventListener("click", save);
     txt.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); save(); } });
   }
@@ -3551,7 +3558,6 @@ function renderCalendarView() {
     });
     detail.appendChild(jump);
   }
-  if (lifeLog) { try { list.appendChild(wxCard()); } catch (e) { console.warn("날씨 기점", e); } }
   list.appendChild(lifeCard());
   try { list.appendChild(gcalBarEl()); } catch (e) {}
 }
