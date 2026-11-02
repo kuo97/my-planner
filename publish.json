@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02T16:13+09:00",
+ "updated": "2026-11-02T16:33+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3282,7 +3282,7 @@
     },
     {
      "text": "네이버 클립 업로드 (11-04 21:00, 블로그 링크는 월요일 연결) — 예약_붙여넣기.html(클립 탭)",
-     "done": false,
+     "done": true,
      "ch": "clip"
     }
    ],
@@ -3320,7 +3320,8 @@
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
+     "at": "2026-11-04T21:00:00+09:00",
      "due": "2026-11-04T21:00:00+09:00",
      "ready": false
     }
@@ -3504,7 +3505,8 @@
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
+     "at": "2026-11-06T21:00:00+09:00",
      "due": "2026-11-06T21:00:00+09:00",
      "ready": false
     }
@@ -3700,7 +3702,8 @@
     },
     "clip": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
+     "at": "2026-11-08T21:00:00+09:00",
      "due": "2026-11-08T21:00:00+09:00",
      "ready": false
     }
