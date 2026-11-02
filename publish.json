@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02T16:10+09:00",
+ "updated": "2026-11-02T16:13+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3665,9 +3665,9 @@
    "time": "19:00",
    "kind": "작품",
    "work": "35번",
-   "title": "작품 칸 — 35번 10년 치 망한 서프라이즈(동물 캐릭터) 공개 후보",
-   "memo": "찬진 결정 대기(10-29 표 4번). 롤모델 10-31 행: 첫 2초 검은 화면 `A CHANJAK STUDIO FILM` / `○○ 씨의 10년` → 주인공 클로즈업. 캡컷 텍스트로. 브랜드 엔딩 4.47초(11-02 고정).",
-   "short": "(후보) 35번 동물 캐릭터 결혼기념일",
+   "title": "35번(결혼기념일 동물 캐릭터 「10년 치 망한 서프라이즈」 10주년) — 일요일 작품 칸",
+   "memo": "찬진 결정 대기(10-29 표 4번). 롤모델 10-31 행: 첫 2초 검은 화면 `A CHANJAK STUDIO FILM` / `○○ 씨의 10년` → 주인공 클로즈업. 캡컷 텍스트로. 브랜드 엔딩 4.47초(11-02 고정). → 11-02 찬진 \"35번 넣어\" 확정, 발행 세트 완료. 블로그는 11-10 이후.",
+   "short": "35번 동물 캐릭터 결혼기념일",
    "prep": [],
    "channels": {
     "youtube": {
@@ -3678,7 +3678,9 @@
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/hiLoMGOtu6M",
+     "publishAt": "2026-11-08T19:00:00+09:00",
      "due": "2026-11-08T19:00:00+09:00",
      "ready": false
     },
@@ -3686,19 +3688,13 @@
      "who": "session",
      "status": "todo",
      "due": "2026-11-08T21:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "todo",
      "due": "2026-11-08T21:00:00+09:00",
-     "ready": false
-    },
-    "blog": {
-     "who": "chanjin",
-     "status": "todo",
-     "due": "2026-11-08T19:00:00+09:00",
-     "ready": false
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
