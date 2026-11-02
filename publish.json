@@ -3672,7 +3672,9 @@
    "channels": {
     "youtube": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/OcoF_MwCgKI",
+     "publishAt": "2026-11-08T19:00:00+09:00",
      "due": "2026-11-08T19:00:00+09:00",
      "ready": false
     },
