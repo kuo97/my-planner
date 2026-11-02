@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02T12:39+09:00",
+ "updated": "2026-11-02T12:40+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3522,7 +3522,9 @@
    "channels": {
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/yRxBFEqJeFA",
+     "publishAt": "2026-11-07T19:00:00+09:00",
      "due": "2026-11-07T19:00:00+09:00",
      "ready": false
     },
