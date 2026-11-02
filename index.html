@@ -148,6 +148,28 @@
   .tt-memo > summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 2px; }
   .tt-memo[open] > summary { margin-bottom: 6px; }
   .cal-tasks { margin-top: 10px; }
+  /* 할 일 접기 (11-02 찬진: 지저분하다 — 한 줄 요약, 누르면 펼침, 펼쳐도 한 줄짜리) */
+  .tt-fold { margin: 2px 0 8px; }
+  .tt-fold > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--paper-card); font-size: 14px; }
+  .tt-fold > summary::-webkit-details-marker { display: none; }
+  .tt-fold > summary::before { content: "▸"; color: var(--muted); font-size: 11px; transition: transform .2s; }
+  .tt-fold[open] > summary::before { transform: rotate(90deg); }
+  .tt-fold[open] > summary { margin-bottom: 6px; }
+  .tt-fold > summary small { color: var(--muted); font-weight: 400; }
+  .tf-over { font-size: 11px; font-weight: 700; color: var(--danger); background: var(--danger-soft); padding: 2px 8px; border-radius: 999px; }
+  .tf-peek { flex: 1; min-width: 0; color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+  .tt-fold[open] .tf-peek { display: none; }
+  .tt-fold .task { padding: 8px 12px; margin-bottom: 5px; border-radius: 12px; gap: 10px; animation: none; }
+  .tt-fold .chk { width: 22px; height: 22px; }
+  .tt-fold .task .body { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tt-fold .task .body > :not(.title):not(.meta) { flex-basis: 100%; }
+  .tt-fold .task .title { flex: 1 1 0; min-width: 0; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; word-break: normal; }
+  .tt-fold .task .meta { margin-top: 0; flex-shrink: 0; }
+  .tt-fold .badge { font-size: 11px; padding: 2px 7px; }
+  .tf-done > summary { cursor: pointer; color: var(--muted); font-size: 12.5px; padding: 4px; }
+  .gcal-events.gcal-chips { flex-direction: row; flex-wrap: wrap; gap: 5px; }
+  .gcal-chips .gcal-event { padding: 4px 10px; border-radius: 999px; max-width: 100%; }
+  .gcal-chips .gcal-title { font-size: 12px; }
   .cal-stats-row .ex-stats.cal-ex { margin: 0; }
   .ex-stats.hair-stats { background: var(--paper-card); border-color: var(--line); }
   .ex-stats.lotto-pick {
@@ -3504,7 +3526,7 @@ function renderCalendarView() {
   }
   if (selEvents.length) {
     const evWrap = document.createElement("div");
-    evWrap.className = "gcal-events";
+    evWrap.className = "gcal-events gcal-chips";
     evWrap.style.marginTop = "10px";
     selEvents.forEach(e => {
       const item = document.createElement("a");
@@ -3523,7 +3545,7 @@ function renderCalendarView() {
   const selTasks = tasks.filter(t => !(t.repeat_days && t.repeat_days.length) && t.due === calSel);
   if (selTasks.length) {
     const tw = document.createElement("div"); tw.className = "cal-tasks";
-    selTasks.forEach(t => tw.appendChild(taskRow(t, undefined, calSel)));
+    tw.appendChild(taskFold(selTasks.map(t => ({ t, el: taskRow(t, undefined, calSel) })), "cal"));
     detail.appendChild(tw);
   }
   if (calSel <= today) {
@@ -3565,6 +3587,19 @@ function renderCalendarView() {
 /* ---------- 오늘 할 일 (2026-10-21: 오늘 탭을 없애고 일기 탭 맨 위로) ----------
    추가 칸 · 매일 칩 · 오늘 할 일(마감 지난 것 포함) · 오늘 구글 일정 · 메모함(접기) · 운동 횟수·로또 · 이번 주 균형.
    날짜가 있는 다른 날 할 일은 달력 탭 그 날짜에서 본다. */
+function taskFold(items, key) {
+  items.forEach(x => { x.done = x.el.classList.contains("done"); x.el.title = x.t.title; });
+  const open = items.filter(x => !x.done), done = items.filter(x => x.done), today = todayStr();
+  const over = open.filter(x => x.t.due && x.t.due < today && !(x.t.repeat_days && x.t.repeat_days.length)).length;
+  const fold = document.createElement("details"); fold.className = "tt-fold";
+  try { fold.open = localStorage.getItem("fold_" + key) === "1"; } catch {}
+  fold.addEventListener("toggle", () => { try { localStorage.setItem("fold_" + key, fold.open ? "1" : "0"); } catch {} });
+  const peek = open.slice(0, 2).map(x => escapeHtml(BATCH_DISPLAY_NAMES[x.t.title] || x.t.title)).join(" · ");
+  fold.innerHTML = `<summary>${open.length ? `<b>할 일 ${open.length}개</b>` : "<b>다 끝냈어요 🎉</b>"}${over ? `<span class="tf-over">지난 것 ${over}</span>` : ""}${done.length ? `<small>· 끝냄 ${done.length}</small>` : ""}${peek ? `<span class="tf-peek">${peek}${open.length > 2 ? " …" : ""}</span>` : ""}</summary>`;
+  open.forEach(x => fold.appendChild(x.el));
+  if (done.length) { const d = document.createElement("details"); d.className = "tf-done"; d.innerHTML = `<summary>끝낸 일 ${done.length}</summary>`; done.forEach(x => d.appendChild(x.el)); fold.appendChild(d); }
+  return fold;
+}
 function todayTasksEl() {
   const today = todayStr(), dow = new Date(today + "T00:00:00").getDay();
   const isDaily = t => t.repeat_days && t.repeat_days.length === 7 && !(t.sub_total > 0);
@@ -3599,12 +3634,13 @@ function todayTasksEl() {
   });
   const evs = gcalEventsOn(today);
   if (evs.length) {
-    const ev = document.createElement("div"); ev.className = "gcal-events";
+    const ev = document.createElement("div"); ev.className = "gcal-events gcal-chips";
     evs.forEach(e => { const a = document.createElement("a"); a.className = "gcal-event"; a.href = e.htmlLink || "#"; a.target = "_blank"; a.rel = "noopener noreferrer";
       const s = document.createElement("span"); s.className = "gcal-title"; s.textContent = e.title; a.appendChild(s); ev.appendChild(a); });
     box.appendChild(ev);
   }
-  dTasks.forEach(t => { const rep_ = t.repeat_days && t.repeat_days.length; box.appendChild(taskRow(t, rep_ ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === today) : undefined, today)); });
+  if (dTasks.length) box.appendChild(taskFold(dTasks.map(t => { const rep_ = t.repeat_days && t.repeat_days.length;
+    return { t, el: taskRow(t, rep_ ? !!repeatLog.find(r => r.task_id === t.id && r.done_on === today) : undefined, today) }; }), "today"));
   if (!dTasks.length && !evs.length) box.insertAdjacentHTML("beforeend", `<div class="tt-empty">오늘 할 일은 없어요</div>`);
   const inbox = tasks.filter(t => !t.done_at && !t.due && !(t.repeat_days && t.repeat_days.length));
   const memo = document.createElement("details"); memo.className = "tt-memo";
