@@ -3484,7 +3484,9 @@
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/PI_jkEc965U",
+     "publishAt": "2026-11-06T19:00:00+09:00",
      "due": "2026-11-06T19:00:00+09:00",
      "ready": false
     },
