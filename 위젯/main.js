@@ -149,6 +149,8 @@ ipcMain.handle("inbox", () => {
   }
   return all;
 });
+// 우편함 {"export":true} → 안 끝낸 할 일 목록을 tasks_export.json 에 써 둔다(Claude 가 이름 정리할 때 읽는다, 11-03)
+ipcMain.handle("export-tasks", (_e, list) => { try { fs.writeFileSync(path.join(app.getPath("userData"), "tasks_export.json"), JSON.stringify(list, null, 1)); return true; } catch (e) { wlog("목록 내보내기 실패: " + e.message); return false; } });
 // 위젯 기록(문제 찾기용) — %APPDATA%/todo-widget/widget.log, 200KB 넘으면 새로
 const WLOG = path.join(app.getPath("userData"), "widget.log");
 function wlog(s) { try { if (fs.existsSync(WLOG) && fs.statSync(WLOG).size > 200000) fs.unlinkSync(WLOG); fs.appendFileSync(WLOG, new Date().toISOString() + " " + s + "\n"); } catch {} }

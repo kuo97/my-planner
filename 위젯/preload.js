@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld("widget", {
   press: () => ipcRenderer.send("press"),
   slide: (v) => ipcRenderer.send("slide", v),
   inbox: () => ipcRenderer.invoke("inbox"),
+  exportTasks: (list) => ipcRenderer.invoke("export-tasks", list),
   log: (s) => ipcRenderer.send("log", s),
   credSave: (e, p) => ipcRenderer.invoke("cred-save", e, p),
   credLoad: () => ipcRenderer.invoke("cred-load"),

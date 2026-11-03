@@ -544,7 +544,18 @@ async function pullInbox_() {
   let items = []; try { items = await widget.inbox(); } catch (e) { widget.log("우편함 꺼내기 오류: " + e.message); }
   if (!items.length) return;
   for (const it of items) {
-    if (!it || !it.title) continue;
+    if (!it) continue;
+    // 우편함 명령(11-03 찬진: 할 일 이름 간결하게) — {"export":true} 목록 내보내기 · {"rename":"옛 이름","title":"새 이름"} · {"delete":"이름"} (이름이 정확히 같은 안 끝낸 할 일)
+    if (it.export) { await widget.exportTasks(tasks.filter(t => !t.done_at).map(t => ({ title: t.title, due: t.due, repeat: t.repeat_days || null }))); continue; }
+    if (it.rename || it.delete) {
+      const name = String(it.rename || it.delete), t = tasks.find(x => x.title === name && !x.done_at) || tasks.find(x => x.title === name);
+      if (!t) { widget.log("우편함: 못 찾음 — " + name); continue; }
+      const { error } = it.delete ? await sb.from("tasks").delete().eq("id", t.id) : await sb.from("tasks").update({ title: String(it.title) }).eq("id", t.id);
+      if (error) { widget.log("우편함 " + (it.delete ? "지우기" : "이름 바꾸기") + " 실패: " + name + " / " + error.message); continue; }
+      if (it.delete) tasks = tasks.filter(x => x.id !== t.id); else t.title = String(it.title);
+      continue;
+    }
+    if (!it.title) continue;
     const { data, error } = await sb.from("tasks").insert({ title: String(it.title), due: it.due || today() }).select().single();
     if (!error) tasks.push(data); else { msg("우편함 추가 실패: " + error.message); widget.log("할 일 추가 실패: " + it.title + " / " + error.message); }
   }
