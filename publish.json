@@ -3213,9 +3213,10 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "due": "2026-11-03T21:00:00+09:00",
-     "ready": true
+     "ready": true,
+     "at": "2026-11-03T21:02:33+09:00"
     },
     "threads": {
      "who": "session",
