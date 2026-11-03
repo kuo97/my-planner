@@ -3139,13 +3139,14 @@ function lifeCard() {
   /* 지출 섹션 */
   const spendBody = !spendMonths.length ? `<div class="cd-empty">아직 정리된 달이 없어요 — 뱅크샐러드 내보내기 파일을 for me\\지출\\명세서 에 넣고 Claude에게 "넣었어"</div>` : (() => {
     const legend = `<div class="sp-legend">${ALL_GROUPS.map(g => `<span><i style="background:${g.c}"></i>${g.k}</span>`).join("")}</div>`;
+    const barMax = Math.max(...spendMonths.slice(0, 6).map(mm => spendSum(mm)), 1);   // 막대 길이 = 그 달 총액 ÷ 6개월 중 가장 많이 쓴 달 (11-03 찬진: 달마다 길이가 같아 비교가 안 됨)
     const bars = spendMonths.slice(0, 6).map((m, i) => {
       const tot = spendSum(m), prev = spendMonths[i + 1], diff = prev && m !== thisMonth ? tot - spendSum(prev) : null;   // 진행 중인 달은 비교 안 함
       const segs = ALL_GROUPS.map(g => ({ g, v: groupSum(m, g.k) })).filter(e => e.v > 0).map(e =>
         `<span class="sp-seg" style="flex:${e.v};background:${e.g.c}" title="${e.g.k} ${won(e.v)} (${Math.round(e.v / tot * 100)}%)"></span>`).join("");
       return `<div class="sp-row${m === lifeSpendSel ? " on" : ""}" data-month="${m}"><div class="sp-head"><b>${mLabel(m)}${m === thisMonth ? " <small>진행 중</small>" : ""}</b> ${man(tot)}원
           ${diff != null ? `<small class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "▲" : "▼"} ${man(Math.abs(diff))}</small>` : ""}</div>
-          <div class="sp-bar">${segs}</div></div>`; }).join("");
+          <div class="sp-bar" style="width:${Math.max(8, tot / barMax * 100)}%">${segs}</div></div>`; }).join("");
     // 선택한 달: 요약 + 카테고리 순위(누르면 가맹점 내역이 펼쳐짐)
     const m = lifeSpendSel, tot = spendSum(m), idx = spendMonths.indexOf(m), prevM = spendMonths[idx + 1];
     const rows = inMonth(m).slice().sort((a, b) => b.amount - a.amount), max = rows[0] ? rows[0].amount : 1;
