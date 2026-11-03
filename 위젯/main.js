@@ -14,7 +14,8 @@ try { Object.assign(st, JSON.parse(fs.readFileSync(STATE, "utf8"))); } catch {}
 const save = () => { try { fs.writeFileSync(STATE, JSON.stringify(st)); } catch {} };
 
 const ICON_ICO = path.join(__dirname, "icon.ico"), ICON_PNG = path.join(__dirname, "icon.png");   // 코랄 바탕 흰 체크 (2026-10-08)
-let win, tray, quitting = false;
+let win, tray, quitting = false, userHidden = false;
+const TOP = "screen-saver";   // '항상 위' 단계 — floating 보다 높아 다른 항상-위 창에 덜 밀린다(11-03)
 app.on("before-quit", () => { quitting = true; });
 const alive = () => win && !win.isDestroyed();
 
@@ -37,7 +38,7 @@ function createWindow() {
     backgroundColor: "#FFFDF8",
     webPreferences: { preload: path.join(__dirname, "preload.js"), backgroundThrottling: false },
   });
-  win.setAlwaysOnTop(st.onTop, "floating");
+  win.setAlwaysOnTop(st.onTop, TOP);
   win.setIcon(nativeImage.createFromPath(ICON_ICO));
   try {
     win.setAppDetails({ appId: "chanjin.todo-widget", appIconPath: ICON_ICO, appIconIndex: 0,
@@ -53,6 +54,7 @@ function createWindow() {
   win.on("close", (e) => { if (!quitting) { e.preventDefault(); win.hide(); } });
   win.on("moved", () => snap(remember));
   win.on("resized", remember);
+  win.on("restore", () => { userHidden = false; });   // 작업 표시줄에서 다시 열면 고정 다시 지키기
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
 }
 
@@ -77,7 +79,7 @@ function snap(done) {
   }, 16);
 }
 
-function toggleShow() { if (!alive()) return; if (win.isVisible() && !win.isMinimized()) win.minimize(); else { win.restore(); win.show(); win.focus(); } }
+function toggleShow() { if (!alive()) return; if (win.isVisible() && !win.isMinimized()) { userHidden = true; win.minimize(); } else { userHidden = false; win.restore(); win.show(); win.focus(); } }
 
 // 컴퓨터를 켤 때 자동 실행 = 작업 스케줄러 '할 일 위젯 시작'(위젯 폴더의 widget_start.ps1). 시작 프로그램 항목(Run)으로 켜면
 // 윈도우 '스마트 앱 컨트롤'이 서명 없는 electron.exe 를 막아서 이쪽으로 바꿨다(10-10).
@@ -160,18 +162,26 @@ ipcMain.handle("cred-load", () => {
   try { return JSON.parse(safeStorage.decryptString(fs.readFileSync(CRED))); } catch { return null; }
 });
 ipcMain.handle("cred-clear", () => { try { fs.unlinkSync(CRED); } catch {} return true; });
-ipcMain.on("hide", () => alive() && win.minimize());   // 작업 표시줄로 내리기
+ipcMain.on("hide", () => { if (alive()) { userHidden = true; win.minimize(); } });   // 작업 표시줄로 내리기(고정 중이어도 내가 내린 건 다시 띄우지 않음)
 ipcMain.handle("lock", (_e, on) => {
   if (on !== undefined) { st.locked = on; if (alive()) { win.setMovable(!on); win.setResizable(!on); } save(); }
   return !!st.locked;
 });
-ipcMain.handle("pin", (_e, on) => { if (on !== undefined) { st.onTop = on; if (alive()) win.setAlwaysOnTop(on, "floating"); save(); } return st.onTop; });
+ipcMain.handle("pin", (_e, on) => { if (on !== undefined) { st.onTop = on; if (alive()) { win.setAlwaysOnTop(on, TOP); if (on) win.moveTop(); } save(); } return st.onTop; });
+// 📌 고정이 풀리는 문제(11-03 찬진: "고정 버튼을 눌러도 계속 없어져서 체크를 까먹어") — 윈도우는 다른 '항상 위' 창·전체 화면 창·
+// 바탕 화면 보기(Win+D)가 뜨면 위젯을 밑으로 내리거나 최소화한다. 고정 중이면 2초마다 맨 위를 다시 걸고, 내가 — 로 내린 게
+// 아닌데 최소화·숨김됐으면 포커스는 뺏지 않고(showInactive) 다시 띄운다. 트레이·작업 표시줄에서 다시 열면 userHidden 이 풀린다.
+setInterval(() => {
+  if (!alive() || !st.onTop || userHidden) return;
+  if (win.isMinimized() || !win.isVisible()) { win.restore(); win.showInactive(); }
+  win.setAlwaysOnTop(true, TOP); win.moveTop();
+}, 2000);
 // ↗ = 설치된 마이플래너 앱(크롬 앱 '플래너')을 연다. 없으면 브라우저로
 const PLANNER_LNK = path.join(app.getPath("appData"), "Microsoft", "Windows", "Start Menu", "Programs", "Chrome 앱", "플래너.lnk");
 ipcMain.on("open-planner", () => fs.existsSync(PLANNER_LNK) ? shell.openPath(PLANNER_LNK) : shell.openExternal("https://my-planner-fawn-nine.vercel.app/"));
 ipcMain.on("open", (_e, url) => shell.openExternal(url));
 
-app.on("second-instance", () => { if (alive()) { win.show(); win.focus(); } });
+app.on("second-instance", () => { if (alive()) { userHidden = false; win.restore(); win.show(); win.focus(); } });
 app.whenReady().then(() => {
   createWindow();
   buildTray();
