@@ -556,6 +556,14 @@ async function pullInbox_() {
       continue;
     }
     if (!it.title) continue;
+    // 겹치기 막기(11-03 찬진: "우현규님 재연락"이 3개) — 안 끝낸 할 일 중 같은 이름(괄호·띄어쓰기 무시)이나 같은 사람의 재연락이 있으면 새로 넣지 않고 날짜만 옮긴다
+    const key = x => String(x).replace(/\([^)]*\)/g, "").replace(/\s+/g, "");
+    const who = x => { const m = String(x).match(/^(\S+님)/); return m && /재연락/.test(x) ? m[1] : null; };
+    const dup = tasks.find(t => !t.done_at && (key(t.title) === key(it.title) || (who(it.title) && who(t.title) === who(it.title))));
+    if (dup) {
+      if (it.due && it.due !== dup.due) { const { error } = await sb.from("tasks").update({ due: it.due }).eq("id", dup.id); if (!error) dup.due = it.due; }
+      widget.log("우편함: 이미 있음 → 날짜만 " + (it.due || "그대로") + " — " + dup.title); continue;
+    }
     const { data, error } = await sb.from("tasks").insert({ title: String(it.title), due: it.due || today() }).select().single();
     if (!error) tasks.push(data); else { msg("우편함 추가 실패: " + error.message); widget.log("할 일 추가 실패: " + it.title + " / " + error.message); }
   }
