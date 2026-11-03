@@ -3151,9 +3151,10 @@
     },
     "threads": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "due": "2026-11-03T12:30:00+09:00",
-     "ready": true
+     "ready": true,
+     "at": "2026-11-03T12:35:01+09:00"
     },
     "shorts": {
      "who": "session",
