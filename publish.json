@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02T16:42+09:00",
+ "updated": "2026-11-04T23:57+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3100,20 +3100,22 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-02T21:02:35+09:00",
      "due": "2026-11-02T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-02T21:02:35+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-02T21:03:49+09:00",
      "due": "2026-11-02T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-02T21:03:49+09:00"
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
+     "url": "https://blog.naver.com/chanjakstudio/224454198960",
+     "at": "2026-11-02T18:10:00+09:00",
      "due": "2026-11-02T19:00:00+09:00",
      "ready": false
     },
@@ -3145,16 +3147,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-03T12:34:09+09:00",
      "due": "2026-11-03T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-03T12:34:09+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-03T12:35:01+09:00",
      "due": "2026-11-03T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-03T12:35:01+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -3193,8 +3195,9 @@
     },
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-03T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-03T18:20:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224462314890",
      "due": "2026-11-03T19:00:00+09:00",
      "ready": false
     }
@@ -3214,16 +3217,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-03T21:02:33+09:00",
      "due": "2026-11-03T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-03T21:02:33+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-03T21:03:44+09:00",
      "due": "2026-11-03T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-03T21:03:44+09:00"
+     "ready": true
     }
    }
   },
@@ -3247,16 +3250,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-04T12:33:48+09:00",
      "due": "2026-11-04T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-04T12:33:48+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-04T12:34:38+09:00",
      "due": "2026-11-04T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-04T12:34:38+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -3275,7 +3278,7 @@
    "kind": "작품",
    "work": "36번",
    "title": "36번(식전영상 「두 살엔 남이었던 둘이」 웃다가 울컥, 실사·성장 변신) — 수요일 작품 칸",
-   "memo": "11-02 찬진 최종 내보내기(3분 · 4K, 「36_식전영상_웃다가울컥.mp4」) — \"이제야 완전 마음에 든다\". 숏폼 3종 57초(성장 장면+홈쇼핑+청혼+결혼 사진+브랜드 엔딩)·원고 최종판(강조: 따로 찍힌 어린 시절을 한 벤치에 + 성장, 이야기에서 찾은 웃음, 복선, 웃음 뒤 울컥)·유튜브 meta·캡션.txt. 찬진 OK 뒤 유튜브 예약·인스타/쓰레드 큐. 카카오 소식은 11-05 이후.",
+   "memo": "11-02 찬진 최종 내보내기(3분 · 4K, 「36_식전영상_웃다가울컥.mp4」) — \"이제야 완전 마음에 든다\". 숏폼 3종 57초(성장 장면+홈쇼핑+청혼+결혼 사진+브랜드 엔딩)·원고 최종판(강조: 따로 찍힌 어린 시절을 한 벤치에 + 성장, 이야기에서 찾은 웃음, 복선, 웃음 뒤 울컥)·유튜브 meta·캡션.txt. 찬진 OK 뒤 유튜브 예약·인스타/쓰레드 큐. 카카오 소식은 11-05 이후. ⚠ 11-02 16:36 총괄 세션과 이 세션이 동시에 올려 유튜브 2벌 → MKzjl2exVGg·JxRBzs3d_c0 남김, Q2le4pt6tWg·4Zg0UYABaGQ 는 예약 해제(비공개)·재생목록에서 뺌 — 찬진이 스튜디오에서 삭제.",
    "short": "36번 식전영상 웃다가 울컥",
    "prep": [
     {
@@ -3298,7 +3301,7 @@
     "youtube": {
      "who": "session",
      "status": "scheduled",
-     "url": "https://youtu.be/Q2le4pt6tWg",
+     "url": "https://youtu.be/MKzjl2exVGg",
      "publishAt": "2026-11-04T19:00:00+09:00",
      "due": "2026-11-04T19:00:00+09:00",
      "ready": false
@@ -3306,7 +3309,7 @@
     "shorts": {
      "who": "session",
      "status": "scheduled",
-     "url": "https://youtu.be/4Zg0UYABaGQ",
+     "url": "https://youtu.be/JxRBzs3d_c0",
      "publishAt": "2026-11-04T19:00:00+09:00",
      "due": "2026-11-04T19:00:00+09:00",
      "ready": false
@@ -3314,21 +3317,22 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-04T21:02:39+09:00",
      "due": "2026-11-04T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-04T21:02:39+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-04T21:04:12+09:00",
      "due": "2026-11-04T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-04T21:04:12+09:00"
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-04T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-04T18:30:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224462326804",
      "due": "2026-11-04T19:00:00+09:00",
      "ready": false
     },
@@ -3453,22 +3457,22 @@
    "time": "12:30",
    "kind": "슬라이드릴스",
    "work": null,
-   "title": "[12:30] 감성 리스트 — 후보(Codex 11-04 16:43 이후)",
-   "memo": "11-02 배치 후보(「○○가 되고 나서야」·부모님 시점, 연애 시점 금지): 자취하고 나서야 알게 된 엄마의 12가지 · 첫 월급 받고 나서야 알게 된 부모님 12 · 부모님 집에 가면 늘 있는 12가지 · 결혼 10년 차가 되고 나서야 알게 된 12가지 · 손주가 생기고 나서야 보인 부모님 12. 11-04는 Codex 전이라 작품 재편집(32번 「같은 벽」 사진 액자 확대 훅)도 가능. 쇼츠·쓰레드 12:30 시험 고정(11-02 판정).",
-   "short": "감성 리스트 후보",
+   "title": "[슬라이드릴스] 첫 월급 받고 나서야 알게 된 부모님 12",
+   "memo": "11-04 밤 제작 — Codex 인포그래픽 1장(13번 아빠 12 틀) + 수노 BGM 0초 1.2초 페이드인, 19.5초.",
+   "short": "첫 월급 받고 나서야 알게 된 부모님 12",
    "prep": [],
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-06T12:30:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-06T12:30:00+09:00",
-     "ready": false
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -3552,22 +3556,22 @@
    "time": "12:30",
    "kind": "슬라이드릴스",
    "work": null,
-   "title": "[12:30] 감성 리스트 — 후보(Codex 11-04 16:43 이후)",
-   "memo": "11-02 배치 후보(「○○가 되고 나서야」·부모님 시점, 연애 시점 금지): 자취하고 나서야 알게 된 엄마의 12가지 · 첫 월급 받고 나서야 알게 된 부모님 12 · 부모님 집에 가면 늘 있는 12가지 · 결혼 10년 차가 되고 나서야 알게 된 12가지 · 손주가 생기고 나서야 보인 부모님 12. 11-04는 Codex 전이라 작품 재편집(32번 「같은 벽」 사진 액자 확대 훅)도 가능. 쇼츠·쓰레드 12:30 시험 고정(11-02 판정).",
-   "short": "감성 리스트 후보",
+   "title": "[슬라이드릴스] 자취하고 나서야 알게 된 엄마의 12가지",
+   "memo": "11-04 밤 제작 — Codex 인포그래픽 1장(13번 아빠 12 틀) + 수노 BGM 0초 1.2초 페이드인, 19.5초.",
+   "short": "자취하고 나서야 알게 된 엄마의 12가지",
    "prep": [],
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-07T12:30:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-07T12:30:00+09:00",
-     "ready": false
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -3650,22 +3654,22 @@
    "time": "12:30",
    "kind": "슬라이드릴스",
    "work": null,
-   "title": "[12:30] 감성 리스트 — 후보(Codex 11-04 16:43 이후)",
-   "memo": "11-02 배치 후보(「○○가 되고 나서야」·부모님 시점, 연애 시점 금지): 자취하고 나서야 알게 된 엄마의 12가지 · 첫 월급 받고 나서야 알게 된 부모님 12 · 부모님 집에 가면 늘 있는 12가지 · 결혼 10년 차가 되고 나서야 알게 된 12가지 · 손주가 생기고 나서야 보인 부모님 12. 11-04는 Codex 전이라 작품 재편집(32번 「같은 벽」 사진 액자 확대 훅)도 가능. 쇼츠·쓰레드 12:30 시험 고정(11-02 판정).",
-   "short": "감성 리스트 후보",
+   "title": "[슬라이드릴스] 손주가 생기고 나서야 보인 부모님 12",
+   "memo": "11-04 밤 제작 — Codex 인포그래픽 1장(13번 아빠 12 틀) + 수노 BGM 0초 1.2초 페이드인, 19.5초.",
+   "short": "손주가 생기고 나서야 보인 부모님 12",
    "prep": [],
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-08T12:30:00+09:00",
-     "ready": false
+     "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-08T12:30:00+09:00",
-     "ready": false
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -3783,6 +3787,111 @@
    }
   },
   {
+   "id": "mk__YUhyr7sbyI",
+   "date": "2026-11-04",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "조선의 온돌방, 정말 따뜻했을까?",
+   "memo": "",
+   "short": "조선의 온돌방, 정말 따뜻했을까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/_YUhyr7sbyI",
+     "due": "2026-11-04T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_JEhbrD45YpY",
+   "date": "2026-11-17",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "만약 이봉창 의사가 여든까지 살았다면 #순국선열의날",
+   "memo": "",
+   "short": "만약 이봉창 의사가 여든까지 살았다면 #순국선열의날",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-17T10:00:00Z",
+     "url": "https://youtu.be/JEhbrD45YpY",
+     "due": "2026-11-17T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_hHhhKMHqSX4",
+   "date": "2026-11-03",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "AI가 일자리를 뺏는다면, 정말 공장부터일까?",
+   "memo": "",
+   "short": "AI가 일자리를 뺏는다면, 정말 공장부터일까?",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/hHhhKMHqSX4",
+     "due": "2026-11-03T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_XDc2MjfHjBU",
+   "date": "2026-11-03",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "온돌은 원래 가난한 사람의 것이었다",
+   "memo": "",
+   "short": "온돌은 원래 가난한 사람의 것이었다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/XDc2MjfHjBU",
+     "due": "2026-11-03T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_dNPcqhXb8aY",
+   "date": "2026-11-02",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "온돌이 조선의 산을 먹어 치웠다",
+   "memo": "",
+   "short": "온돌이 조선의 산을 먹어 치웠다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/dNPcqhXb8aY",
+     "due": "2026-11-02T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "mk_Dh9dEfEU4JY",
    "date": "2026-11-07",
    "time": "19:00",
@@ -3846,69 +3955,6 @@
    }
   },
   {
-   "id": "mk__YUhyr7sbyI",
-   "date": "2026-11-04",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "조선의 온돌방, 정말 따뜻했을까?",
-   "memo": "",
-   "short": "조선의 온돌방, 정말 따뜻했을까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-04T10:00:00Z",
-     "url": "https://youtu.be/_YUhyr7sbyI",
-     "due": "2026-11-04T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_XDc2MjfHjBU",
-   "date": "2026-11-03",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "온돌은 원래 가난한 사람의 것이었다",
-   "memo": "",
-   "short": "온돌은 원래 가난한 사람의 것이었다",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-03T10:00:00Z",
-     "url": "https://youtu.be/XDc2MjfHjBU",
-     "due": "2026-11-03T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_dNPcqhXb8aY",
-   "date": "2026-11-02",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "온돌이 조선의 산을 먹어 치웠다",
-   "memo": "",
-   "short": "온돌이 조선의 산을 먹어 치웠다",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-02T10:00:00Z",
-     "url": "https://youtu.be/dNPcqhXb8aY",
-     "due": "2026-11-02T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
    "id": "mk_JNQe3r6G2Jo",
    "date": "2026-10-30",
    "time": "19:00",
@@ -3925,27 +3971,6 @@
      "publishAt": null,
      "url": "https://youtu.be/JNQe3r6G2Jo",
      "due": "2026-10-30T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_hHhhKMHqSX4",
-   "date": "2026-11-03",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "AI가 일자리를 뺏는다면, 정말 공장부터일까?",
-   "memo": "",
-   "short": "AI가 일자리를 뺏는다면, 정말 공장부터일까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-03T10:00:00Z",
-     "url": "https://youtu.be/hHhhKMHqSX4",
-     "due": "2026-11-03T19:00+09:00",
      "ready": true
     }
    }
@@ -4005,6 +4030,25 @@
      "who": "session",
      "status": "todo",
      "due": "2026-11-10T19:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "mk_plan_2026-11-17_youtube",
+   "date": "2026-11-17",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "쇼츠 특집 「이봉창, 살지 못한 세월」(순국선열의 날)",
+   "memo": "그록 영상·캡컷 드래프트 「만약상자 07 세월쇼츠」·미리보기 완료(11-03) → 찬진 확인·캡컷 내보내기 → 찬진 허락 뒤 예약",
+   "short": "쇼츠 특집 「이봉창, 살지 못한 세월」(순국선열의 날)",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-17T19:00+09:00",
      "ready": false
     }
    }
