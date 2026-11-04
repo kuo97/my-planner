@@ -47,14 +47,15 @@ function createWindow() {
   win.setOpacity(st.opacity);
   win.loadFile("widget.html");
   win.once("ready-to-show", () => win.show());
-  const remember = () => { Object.assign(st, win.getBounds()); save(); };
+  const remember = () => { const b = win.getBounds(); if (!onSomeScreen(b.x, b.y)) return; Object.assign(st, b); save(); };   // 화면 밖 자리는 기억하지 않는다(11-05)
   win.setMovable(!st.locked); win.setResizable(!st.locked);
   // 창 닫기(작업 표시줄 우클릭·Alt+F4 등)는 창을 없애지 않고 트레이로 숨긴다 — 없애 버리면 아래 타이머·메뉴가
   // 죽은 창을 만져서 "Object has been destroyed" 오류가 난다(10-08). 완전히 끄려면 트레이 '종료'.
   win.on("close", (e) => { if (!quitting) { e.preventDefault(); win.hide(); } });
   win.on("moved", () => snap(remember));
   win.on("resized", remember);
-  win.on("restore", () => { userHidden = false; });   // 작업 표시줄에서 다시 열면 고정 다시 지키기
+  win.on("restore", () => { userHidden = false; setTimeout(ensureOnScreen, 300); });   // 작업 표시줄에서 다시 열면 고정 다시 지키기 + 화면 밖이면 되돌림
+  win.on("show", () => setTimeout(ensureOnScreen, 300));
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
 }
 
@@ -79,7 +80,20 @@ function snap(done) {
   }, 16);
 }
 
-function toggleShow() { if (!alive()) return; if (win.isVisible() && !win.isMinimized()) { userHidden = true; win.minimize(); } else { userHidden = false; win.restore(); win.show(); win.focus(); } }
+// 화면 밖에 걸린 창 되돌리기 (11-05 찬진: "위젯 왜 안 뜨냐") — 모니터 절전·연결이 바뀌거나 최소화 뒤 복원될 때
+// 창이 윈도우의 '최소화 주차 자리'(-32000,-32000)에 보통 창으로 남아, 작업 표시줄을 눌러도 안 보였다.
+// 창이 어느 화면에도 없으면 기억한 자리(그 자리도 화면 밖이면 주 모니터 오른쪽 위)로, 기억한 크기로 되돌린다.
+function ensureOnScreen() {
+  if (!alive() || win.isMinimized()) return;
+  const b = win.getBounds();
+  if (onSomeScreen(b.x, b.y)) return;
+  const w = Math.max(st.width || 300, 270), h = Math.max(st.height || 440, 150);
+  let x = st.x, y = st.y;
+  if (x === undefined || !onSomeScreen(x, y)) { const a = screen.getPrimaryDisplay().workArea; x = a.x + a.width - w - 24; y = a.y + 24; }
+  win.setBounds({ x, y, width: w, height: h });
+  wlog("화면 밖 창 되돌림 " + JSON.stringify(b) + " → " + x + "," + y);
+}
+function toggleShow() { if (!alive()) return; if (win.isVisible() && !win.isMinimized()) { userHidden = true; win.minimize(); } else { userHidden = false; win.restore(); win.show(); ensureOnScreen(); win.focus(); } }
 
 // 컴퓨터를 켤 때 자동 실행 = 작업 스케줄러 '할 일 위젯 시작'(위젯 폴더의 widget_start.ps1). 시작 프로그램 항목(Run)으로 켜면
 // 윈도우 '스마트 앱 컨트롤'이 서명 없는 electron.exe 를 막아서 이쪽으로 바꿨다(10-10).
@@ -183,9 +197,11 @@ const PLANNER_LNK = path.join(app.getPath("appData"), "Microsoft", "Windows", "S
 ipcMain.on("open-planner", () => fs.existsSync(PLANNER_LNK) ? shell.openPath(PLANNER_LNK) : shell.openExternal("https://my-planner-fawn-nine.vercel.app/"));
 ipcMain.on("open", (_e, url) => shell.openExternal(url));
 
-app.on("second-instance", () => { if (alive()) { userHidden = false; win.restore(); win.show(); win.focus(); } });
+app.on("second-instance", () => { if (alive()) { userHidden = false; win.restore(); win.show(); ensureOnScreen(); win.focus(); } });
 app.whenReady().then(() => {
   createWindow();
   buildTray();
+  setInterval(ensureOnScreen, 3000);   // 고정 여부와 상관없이 3초마다 화면 안에 있는지 확인
+  ["display-removed", "display-added", "display-metrics-changed"].forEach(ev => screen.on(ev, () => setTimeout(ensureOnScreen, 1000)));
 });
 app.on("window-all-closed", (e) => e.preventDefault());
