@@ -2120,6 +2120,7 @@ async function renderDiary() {
       const cands = EXERCISE_CATALOG.filter(c => !activeRoutine.items.some(i => i.name === c.name) && (nm(c.name) === nm(name) || nm(c.name).includes(nm(name)) || nm(name).includes(nm(c.name))));
       const known = EXERCISE_CATALOG.find(c => c.name === name) || (cands.length === 1 ? cands[0] : null);
       const nu = known ? { ...known } : { name, w: 20, reps: "12×3" };
+      const ll = lastLift(nu.name, editDate); if (ll) nu.w = ll.w;   // 마지막으로 든 무게부터(11-04)
       const pos = insertAtRec(activeRoutine.items, nu), info = exInfo(nu.name);
       warmFix();
       toast(`${known && known.name !== name ? "'" + name + "' → '" + known.name + "'(프로그램 값) · " : ""}${nu.name} → ${pos}번째가 좋아요 — ${info.why}`);
@@ -2144,7 +2145,7 @@ async function renderDiary() {
       if (!activeRoutine) activeRoutine = { items: [] };
       const idx = activeRoutine.items.findIndex(i => i.name === name);
       if (idx >= 0) activeRoutine.items.splice(idx, 1);            // 두 번 누르면 뺀다 (실수 클릭)
-      else { const nu = { ...EXERCISE_CATALOG.find(c => c.name === name) }, pos = insertAtRec(activeRoutine.items, nu); toast(`${name} → ${pos}번째가 좋아요 — ${exInfo(name).why}`); } activeRoutine.items.forEach((it, n) => { const m = memoForPosition(it.memo, n === 0); if (m) it.memo = m; else delete it.memo; }); // 기본 무게·세트로, 추천 자리에 추가
+      else { const nu = { ...EXERCISE_CATALOG.find(c => c.name === name) }, ll = lastLift(name, editDate); if (ll) nu.w = ll.w; const pos = insertAtRec(activeRoutine.items, nu); toast(`${name} → ${pos}번째가 좋아요 — ${exInfo(name).why}`); } activeRoutine.items.forEach((it, n) => { const m = memoForPosition(it.memo, n === 0); if (m) it.memo = m; else delete it.memo; }); // 기본 무게·세트로, 추천 자리에 추가
       if (!activeRoutine.items.length) activeRoutine = null;
       syncChips();
       renderRoutineEditor();
@@ -2472,12 +2473,12 @@ function exerciseStatsEl() {
 
 /* ---------- 오늘 운동 제안 ----------
    일기의 운동 기록(exercise_note: "벤치프레스 55kg 6×5, 렛풀다운 32kg 12×4 + 러닝 5km")을 읽어서
-   ① 가장 오래 안 한 날(가슴→등→다리 순서) ② 종목별 무게(같은 무게로 3번 쌓았으면 한 단계 올리기,
-   한 달 넘게 쉬었으면 한 단계 낮추기)를 정한다. 판단 규칙은 모두 여기 있어서 Claude 없이 바로 나온다. */
-let workoutLog = []; // [{d, note}] 최근 60일, 날짜 오름차순
+   ① 가장 오래 안 한 날(가슴→등→다리 순서) ② 종목별 무게 = 마지막으로 든 무게 그대로(11-04 찬진: 올리는 건 내가 알아서 —
+   자동 올리기·낮추기 없음)를 정한다. 판단 규칙은 모두 여기 있어서 Claude 없이 바로 나온다. */
+let workoutLog = []; // [{d, note}] 최근 1년, 날짜 오름차순 (11-04: 오래 쉰 종목도 마지막 무게를 기억하게 60일 → 1년)
 async function loadWorkoutLog() {
   try {
-    const from = dateStr(new Date(Date.now() - 60 * 864e5));
+    const from = dateStr(new Date(Date.now() - 365 * 864e5));
     const { data, error } = await sb.from("diary").select("on_date,exercise_note").gte("on_date", from).order("on_date", { ascending: true });
     if (error) return;
     workoutLog = (data || []).filter(r => (r.exercise_note || "").trim()).map(r => ({ d: r.on_date, note: r.exercise_note }));
@@ -2612,19 +2613,22 @@ function planWorkout() {
   lines.push(`최근 2주에 ${recent}일 운동했어요.`);
   return { ss, last, doneToday, prev, rec: boostRec ? "boost" : rec, days: dayList, cw, streak, lines };
 }
+/* 종목별 마지막으로 든 무게 — 다음 운동은 최소 이 무게로 시작한다 (11-04 찬진: "점진적 과부하로 무게 늘리는 건 내가 알아서") */
+function lastLift(name, before) {
+  for (let k = workoutLog.length - 1; k >= 0; k--) {
+    const r = workoutLog[k]; if (before && r.d >= before) continue;
+    const hit = parseWorkoutNote(r.note).items.find(x => x.name === name);
+    if (hit) return { d: r.d, w: hit.w, reps: hit.reps };
+  }
+  return null;
+}
 function suggestItem(item, ss) {
-  const today = todayStr(), step = item.step || 5;
+  const today = todayStr();
   const hist = ss.filter(s => s.d !== today).flatMap(s => s.items.filter(i => i.name === item.name).map(i => ({ d: s.d, w: i.w, reps: i.reps }))).reverse(); // 최신순
   if (!hist.length) return { ...item, tip: "기록이 없어서 기본 무게로 시작해요" };
   const l = hist[0], ago = dayDiff(today, l.d);
-  let streak = 0; for (const h of hist) { if (h.w === l.w) streak++; else break; }   // 같은 무게를 쌓은 횟수(횟수·세트는 프로그램 값을 쓴다 — 옛 프로그램의 세트 수를 끌고 오지 않게)
-  const out = { ...item, w: l.w, w0: l.w, prev: `지난번 ${l.w}kg ${l.reps} · ${agoText(ago)}` };
-  if (ago >= 42) { out.w = Math.max(0, l.w - step); out.tip = `${Math.round(ago / 7)}주 만이라 한 단계 낮춰서 감 되찾기`; }
-  else if (streak >= 3) { out.w = l.w + step; out.up = true; out.tip = `같은 무게 ${streak}번째 → 이번엔 +${step}kg 도전 (힘들면 같은 무게로 1회 더)`; }
-  else if (streak === 2) out.tip = "같은 무게 2번째 — 한 번 더 쌓고 다음에 올려요";
-  else { const p = hist[1]; out.tip = p && p.w > l.w ? "지난번에 낮췄어요 — 이 무게로 자세 안정시키기" : p && p.w < l.w ? "지난번에 올렸어요 — 이 무게로 자리 잡기" : "같은 무게로 한 번 더"; }
-  out.w = Math.round(out.w * 2) / 2;
-  return out;
+  let streak = 0; for (const h of hist) { if (h.w === l.w) streak++; else break; }   // 같은 무게를 쌓은 횟수(참고로만 보여 준다 — 무게는 찬진이 직접 올린다)
+  return { ...item, w: l.w, w0: l.w, prev: `지난번 ${l.w}kg ${l.reps} · ${agoText(ago)}`, tip: `지난번 무게 그대로${streak >= 2 ? ` (이 무게 ${streak}번째)` : ""} — 올릴 땐 +로` };
 }
 /* 같은 날 앞 운동이 근육을 이미 털었으면 그 근육의 고립 운동은 기본으로 빼 준다(찬진 10-13: 벤치·인클라인을 하면 삼두가 다 털려서 라잉 트라이셉스는 그날 못 함).
    프레스류(벤치·인클라인·숄더프레스) 합계 10세트 이상이면 삼두 고립 운동을 '생략 추천'. 눌러서 다시 넣을 수 있다. */
