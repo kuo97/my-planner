@@ -480,112 +480,82 @@
   .badge.plain { background: #EFE9DA; color: var(--muted); }
 
 
-  /* ---------- 발행 탭 (찬작스튜디오 발행 일정·예약 트래킹) ---------- */
-  .pub-deadline { display: flex; gap: 14px; align-items: center; background: #FFF1EC; border: 2px solid var(--coral); border-radius: 16px; padding: 14px 16px; margin: 6px 0 12px; }
-  .pub-deadline.urgent { background: var(--coral); color: white; }
-  .pub-deadline .dday { font-size: 26px; font-weight: 900; color: var(--coral); min-width: 84px; text-align: center; letter-spacing: -0.5px; }
-  .pub-deadline.urgent .dday { color: white; }
-  .pub-deadline .k { font-size: 12px; font-weight: 700; opacity: 0.8; }
-  .pub-deadline .t { font-size: 16px; font-weight: 800; margin-top: 2px; }
-  .pub-deadline .m { font-size: 12.5px; margin-top: 4px; opacity: 0.85; white-space: pre-line; }
-  .pub-day { margin: 18px 0 8px; display: flex; align-items: baseline; gap: 8px; }
-  .pub-day .d { font-weight: 800; font-size: 15px; }
-  .pub-day .w { color: var(--muted); font-size: 12.5px; }
-  .pub-day.today .d { color: var(--coral); }
-  .pub-slot { background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 16px; padding: 13px 14px; margin-bottom: 9px; animation: rowIn 0.32s ease both; }
-  .pub-slot.done { background: #F5F2EA; }
-  .pub-slot .t { font-weight: 700; line-height: 1.4; }
-  .pub-slot .kind { font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #EFE9DA; color: var(--muted); margin-right: 6px; vertical-align: 1px; }
-  .pub-slot .prep { margin-top: 6px; font-size: 12.5px; color: var(--danger); }
-  .pub-slot .prep.ok { color: var(--sage); }
-  .pub-slot .memo { margin-top: 5px; font-size: 12.5px; color: var(--muted); white-space: pre-line; }
-  .pub-ch { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-  .pub-ch button, .pub-ch span { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; border: 1.5px solid var(--line); background: white; color: var(--muted); font-family: inherit; }
-  .pub-ch button { cursor: pointer; }
-  .pub-ch .s-scheduled { background: var(--gcal-soft); border-color: var(--gcal); color: var(--gcal); }
-  .pub-ch .s-published { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); }
-  .pub-ch .s-skip { text-decoration: line-through; opacity: .6; }
-  .pub-ch .s-session { border-style: dashed; }
-  /* 09-24 2차: 날짜 하나 아래 그날 것을 전부 — '내가' 줄과 '자동' 줄 */
-  .pub-day { margin: 22px 0 8px; display: flex; align-items: baseline; gap: 8px; }
-  .pub-day .d { font-weight: 800; font-size: 16px; }
-  .pub-day .w { color: var(--coral); font-size: 12.5px; font-weight: 800; }
-  .pub-slot { border-left: 5px solid transparent; }
-  .pub-slot.mine { border-left-color: var(--coral); }
-  .pub-slot .t2 { font-size: 15px; font-weight: 800; line-height: 1.4; }
-  .pub-slot .t2 .kind { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
-    background: #EFE9DA; color: var(--muted); margin-right: 7px; vertical-align: 1.5px; }
-  .pub-ch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
-  .pub-ch .rowlab { font-size: 11.5px; font-weight: 800; color: var(--muted);
-    border: none; background: none; padding: 0 2px 0 0; min-width: 26px; }
-  .pub-ch button b { font-weight: 800; }
-  .pub-ch.auto a { text-decoration: none; }
-  /* 상태를 색과 글자 둘 다로 (09-24 찬진: "예약 발행이 된 건지도 보기 좋게") */
-  .pub-slot.mine .pub-ch button.s-todo { border-color: var(--coral); color: var(--coral); background: #FFF6F3; }
-  .pub-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
-    font-size: 11.5px; color: var(--muted); margin: 2px 0 4px; line-height: 1.7; }
-  .pub-legend .bar { display: inline-block; width: 5px; height: 13px; border-radius: 3px;
-    background: var(--coral); vertical-align: -2px; }
-  .pub-legend .lg { font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1.5px solid var(--line); background: white; }
-  .pub-legend .lg.s-todo { border-color: var(--coral); color: var(--coral); background: #FFF6F3; }
-  /* 준비됨 = 영상·캡션이 다 있고 발행 시각만 남은 상태 (2026-09-24) */
-  .pub-ch .s-ready, .pub-legend .lg.s-ready { border-color: var(--sage); color: var(--sage); background: var(--sage-soft); }
-  .pub-legend .lg.s-scheduled { background: var(--gcal-soft); border-color: var(--gcal); color: var(--gcal); }
-  .pub-legend .lg.s-published { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); }
+  /* ---------- 발행 탭 v5 (2026-11-04 찬진: "보기 불편해서 안 보게 돼 — 사업별 탭으로 나눠서")
+     맨 위 사업 탭(전체·찬작스튜디오·찬작필름·만약상자 …) → 내가 할 것 → 날짜별 작품 카드.
+     채널은 '점 색 + 이름'만, 내가 눌러야 하는 것만 버튼. 점선·범례 줄·큰 주황 띠 없앰. */
+  .pb-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 16px; }
+  .pb-tab { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border-radius: 999px;
+    border: 1.5px solid var(--line); background: var(--paper-card); color: var(--ink); font-family: inherit;
+    font-size: 13.5px; font-weight: 700; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+  .pb-tab .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bc, var(--muted)); }
+  .pb-tab .cnt { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--coral); color: #fff;
+    font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+  .pb-tab.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  @media (max-width: 420px) { .pb-tabs { gap: 4px; } .pb-tab { padding: 6px 8px; font-size: 12.5px; gap: 5px; } .pb-tab .dot { width: 7px; height: 7px; } .pb-tab .cnt { min-width: 16px; height: 16px; font-size: 10.5px; } }
+  .pb-tab.on .dot { box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
 
-  .pub-legend { font-size: 11.5px; color: var(--muted); margin: 4px 0 2px; line-height: 1.6; }
-  /* 발행 탭 v3 (2026-10-14 찬진: "장황하고 눈에 안 띄어 — 잘 띄고 깔끔하게") */
-  .pv-todo { background: #FFF1EC; border: 2px solid var(--coral); border-radius: 18px; padding: 12px 14px 8px; margin: 6px 0 14px; }
-  .pv-todo-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
-  .pv-todo-h b { font-size: 16px; color: var(--coral); font-weight: 800; }
-  .pv-todo-h small { color: var(--muted); font-size: 12px; font-weight: 600; }
-  .pv-row { display: grid; grid-template-columns: 54px 1fr auto; align-items: center; gap: 4px 10px; padding: 10px 0; border-top: 1.5px dashed rgba(255, 107, 74, .3); }
-  .pv-row:first-of-type { border-top: 0; }
-  .pv-when { font-size: 12px; font-weight: 800; color: var(--coral); line-height: 1.3; text-align: center; }
-  .pv-when i { display: block; font-style: normal; font-size: 11px; color: var(--muted); font-weight: 700; }
-  .pv-title { min-width: 0; font-size: 14.5px; font-weight: 800; line-height: 1.35; }
-  .pv-title small { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 2px; }
-  .pv-btn { appearance: none; border: 2px solid var(--coral); background: #fff; color: var(--coral); border-radius: 999px; padding: 6px 12px; font-family: inherit; font-weight: 800; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
-  .pv-btn.s-scheduled { border-color: var(--gcal); color: var(--gcal); background: var(--gcal-soft); }
-  .pv-btn.s-published { border-color: var(--sage); color: var(--sage); background: var(--sage-soft); }
-  .pv-allok { padding: 14px; text-align: center; color: var(--sage); font-weight: 800; background: var(--sage-soft); border-radius: 16px; margin: 6px 0 14px; }
-  .pv-day { display: flex; align-items: baseline; gap: 8px; margin: 18px 0 6px; }
-  .pv-day .d { font-weight: 800; font-size: 15px; }
-  .pv-day.today .d { color: var(--coral); }
-  .pv-day .w { font-size: 12px; font-weight: 800; color: var(--coral); }
-  .pv-day .n { margin-left: auto; font-size: 11.5px; color: var(--muted); font-weight: 700; }
-  .pv-card { background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 7px; }
-  .pv-card.done { background: #F5F2EA; }
-  .pv-card .tt { display: flex; align-items: baseline; gap: 7px; font-size: 14.5px; font-weight: 800; line-height: 1.4; }
-  .pv-card .tt .kind { flex: none; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: #EFE9DA; color: var(--muted); }
-  .pv-card .me { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
-  .pv-card details.auto { margin-top: 6px; }
-  .pv-card details.auto > summary { cursor: pointer; list-style: none; font-size: 12px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-  .pv-card details.auto > summary::-webkit-details-marker { display: none; }
-  .pv-card details.auto > summary::before { content: "▸"; font-size: 10px; }
-  .pv-card details.auto[open] > summary::before { content: "▾"; }
-  .pv-card .pub-ch { margin-top: 6px; }
-  .pv-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
-  .pv-dot.s-todo { background: var(--coral); } .pv-dot.s-ready, .pv-dot.s-published { background: var(--sage); } .pv-dot.s-scheduled { background: var(--gcal); }
+  .pb-sec { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .3px; margin: 4px 2px 8px; }
+  .pb-todo { background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 18px; overflow: hidden; margin-bottom: 22px; }
+  .pb-trow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--line); }
+  .pb-trow:first-child { border-top: 0; }
+  .pb-when { flex: none; width: 52px; text-align: center; font-size: 12px; font-weight: 800; color: var(--muted); line-height: 1.25; font-variant-numeric: tabular-nums; }
+  .pb-when b { display: block; font-size: 13px; color: var(--ink); }
+  .pb-when.hot b, .pb-when.hot { color: var(--coral); }
+  .pb-dday { flex: none; width: 52px; text-align: center; font-size: 12.5px; font-weight: 900; color: var(--coral);
+    background: var(--coral-soft); border-radius: 10px; padding: 6px 0; }
+  .pb-dday.calm { color: var(--muted); background: #F1EBDD; }
+  .pb-tbody { flex: 1; min-width: 0; }
+  .pb-tbody .t { font-size: 14.5px; font-weight: 700; line-height: 1.4; }
+  .pb-tbody .m { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .pb-tbody .b { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+  .pb-tbody .b i { width: 6px; height: 6px; border-radius: 50%; background: var(--bc); }
+  .pb-go { flex: none; appearance: none; border: 0; border-radius: 999px; padding: 8px 14px; font-family: inherit; font-size: 12.5px;
+    font-weight: 800; cursor: pointer; background: var(--coral); color: #fff; white-space: nowrap; }
+  .pb-ok { display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-radius: 16px; background: var(--sage-soft);
+    color: var(--sage); font-size: 13.5px; font-weight: 800; margin-bottom: 22px; }
 
-  /* 발행 탭 v4 (2026-10-24 찬진: "뭐가 언제 올라가는지 더 보기 좋게") — 작품 하나 아래 시각별 줄(19:00 · 21:00) + 채널 칩(이름 + 상태 글자) */
-  .pv-tl { margin-top: 9px; display: flex; flex-direction: column; gap: 7px; }
-  .pv-tr { display: flex; align-items: flex-start; gap: 10px; }
-  .pv-tm { flex: none; width: 46px; padding-top: 5px; font-size: 13px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .pv-cs { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pv-chip { font-family: inherit; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1.5px dashed var(--line); background: #fff; color: var(--muted); text-decoration: none; }
-  .pv-chip b { font-weight: 800; margin-left: 3px; }
-  .pv-chip.me { border-style: solid; }
-  button.pv-chip { cursor: pointer; }
-  .pv-chip.s-scheduled { border-color: var(--gcal); color: var(--gcal); background: var(--gcal-soft); }
-  .pv-chip.s-published, .pv-chip.s-ready { border-color: var(--sage); color: var(--sage); background: var(--sage-soft); }
-  .pv-chip.s-todo.me { border-color: var(--coral); color: var(--coral); background: #FFF6F3; }
-  .pv-chip.s-skip { text-decoration: line-through; opacity: .55; }
-  .pv-card .tt .nm { flex: 1; min-width: 0; }
-  .pv-lg { display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 11.5px; font-weight: 700; color: var(--muted); margin: 2px 0 6px; }
-  .pv-lg i { font-style: normal; }
+  .pb-day { display: flex; align-items: baseline; gap: 8px; margin: 24px 2px 10px; }
+  .pb-day .big { font-size: 18px; font-weight: 800; letter-spacing: -.3px; }
+  .pb-day .sm { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .pb-day .n { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .pb-day.today .big { color: var(--coral); }
+  .pb-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 900px) { .pb-grid { grid-template-columns: 1fr 1fr; } }
+  .pb-card { position: relative; background: var(--paper-card); border: 1.5px solid var(--line); border-radius: 16px;
+    padding: 14px 16px 13px 18px; overflow: hidden; animation: rowIn .28s ease both; }
+  .pb-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--bc, var(--line)); }
+  .pb-card.done { opacity: .62; }
+  .pb-head { display: flex; align-items: flex-start; gap: 10px; }
+  .pb-head .nm { flex: 1; min-width: 0; font-size: 15px; font-weight: 800; line-height: 1.4; }
+  .pb-head .kd { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+  .pb-prog { flex: none; font-size: 11.5px; font-weight: 800; color: var(--muted); padding: 3px 9px; border-radius: 999px; background: #F1EBDD; font-variant-numeric: tabular-nums; }
+  .pb-prog.all { background: var(--sage-soft); color: var(--sage); }
+  .pb-lines { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+  .pb-line { display: flex; align-items: center; gap: 12px; }
+  .pb-line .tm { flex: none; width: 40px; font-size: 12.5px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pb-chs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+  .pb-ch { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: none; }
+  .pb-ch i { width: 8px; height: 8px; border-radius: 50%; background: #D9CFBC; flex: none; }
+  .pb-ch.s-published i { background: var(--sage); }
+  .pb-ch.s-scheduled i { background: var(--gcal); }
+  .pb-ch.s-ready i { background: transparent; box-shadow: inset 0 0 0 2px var(--sage); }
+  .pb-ch.s-todo { color: var(--muted); }
+  a.pb-ch:hover { text-decoration: underline; }
+  button.pb-ch { appearance: none; border: 1.5px solid var(--coral); background: #FFF6F3; color: var(--coral); border-radius: 999px;
+    padding: 3px 10px 3px 8px; font-family: inherit; font-weight: 800; font-size: 12.5px; cursor: pointer; }
+  button.pb-ch i { background: var(--coral); }
+  button.pb-ch.s-scheduled { border-color: var(--gcal); background: var(--gcal-soft); color: var(--gcal); }
+  button.pb-ch.s-scheduled i { background: var(--gcal); }
+  button.pb-ch.s-published { border-color: var(--sage); background: var(--sage-soft); color: var(--sage); }
+  button.pb-ch.s-published i { background: var(--sage); }
+  .pb-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 18px 0 4px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+  .pb-key span { display: inline-flex; align-items: center; gap: 5px; }
+  .pb-key i { width: 7px; height: 7px; border-radius: 50%; background: #D9CFBC; }
+  .pb-key .p { background: var(--sage); } .pb-key .s { background: var(--gcal); } .pb-key .r { background: transparent; box-shadow: inset 0 0 0 2px var(--sage); } .pb-key .m { background: var(--coral); }
+  .pb-empty { padding: 34px 10px; text-align: center; color: var(--muted); font-size: 13.5px; font-weight: 600;
+    border: 1.5px dashed var(--line); border-radius: 16px; }
   .pub-updated { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: 10px; }
-  .pub-more { width: 100%; padding: 10px; border-radius: 12px; border: 1.5px dashed var(--line); background: transparent; color: var(--muted); font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 6px; }
+  .pub-more { width: 100%; padding: 11px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--paper-card); color: var(--muted); font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 12px; }
 
   /* 체크할 때 튀는 색종이 */
   .confetti-dot {
@@ -4895,124 +4865,194 @@ function pubHM(iso, slot, ch) {
   return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
 }
 
-/* 발행 탭 — 2026-09-24 2차. 날짜 하나 아래 그날 것을 전부 모은다.
-   카드: 짧은 제목 + '내가' 칩(누르면 대기→예약함→발행함) + '자동' 칩(시각만, 링크는 ↗).
+/* 발행 탭 v5 — 2026-11-04 사업별 탭.
+   사업 구분 = slot.brand (있으면 그대로). 없으면 id 'mk_' 또는 kind '만약상자' → 만약상자, id 'cf_' 또는 kind '찬작필름' → 찬작필름, 나머지 찬작스튜디오.
+   새 사업은 publish.json 의 slot·deadline 에 "brand": "사업이름" 만 넣으면 탭이 저절로 생긴다(색은 PUB_BRANDS 에 넣거나 자동).
    ⛔ prep 안내 문구는 띄우지 않는다 — 찬진이 이미 아는 절차라 화면만 어지럽다. */
+const PUB_BRANDS = [
+  { key: "찬작스튜디오", color: "#FF6B4A" },
+  { key: "찬작필름", color: "#3E6FD1" },
+  { key: "만약상자", color: "#8B62C9" },
+];
+const PUB_EXTRA_COLORS = ["#2E9C8F", "#D69A1E", "#C2557A", "#5A7D3A"];
+let publishBrand = (function () { try { return localStorage.getItem("pubBrand") || "전체"; } catch (e) { return "전체"; } })();
+function pubBrandOf(x) {
+  if (x.brand) return x.brand;
+  const id = x.id || "", k = x.kind || "";
+  if (id.startsWith("mk_") || k.indexOf("만약상자") >= 0) return "만약상자";
+  if (id.startsWith("cf_") || k.indexOf("찬작필름") >= 0) return "찬작필름";
+  return "찬작스튜디오";
+}
+function pubBrandList() {
+  const list = PUB_BRANDS.slice();
+  const seen = new Set(list.map(function (b) { return b.key; }));
+  (publishData.slots || []).concat(publishData.deadlines || []).forEach(function (x) {
+    const b = pubBrandOf(x);
+    if (!seen.has(b)) { seen.add(b); list.push({ key: b, color: PUB_EXTRA_COLORS[(list.length - PUB_BRANDS.length) % PUB_EXTRA_COLORS.length] }); }
+  });
+  return list;
+}
+
 function renderPublish() {
   const list = $("list"); list.innerHTML = "";
-  if (!publishData) { list.innerHTML = '<div class="empty">publish.json 을 못 읽었어요. 세션이 아직 push 하지 않았거나 오프라인이에요.</div>'; return; }
+  if (!publishData) { list.innerHTML = '<div class="pb-empty">publish.json 을 못 읽었어요. 세션이 아직 push 하지 않았거나 오프라인이에요.</div>'; return; }
+  const esc = escapeHtml;
   const today = todayStr();
-  const slots = (publishData.slots || []).slice().sort(function (x, y) { return (x.date + x.time).localeCompare(y.date + y.time); });
+  const brands = pubBrandList();
+  const colorOf = {}; brands.forEach(function (b) { colorOf[b.key] = b.color; });
+  if (publishBrand !== "전체" && !colorOf[publishBrand]) publishBrand = "전체";
+  const inBrand = function (x) { return publishBrand === "전체" || pubBrandOf(x) === publishBrand; };
   const dayDiff2 = function (ds) { return Math.round((new Date(ds + "T00:00:00") - new Date(today + "T00:00:00")) / 86400000); };
-  const dayLabel = function (ds) { const d = new Date(ds + "T00:00:00"), n = dayDiff2(ds); return n === 0 ? "오늘" : n === 1 ? "내일" : (d.getMonth() + 1) + "/" + d.getDate() + " " + DAY_NAMES[d.getDay()]; };
-  const mineOf = function (slot) { return Object.entries(slot.channels || {}).filter(function (e) { return e[1].who === "chanjin"; }); };
-  const autoOf = function (slot) { return Object.entries(slot.channels || {}).filter(function (e) { return e[1].who !== "chanjin"; }); };
+  const md = function (ds) { const d = new Date(ds + "T00:00:00"); return (d.getMonth() + 1) + "월 " + d.getDate() + "일 " + DAY_NAMES[d.getDay()]; };
+  const mdShort = function (ds) { const d = new Date(ds + "T00:00:00"); return (d.getMonth() + 1) + "/" + d.getDate(); };
+  const allSlots = (publishData.slots || []).slice().sort(function (x, y) { return (x.date + x.time).localeCompare(y.date + y.time); });
+  const allDls = (publishData.deadlines || []).filter(function (x) { return x.status !== "done"; }).sort(function (x, y) { return x.due.localeCompare(y.due); });
 
-  /* 1) 납기(있을 때만) */
-  const dls = (publishData.deadlines || []).filter(function (x) { return x.status !== "done"; }).sort(function (x, y) { return x.due.localeCompare(y.due); });
-  dls.forEach(function (x) {
-    const dd = dayDiff2(x.due), d = new Date(x.due + "T00:00:00");
-    const card = document.createElement("div"); card.className = "pub-deadline" + (dd <= 2 ? " urgent" : "");
-    card.innerHTML = '<div class="dday">' + (dd < 0 ? "D+" + (-dd) : dd === 0 ? "D-DAY" : "D-" + dd) + '</div>'
-      + '<div class="body"><div class="k">' + (x.kind || "납기") + ' · ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + DAY_NAMES[d.getDay()] + '</div>'
-      + '<div class="t">' + x.title + '</div>' + (x.memo ? '<div class="m">' + x.memo + '</div>' : "") + '</div>';
-    list.appendChild(card);
-  });
-
-  /* 2) 내가 올릴 것 — 맨 위에 크게. '대기'(아직 손 안 댄 것)만: 최근 7일 밀린 것 + 앞으로 3일. 예약됨은 이미 올려 둔 것이라 날짜 카드에서만 보인다 */
-  const open = [];
-  slots.forEach(function (slot) {
+  /* 내가 할 것 = 납기(안 끝난 것) + 내 몫 채널 중 '대기'(최근 7일 밀린 것 ~ 앞으로 3일) */
+  const allOpen = [];
+  allSlots.forEach(function (slot) {
     if (slot.date > cwAdd(today, 3) || slot.date < cwAdd(today, -7)) return;
-    mineOf(slot).forEach(function (e) {
-      const st = pubChipState(slot, e[0], e[1]).status;
-      if (st === "todo") open.push({ slot: slot, ch: e[0], conf: e[1], st: st });
+    Object.entries(slot.channels || {}).forEach(function (e) {
+      if (e[1].who !== "chanjin") return;
+      if (pubChipState(slot, e[0], e[1]).status === "todo") allOpen.push({ slot: slot, ch: e[0], conf: e[1] });
     });
   });
-  const box = document.createElement("div");
-  if (!open.length) {
-    box.className = "pv-allok"; box.textContent = "✓ 지금 올릴 게 없어요";
+
+  /* 1) 사업 탭 — 숫자 = 내가 할 것 */
+  const tabs = document.createElement("div"); tabs.className = "pb-tabs";
+  [{ key: "전체", color: null }].concat(brands).forEach(function (b) {
+    const mineN = function (x) { return b.key === "전체" || pubBrandOf(x) === b.key; };
+    const n = allOpen.filter(function (o) { return mineN(o.slot); }).length + allDls.filter(mineN).length;
+    const bt = document.createElement("button"); bt.type = "button";
+    bt.className = "pb-tab" + (publishBrand === b.key ? " on" : "");
+    if (b.color) bt.style.setProperty("--bc", b.color);
+    bt.innerHTML = (b.color ? '<span class="dot"></span>' : "") + esc(b.key) + (n ? '<span class="cnt">' + n + "</span>" : "");
+    bt.addEventListener("click", function () {
+      publishBrand = b.key; try { localStorage.setItem("pubBrand", b.key); } catch (e) {}
+      publishShowFar = false; publishShowPast = false; renderPublish();
+    });
+    tabs.appendChild(bt);
+  });
+  list.appendChild(tabs);
+
+  const slots = allSlots.filter(inBrand);
+  const dls = allDls.filter(inBrand);
+  const open = allOpen.filter(function (o) { return inBrand(o.slot); });
+
+  /* 2) 내가 할 것 */
+  const brandTag = function (x) {
+    if (publishBrand !== "전체") return "";
+    const b = pubBrandOf(x);
+    return '<span class="b" style="--bc:' + colorOf[b] + '"><i></i>' + esc(b) + "</span>";
+  };
+  if (!open.length && !dls.length) {
+    const ok = document.createElement("div"); ok.className = "pb-ok"; ok.textContent = "✓ 지금 내가 올릴 건 없어요";
+    list.appendChild(ok);
   } else {
-    box.className = "pv-todo";
-    box.innerHTML = '<div class="pv-todo-h"><b>내가 올릴 것 ' + open.length + '개</b><small>버튼을 누르면 대기 → 예약함 → 발행함</small></div>';
+    const h = document.createElement("div"); h.className = "pb-sec"; h.textContent = "내가 할 것 " + (open.length + dls.length);
+    list.appendChild(h);
+    const box = document.createElement("div"); box.className = "pb-todo";
+    dls.forEach(function (x) {
+      const dd = dayDiff2(x.due);
+      const tt = String(x.title || "").split(/\s+—\s+/);
+      const sub = [tt.slice(1).join(" — "), x.memo].filter(Boolean).join(" · ");
+      const row = document.createElement("div"); row.className = "pb-trow";
+      row.innerHTML = '<div class="pb-dday' + (dd > 2 ? " calm" : "") + '">' + (dd < 0 ? "D+" + (-dd) : dd === 0 ? "오늘" : "D-" + dd) + "</div>"
+        + '<div class="pb-tbody">' + brandTag(x) + '<div class="t">' + esc(tt[0]) + "</div>"
+        + (sub ? '<div class="m">' + esc(sub) + "</div>" : "") + "</div>";
+      box.appendChild(row);
+    });
     open.forEach(function (o) {
-      const row = document.createElement("div"); row.className = "pv-row";
-      const late = o.slot.date < today;
-      row.innerHTML = '<div class="pv-when">' + (late ? "밀림" : dayLabel(o.slot.date)) + '<i>' + pubHM(o.conf.due, o.slot, o.ch) + '</i></div>'
-        + '<div class="pv-title">' + pubShort(o.slot) + '<small>' + (PUB_CH[o.ch] || o.ch) + '</small></div>';
-      const btn = document.createElement("button"); btn.className = "pv-btn s-" + o.st;
-      btn.textContent = PUB_ST[o.st] || o.st;
+      const late = o.slot.date < today, n = dayDiff2(o.slot.date);
+      const row = document.createElement("div"); row.className = "pb-trow";
+      row.innerHTML = '<div class="pb-when' + (late || n === 0 ? " hot" : "") + '"><b>' + pubHM(o.conf.due, o.slot, o.ch) + "</b>"
+        + (late ? "밀림" : n === 0 ? "오늘" : n === 1 ? "내일" : mdShort(o.slot.date)) + "</div>"
+        + '<div class="pb-tbody">' + brandTag(o.slot) + '<div class="t">' + esc(pubShort(o.slot)) + '</div><div class="m">' + esc(PUB_CH[o.ch] || o.ch) + " 예약하기</div></div>";
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = "pb-go"; btn.textContent = "예약 완료";
       btn.addEventListener("click", function () { pubCycle(o.slot, o.ch, o.conf, btn); });
       row.appendChild(btn);
       box.appendChild(row);
     });
+    list.appendChild(box);
   }
-  list.appendChild(box);
-  const lg = document.createElement("div"); lg.className = "pv-lg";
-  lg.innerHTML = '<span>시각별로 어디에 올라가는지 보여요</span><i>🟢 올라감</i><i>🔵 예약</i><i>🟠 대기(내 몫)</i><i>실선 칩 = 내가 누르는 것 · 점선 = 자동</i>';
-  list.appendChild(lg);
 
-  /* 3) 날짜별 — 짧게: 제목 + (내 몫 칩) + 자동은 접어서 한 줄 */
+  /* 3) 날짜별 작품 카드 — 시각 줄마다 채널 '점 + 이름'. 내가 눌러야 하는 채널만 버튼 */
+  const WORD = { published: "올라감", scheduled: "예약됨", ready: "준비됨", todo: "아직" };
   const drawDays = function (arr, isPast) {
-    let lastDate = null, dayEl = null;
+    let lastDate = null, grid = null;
     arr.forEach(function (slot) {
       if (slot.date !== lastDate) {
         lastDate = slot.date;
-        const d = new Date(slot.date + "T00:00:00"), n = dayDiff2(slot.date);
+        const n = dayDiff2(slot.date);
         const cnt = arr.filter(function (x) { return x.date === slot.date; }).length;
-        dayEl = document.createElement("div");
-        dayEl.className = "pv-day" + (n === 0 ? " today" : "");
-        dayEl.innerHTML = '<span class="d">' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + DAY_NAMES[d.getDay()] + '</span>'
-          + (n === 0 ? '<span class="w">오늘</span>' : n === 1 ? '<span class="w">내일</span>' : '') + '<span class="n">' + cnt + '편</span>';
+        const big = n === 0 ? "오늘" : n === 1 ? "내일" : n === -1 ? "어제" : md(slot.date);
+        const dayEl = document.createElement("div"); dayEl.className = "pb-day" + (n === 0 ? " today" : "");
+        dayEl.innerHTML = '<span class="big">' + big + "</span>" + (Math.abs(n) <= 1 ? '<span class="sm">' + md(slot.date) + "</span>" : "") + '<span class="n">' + cnt + "편</span>";
         list.appendChild(dayEl);
+        grid = document.createElement("div"); grid.className = "pb-grid"; list.appendChild(grid);
       }
+      const chans = Object.entries(slot.channels || {}).map(function (e) {
+        const st = pubChipState(slot, e[0], e[1]);
+        return { ch: e[0], conf: e[1], st: st, stat: st.status === "todo" && e[1].ready ? "ready" : st.status };
+      }).filter(function (c) { return c.stat !== "skip"; });
+      const nDone = chans.filter(function (c) { return c.stat === "published"; }).length;
+      const nSet = chans.filter(function (c) { return c.stat === "published" || c.stat === "scheduled"; }).length;
+      const allDone = chans.length > 0 && nDone === chans.length;
       const card = document.createElement("div");
-      card.className = "pv-card" + (isPast ? " done" : "");
-      card.innerHTML = '<div class="tt"><span class="kind">' + (slot.kind || "") + '</span><span class="nm">' + pubShort(slot) + '</span></div>';
+      card.className = "pb-card" + (isPast || allDone ? " done" : "");
+      card.style.setProperty("--bc", colorOf[pubBrandOf(slot)]);
+      const kind = slot.kind && slot.kind !== pubBrandOf(slot) ? slot.kind : "";
+      const prog = !chans.length ? "" : allDone ? '<span class="pb-prog all">✓ 다 올라감</span>'
+        : nSet === chans.length ? '<span class="pb-prog all">예약 끝</span>'
+        : '<span class="pb-prog">' + nSet + "/" + chans.length + "</span>";
+      card.innerHTML = '<div class="pb-head"><div class="nm">' + (kind ? '<span class="kd">' + esc(kind) + "</span>" : "") + esc(pubShort(slot)) + "</div>" + prog + "</div>";
       const byHM = {};
-      Object.entries(slot.channels || {}).forEach(function (e) { const hm = pubHM(e[1].due, slot, e[0]); (byHM[hm] = byHM[hm] || []).push(e); });
-      const tl = document.createElement("div"); tl.className = "pv-tl";
+      chans.forEach(function (c) { const hm = pubHM(c.conf.due, slot, c.ch); (byHM[hm] = byHM[hm] || []).push(c); });
+      const lines = document.createElement("div"); lines.className = "pb-lines";
       Object.keys(byHM).sort().forEach(function (hm) {
-        const tr = document.createElement("div"); tr.className = "pv-tr";
-        const tm = document.createElement("span"); tm.className = "pv-tm"; tm.textContent = hm; tr.appendChild(tm);
-        const cs = document.createElement("div"); cs.className = "pv-cs";
-        byHM[hm].forEach(function (e) {
-          const ch = e[0], conf = e[1], st = pubChipState(slot, ch, conf);
-          const stat = st.status === "todo" && conf.ready ? "ready" : st.status;
-          if (stat === "skip") return;   // 안 올리는 채널은 칩 자체를 숨긴다(깔끔하게)
-          const word = { published: "올라감", scheduled: "예약", ready: "준비됨", todo: "대기", skip: "안 올림" }[stat] || stat;
-          const mine = conf.who === "chanjin";
-          const cls = "pv-chip s-" + stat + (mine ? " me" : "");
-          const html = (PUB_CH[ch] || ch) + "<b>" + word + "</b>";
+        const ln = document.createElement("div"); ln.className = "pb-line";
+        ln.innerHTML = '<span class="tm">' + hm + "</span>";
+        const cs = document.createElement("div"); cs.className = "pb-chs";
+        byHM[hm].forEach(function (c) {
+          const name = PUB_CH[c.ch] || c.ch, mine = c.conf.who === "chanjin";
+          let el;
           if (mine && !isPast) {
-            const bt = document.createElement("button"); bt.className = cls; bt.innerHTML = html;
-            bt.addEventListener("click", function () { pubCycle(slot, ch, conf, bt); });
-            cs.appendChild(bt);
-          } else if (st.url) {
-            const an = document.createElement("a"); an.className = cls; an.href = st.url; an.target = "_blank"; an.innerHTML = html + " ↗"; cs.appendChild(an);
+            el = document.createElement("button"); el.type = "button";
+            el.addEventListener("click", function () { pubCycle(slot, c.ch, c.conf, el); });
+            el.innerHTML = "<i></i>" + esc(name) + (c.stat === "todo" ? " 예약" : c.stat === "scheduled" ? " 예약됨" : " ✓");
+          } else if (c.st.url) {
+            el = document.createElement("a"); el.href = c.st.url; el.target = "_blank"; el.rel = "noopener";
+            el.innerHTML = "<i></i>" + esc(name) + " ↗";
           } else {
-            const sp = document.createElement("span"); sp.className = cls; sp.innerHTML = html; cs.appendChild(sp);
+            el = document.createElement("span"); el.innerHTML = "<i></i>" + esc(name);
           }
+          el.className = "pb-ch s-" + c.stat;
+          el.title = name + " · " + (WORD[c.stat] || c.stat) + (mine ? " (내가 올림)" : " (자동)");
+          cs.appendChild(el);
         });
-        tr.appendChild(cs); tl.appendChild(tr);
+        ln.appendChild(cs); lines.appendChild(ln);
       });
-      card.appendChild(tl);
-      list.appendChild(card);
+      card.appendChild(lines);
+      grid.appendChild(card);
     });
   };
 
-  /* 4) 앞으로 7일만 먼저, 나머지는 더 보기 */
+  /* 4) 앞으로 7일 먼저, 나머지는 더 보기 */
   const upcoming = slots.filter(function (x) { return x.date >= today; });
   const near = upcoming.filter(function (x) { return x.date <= cwAdd(today, 6); });
   const far = upcoming.filter(function (x) { return x.date > cwAdd(today, 6); });
-  if (!upcoming.length) { const e0 = document.createElement("div"); e0.className = "empty"; e0.textContent = "예정된 발행이 없어요."; list.appendChild(e0); }
+  if (!upcoming.length) {
+    const e0 = document.createElement("div"); e0.className = "pb-empty";
+    e0.textContent = publishBrand === "전체" ? "예정된 발행이 없어요." : publishBrand + "은 아직 예정된 발행이 없어요.";
+    list.appendChild(e0);
+  }
   drawDays(publishShowFar ? upcoming : near, false);
   if (far.length) {
     const mf = document.createElement("button"); mf.className = "pub-more";
-    mf.textContent = publishShowFar ? "다음 주 이후 접기" : "다음 주 이후 " + far.length + "편 보기";
+    mf.textContent = publishShowFar ? "다음 주 이후 접기" : "다음 주 이후 " + far.length + "편 더 보기";
     mf.addEventListener("click", function () { publishShowFar = !publishShowFar; renderPublish(); });
     list.appendChild(mf);
   }
-
   const past = slots.filter(function (x) { return x.date < today; }).reverse();
   if (past.length) {
     const more = document.createElement("button"); more.className = "pub-more";
@@ -5022,8 +5062,13 @@ function renderPublish() {
     if (publishShowPast) drawDays(past, true);
   }
 
+  if (upcoming.length || past.length) {
+    const key = document.createElement("div"); key.className = "pb-key";
+    key.innerHTML = '<span><i class="p"></i>올라감</span><span><i class="s"></i>예약됨</span><span><i class="r"></i>준비됨(자동)</span><span><i></i>아직</span><span><i class="m"></i>내가 눌러서 예약</span>';
+    list.appendChild(key);
+  }
   const u = document.createElement("div"); u.className = "pub-updated";
-  u.textContent = "세션 갱신 " + (publishData.updated || "");
+  u.textContent = "세션 갱신 " + String(publishData.updated || "").replace("T", " ").replace(/\+09:00$/, "");
   list.appendChild(u);
 }
 
