@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-04T23:59+09:00",
+ "updated": "2026-11-05T00:06+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -4056,6 +4056,139 @@
      "status": "todo",
      "due": "2026-11-17T19:00+09:00",
      "ready": false
+    }
+   }
+  },
+  {
+   "id": "mk_reel_21",
+   "date": "2026-11-05",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "인구가 절반이면 지하철이 한산할까",
+   "memo": "",
+   "short": "인구가 절반이면 지하철이 한산할까",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-05T19:00+00:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_reel_22",
+   "date": "2026-11-06",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "인구가 절반이면 집값도 반값이 될까",
+   "memo": "",
+   "short": "인구가 절반이면 집값도 반값이 될까",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-06T19:00+00:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_reel_23",
+   "date": "2026-11-07",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "2090년 65살은 경로당 막내",
+   "memo": "",
+   "short": "2090년 65살은 경로당 막내",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-07T19:00+00:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_reel_33",
+   "date": "2026-11-08",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "온돌이 산을 먹어 치웠다",
+   "memo": "",
+   "short": "온돌이 산을 먹어 치웠다",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-08T19:00+00:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_reel_32",
+   "date": "2026-11-09",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "온돌은 원래 가난한 사람의 것",
+   "memo": "",
+   "short": "온돌은 원래 가난한 사람의 것",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-09T19:00+00:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_reel_31",
+   "date": "2026-11-10",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "조선의 온돌방 정말 따뜻했을까",
+   "memo": "",
+   "short": "조선의 온돌방 정말 따뜻했을까",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-10T19:00+00:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_reel_7",
+   "date": "2026-11-17",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "이봉창, 살지 못한 세월",
+   "memo": "",
+   "short": "이봉창, 살지 못한 세월",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-17T19:00+00:00",
+     "ready": true
     }
    }
   }
