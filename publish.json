@@ -3813,7 +3813,8 @@
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/nqNWwPddrH8",
      "publishAt": "2026-11-12T19:00:00+09:00",
      "due": "2026-11-12T19:00:00+09:00",
      "ready": false
