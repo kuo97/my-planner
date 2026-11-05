@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-05T14:03+09:00",
+ "updated": "2026-11-06T00:20+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3435,21 +3435,22 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-05T21:02:15+09:00",
      "due": "2026-11-05T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-05T21:02:15+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-05T21:03:27+09:00",
      "due": "2026-11-05T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-05T21:03:27+09:00"
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-05T21:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-05T18:40:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224462334394",
      "due": "2026-11-05T19:00:00+09:00",
      "ready": false
     }
@@ -3863,6 +3864,27 @@
    }
   },
   {
+   "id": "mk_5yvowoyY-YQ",
+   "date": "2026-11-05",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "인구가 절반이 되면 지하철이 한산해질까?",
+   "memo": "",
+   "short": "인구가 절반이 되면 지하철이 한산해질까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/5yvowoyY-YQ",
+     "due": "2026-11-05T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "mk_7llhSqYWIIM",
    "date": "2026-11-06",
    "time": "19:00",
@@ -4026,27 +4048,6 @@
      "publishAt": "2026-11-06T10:00:00Z",
      "url": "https://youtu.be/8yfY-jK_60U",
      "due": "2026-11-06T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_5yvowoyY-YQ",
-   "date": "2026-11-05",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "인구가 절반이 되면 지하철이 한산해질까?",
-   "memo": "",
-   "short": "인구가 절반이 되면 지하철이 한산해질까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-05T10:00:00Z",
-     "url": "https://youtu.be/5yvowoyY-YQ",
-     "due": "2026-11-05T19:00+09:00",
      "ready": true
     }
    }
