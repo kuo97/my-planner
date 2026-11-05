@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-05T12:02+09:00",
+ "updated": "2026-11-05T14:03+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3365,16 +3365,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-05T12:34:22+09:00",
      "due": "2026-11-05T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-05T12:34:22+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-05T12:35:23+09:00",
      "due": "2026-11-05T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-05T12:35:23+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -3861,6 +3861,27 @@
    }
   },
   {
+   "id": "mk_7llhSqYWIIM",
+   "date": "2026-11-06",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "임진왜란에 기관총 한 정이 있었다면 어떻게 됐을까?",
+   "memo": "",
+   "short": "임진왜란에 기관총 한 정이 있었다면 어떻게 됐을까?",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-06T10:00:00Z",
+     "url": "https://youtu.be/7llhSqYWIIM",
+     "due": "2026-11-06T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "mk__YUhyr7sbyI",
    "date": "2026-11-04",
    "time": "19:00",
@@ -4067,25 +4088,6 @@
      "url": "https://youtu.be/ay0xJz6LmHk",
      "due": "2026-10-28T23:19+09:00",
      "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_plan_2026-11-06_youtube",
-   "date": "2026-11-06",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "6편 임진왜란에 기관총이 있었다면",
-   "memo": "영상·썸네일 완료(11-05) → 찬진 허락 뒤 예약",
-   "short": "6편 임진왜란에 기관총이 있었다면",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "todo",
-     "due": "2026-11-06T19:00+09:00",
-     "ready": false
     }
    }
   },
