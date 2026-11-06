@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-06T14:24+09:00",
+ "updated": "2026-11-07T00:47+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3521,16 +3521,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-06T21:01:45+09:00",
      "due": "2026-11-06T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-06T21:01:45+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-06T21:02:34+09:00",
      "due": "2026-11-06T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-06T21:02:34+09:00"
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
@@ -3554,8 +3554,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-06T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-06T18:40:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224462341167",
      "due": "2026-11-06T19:00:00+09:00",
      "ready": false
     }
@@ -3868,6 +3869,48 @@
    }
   },
   {
+   "id": "mk_7llhSqYWIIM",
+   "date": "2026-11-06",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "임진왜란에 기관총 한 정이 있었다면 어떻게 됐을까?",
+   "memo": "",
+   "short": "임진왜란에 기관총 한 정이 있었다면 어떻게 됐을까?",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/7llhSqYWIIM",
+     "due": "2026-11-06T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_8yfY-jK_60U",
+   "date": "2026-11-06",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "인구가 절반이면 집값도 반값이 될까?",
+   "memo": "",
+   "short": "인구가 절반이면 집값도 반값이 될까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/8yfY-jK_60U",
+     "due": "2026-11-06T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "mk_5yvowoyY-YQ",
    "date": "2026-11-05",
    "time": "19:00",
@@ -3884,27 +3927,6 @@
      "publishAt": null,
      "url": "https://youtu.be/5yvowoyY-YQ",
      "due": "2026-11-05T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_7llhSqYWIIM",
-   "date": "2026-11-06",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "임진왜란에 기관총 한 정이 있었다면 어떻게 됐을까?",
-   "memo": "",
-   "short": "임진왜란에 기관총 한 정이 있었다면 어떻게 됐을까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-06T10:00:00Z",
-     "url": "https://youtu.be/7llhSqYWIIM",
-     "due": "2026-11-06T19:00+09:00",
      "ready": true
     }
    }
@@ -4036,27 +4058,6 @@
    }
   },
   {
-   "id": "mk_8yfY-jK_60U",
-   "date": "2026-11-06",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "인구가 절반이면 집값도 반값이 될까?",
-   "memo": "",
-   "short": "인구가 절반이면 집값도 반값이 될까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-06T10:00:00Z",
-     "url": "https://youtu.be/8yfY-jK_60U",
-     "due": "2026-11-06T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
    "id": "mk_JNQe3r6G2Jo",
    "date": "2026-10-30",
    "time": "19:00",
@@ -4105,7 +4106,7 @@
    "kind": "만약상자",
    "work": "만약상자",
    "title": "5편 한반도 전쟁 첫 24시간",
-   "memo": "그림 43장(그록) · 그록 영상 6컷 남음",
+   "memo": "영상·썸네일 완료(11-07) → 찬진 허락 뒤 예약",
    "short": "5편 한반도 전쟁 첫 24시간",
    "prep": [],
    "channels": {
