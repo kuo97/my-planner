@@ -524,7 +524,11 @@ async function refresh(force) {
       await loadEvents(); last = Date.now();
       // 바뀐 게 없으면 화면을 다시 그리지 않는다 — 클릭하는 순간 목록이 통째로 교체돼서 클릭이 씹히고 깜빡이던 원인
       const sig = JSON.stringify([tasks, log, events]);
-      if (sig !== lastSig || $("login") || !$("list").firstChild) { lastSig = sig; render(); }
+      if (sig !== lastSig || $("login") || !$("list").firstChild) {
+        lastSig = sig; render();
+        // 안 끝낸 할 일을 tasks_export.json 에 늘 최신으로 — 찬진 루틴표가 읽어 「할 일」에 보여 준다(11-06 찬진: "루틴표가 휑하다")
+        widget.exportTasks(tasks.filter(t => !t.done_at).map(t => ({ title: t.title, due: t.due, repeat: t.repeat_days || null })));
+      }
     }
     else { if ($("login")) $("list").innerHTML = `<div class="empty">불러오지 못했어요. 잠시 뒤 다시 시도해요…</div>`; setTimeout(() => refresh(true), 15000); }
   } finally { busy = false; }
