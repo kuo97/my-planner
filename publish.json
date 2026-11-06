@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-06T00:20+09:00",
+ "updated": "2026-11-06T14:24+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3470,16 +3470,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-06T12:34:32+09:00",
      "due": "2026-11-06T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-06T12:34:32+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-06T12:35:23+09:00",
      "due": "2026-11-06T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-06T12:35:23+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -4131,25 +4131,6 @@
      "status": "todo",
      "due": "2026-11-17T19:00+09:00",
      "ready": false
-    }
-   }
-  },
-  {
-   "id": "mk_reel_21",
-   "date": "2026-11-05",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "인구가 절반이면 지하철이 한산할까",
-   "memo": "",
-   "short": "인구가 절반이면 지하철이 한산할까",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-05T19:00+00:00",
-     "ready": true
     }
    }
   },
