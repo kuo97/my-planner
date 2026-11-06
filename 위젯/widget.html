@@ -549,7 +549,7 @@ async function pullInbox_() {
   if (!items.length) return;
   for (const it of items) {
     if (!it) continue;
-    // 우편함 명령(11-03 찬진: 할 일 이름 간결하게) — {"export":true} 목록 내보내기 · {"rename":"옛 이름","title":"새 이름"} · {"delete":"이름"} (이름이 정확히 같은 안 끝낸 할 일)
+    // 우편함 명령(11-03 찬진: 할 일 이름 간결하게) — {"export":true} 목록 내보내기 · {"rename":"옛 이름","title":"새 이름"} · {"delete":"이름"} · {"done":"이름"} 완료 처리 (이름이 정확히 같은 안 끝낸 할 일)
     if (it.export) { await widget.exportTasks(tasks.filter(t => !t.done_at).map(t => ({ title: t.title, due: t.due, repeat: t.repeat_days || null }))); continue; }
     if (it.rename || it.delete) {
       const name = String(it.rename || it.delete), t = tasks.find(x => x.title === name && !x.done_at) || tasks.find(x => x.title === name);
@@ -557,6 +557,16 @@ async function pullInbox_() {
       const { error } = it.delete ? await sb.from("tasks").delete().eq("id", t.id) : await sb.from("tasks").update({ title: String(it.title) }).eq("id", t.id);
       if (error) { widget.log("우편함 " + (it.delete ? "지우기" : "이름 바꾸기") + " 실패: " + name + " / " + error.message); continue; }
       if (it.delete) tasks = tasks.filter(x => x.id !== t.id); else t.title = String(it.title);
+      continue;
+    }
+    // {"done":"이름"} — 안 끝낸 같은 이름 할 일을 완료로(11-06 찬진: "자동화할 수 있는 일은 Claude 가 하고 완료 체크까지")
+    if (it.done) {
+      const name = String(it.done), t = tasks.find(x => x.title === name && !x.done_at);
+      if (!t) { widget.log("우편함: 완료할 할 일 못 찾음 — " + name); continue; }
+      const at = new Date().toISOString();
+      const { error } = await sb.from("tasks").update({ done_at: at }).eq("id", t.id);
+      if (error) { widget.log("우편함 완료 실패: " + name + " / " + error.message); continue; }
+      t.done_at = at; widget.log("우편함: 완료 — " + name); render();
       continue;
     }
     if (!it.title) continue;
