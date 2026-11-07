@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-07T13:58+09:00",
+ "updated": "2026-11-07T14:43+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3867,6 +3867,90 @@
      "status": "todo",
      "due": "2026-11-12T19:00:00+09:00",
      "ready": false
+    }
+   }
+  },
+  {
+   "id": "mk_MAkqUMbvWAw",
+   "date": "2026-11-12",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "조선에도 기관총이 있었다?",
+   "memo": "",
+   "short": "조선에도 기관총이 있었다?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-12T10:00:00Z",
+     "url": "https://youtu.be/MAkqUMbvWAw",
+     "due": "2026-11-12T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_WBF_gyMgsmA",
+   "date": "2026-11-11",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "임진왜란에 기관총 한 정이면 몇 분 버틸까?",
+   "memo": "",
+   "short": "임진왜란에 기관총 한 정이면 몇 분 버틸까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-11T10:00:00Z",
+     "url": "https://youtu.be/WBF_gyMgsmA",
+     "due": "2026-11-11T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_BJkD57uT7XU",
+   "date": "2026-11-10",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "전쟁 나면 대피소는 철문 벙커일까?",
+   "memo": "",
+   "short": "전쟁 나면 대피소는 철문 벙커일까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-10T10:00:00Z",
+     "url": "https://youtu.be/BJkD57uT7XU",
+     "due": "2026-11-10T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_N1A_k76SuAM",
+   "date": "2026-11-09",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "전쟁 사이렌은 두 가지 소리가 있다",
+   "memo": "",
+   "short": "전쟁 사이렌은 두 가지 소리가 있다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-09T10:00:00Z",
+     "url": "https://youtu.be/N1A_k76SuAM",
+     "due": "2026-11-09T19:00+09:00",
+     "ready": true
     }
    }
   },
