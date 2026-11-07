@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-07T14:43+09:00",
+ "updated": "2026-11-07T17:03+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -4221,6 +4221,25 @@
      "who": "session",
      "status": "todo",
      "due": "2026-11-17T19:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "mk_plan_2026-11-13_youtube",
+   "date": "2026-11-13",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "8편 한국 핵무기",
+   "memo": "완성(11-07) · 찬진 허락 뒤 예약",
+   "short": "8편 한국 핵무기",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-13T19:00+09:00",
      "ready": false
     }
    }
