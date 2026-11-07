@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-07T20:53+09:00",
+ "updated": "2026-11-07T20:57+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3872,6 +3872,27 @@
    }
   },
   {
+   "id": "mk_36NTK4nEDH0",
+   "date": "2026-11-10",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "8편 쇼츠 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
+   "memo": "",
+   "short": "8편 쇼츠 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "publishAt": "2026-11-10T10:00:00Z",
+     "url": "https://youtu.be/36NTK4nEDH0",
+     "due": "2026-11-10T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "mk_Dh9dEfEU4JY",
    "date": "2026-11-07",
    "time": "19:00",
@@ -4204,25 +4225,6 @@
      "url": "https://youtu.be/ay0xJz6LmHk",
      "due": "2026-10-28T23:19+09:00",
      "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_plan_2026-11-13_youtube",
-   "date": "2026-11-13",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
-   "memo": "완성 · 예약 전",
-   "short": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "todo",
-     "due": "2026-11-13T19:00+09:00",
-     "ready": false
     }
    }
   },
