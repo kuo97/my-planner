@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-07T20:57+09:00",
+ "updated": "2026-11-09T10:13+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3646,16 +3646,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-07T21:01:56+09:00",
      "due": "2026-11-07T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-07T21:01:56+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-07T21:03:03+09:00",
      "due": "2026-11-07T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-07T21:03:03+09:00"
+     "ready": true
     },
     "blog": {
      "who": "chanjin",
@@ -3681,16 +3681,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-08T12:33:47+09:00",
      "due": "2026-11-08T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-08T12:33:47+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-08T12:34:39+09:00",
      "due": "2026-11-08T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-08T12:34:39+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -3732,16 +3732,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-08T21:01:29+09:00",
      "due": "2026-11-08T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-08T21:01:29+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-08T21:02:19+09:00",
      "due": "2026-11-08T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-08T21:02:19+09:00"
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
@@ -3765,8 +3765,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
      "at": "2026-11-08T19:00:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224462361895",
      "due": "2026-11-08T19:00:00+09:00",
      "ready": false
     }
@@ -3878,17 +3879,257 @@
    }
   },
   {
+   "id": "2026-11-10_1230",
+   "date": "2026-11-10",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 엄마 나이가 되고 나서야 알게 된 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "엄마 나이가 되고 나서야 알게 된 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-10T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-10T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/sjGDPouxdGw",
+     "publishAt": "2026-11-10T12:30:00+09:00",
+     "due": "2026-11-10T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-11_1230",
+   "date": "2026-11-11",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 군대 가서야 알게 된 부모님 12",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "군대 가서야 알게 된 부모님 12",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-11T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-11T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-11T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-12_1230",
+   "date": "2026-11-12",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 아빠 차 조수석에서 보이던 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "아빠 차 조수석에서 보이던 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-12T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-12T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-12T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-13_1230",
+   "date": "2026-11-13",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 어릴 적 크리스마스, 부모님이 몰래 하신 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "어릴 적 크리스마스, 부모님이 몰래 하신 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-13T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-13T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-13T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-14_1230",
+   "date": "2026-11-14",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 명절에 내려가면 엄마가 늘 하는 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "명절에 내려가면 엄마가 늘 하는 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-14T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-14T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-14T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-15_1230",
+   "date": "2026-11-15",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 부모님이 내 자취방에 오면 하는 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "부모님이 내 자취방에 오면 하는 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-15T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-15T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-15T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-16_1230",
+   "date": "2026-11-16",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 엄마 휴대폰에서 발견한 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "엄마 휴대폰에서 발견한 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-16T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-16T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-16T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "mk_Jnl_Z1k7d_k",
+   "date": "2026-11-08",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "5편 · 오늘 밤 전쟁이 나면 서울은 어떻게 될까?",
+   "memo": "",
+   "short": "5편 · 오늘 밤 전쟁이 나면 서울은 어떻게 될까?",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/Jnl_Z1k7d_k",
+     "due": "2026-11-08T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "mk_36NTK4nEDH0",
    "date": "2026-11-10",
    "time": "19:00",
    "kind": "만약상자",
    "work": "만약상자",
-   "title": "8편 쇼츠 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
+   "title": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
    "memo": "",
-   "short": "8편 쇼츠 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
+   "short": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
    "prep": [],
    "channels": {
-    "shorts": {
+    "youtube": {
      "who": "session",
      "status": "scheduled",
      "publishAt": "2026-11-10T10:00:00Z",
@@ -3999,27 +4240,6 @@
      "publishAt": "2026-11-09T10:00:00Z",
      "url": "https://youtu.be/N1A_k76SuAM",
      "due": "2026-11-09T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_Jnl_Z1k7d_k",
-   "date": "2026-11-08",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "5편 · 오늘 밤 전쟁이 나면 서울은 어떻게 될까?",
-   "memo": "",
-   "short": "5편 · 오늘 밤 전쟁이 나면 서울은 어떻게 될까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-08T10:00:00Z",
-     "url": "https://youtu.be/Jnl_Z1k7d_k",
-     "due": "2026-11-08T19:00+09:00",
      "ready": true
     }
    }
@@ -4230,25 +4450,6 @@
      "publishAt": null,
      "url": "https://youtu.be/ay0xJz6LmHk",
      "due": "2026-10-28T23:19+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_reel_33",
-   "date": "2026-11-08",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "3편 릴스 · 온돌이 산을 먹어 치웠다",
-   "memo": "",
-   "short": "3편 릴스 · 온돌이 산을 먹어 치웠다",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-08T19:00+09:00",
      "ready": true
     }
    }
