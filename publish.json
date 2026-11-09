@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09T10:16+09:00",
+ "updated": "2026-11-09T10:20+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -4105,6 +4105,39 @@
      "url": "https://youtu.be/yTvtctUidRQ",
      "publishAt": "2026-11-16T12:30:00+09:00",
      "due": "2026-11-16T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-09_1230",
+   "date": "2026-11-09",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 엄마 가방에서 늘 나오던 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "엄마 가방에서 늘 나오던 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-09T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-09T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/xz1ApjEMNqI",
+     "publishAt": "2026-11-09T12:30:00+09:00",
+     "due": "2026-11-09T19:00:00+09:00",
      "ready": false
     }
    }
