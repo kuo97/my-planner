@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09T10:21+09:00",
+ "updated": "2026-11-09T20:28+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3774,6 +3774,41 @@
    }
   },
   {
+   "id": "2026-11-09_1230",
+   "date": "2026-11-09",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 엄마 가방에서 늘 나오던 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "엄마 가방에서 늘 나오던 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "published",
+     "at": "2026-11-09T12:33:48+09:00",
+     "due": "2026-11-09T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "published",
+     "at": "2026-11-09T12:34:38+09:00",
+     "due": "2026-11-09T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/xz1ApjEMNqI",
+     "publishAt": "2026-11-09T12:30:00+09:00",
+     "due": "2026-11-09T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
    "id": "2026-11-09_19b",
    "date": "2026-11-09",
    "time": "19:00",
@@ -3786,9 +3821,88 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
+     "status": "published",
      "at": "2026-11-09T19:00:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224462366410",
      "due": "2026-11-09T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-10_1230",
+   "date": "2026-11-10",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 엄마 나이가 되고 나서야 알게 된 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "엄마 나이가 되고 나서야 알게 된 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-10T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-10T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/sjGDPouxdGw",
+     "publishAt": "2026-11-10T12:30:00+09:00",
+     "due": "2026-11-10T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-10_19",
+   "date": "2026-11-10",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "43번",
+   "title": "작품 칸 — 43번 결혼기념일 「밥은 먹었어?」",
+   "memo": "11-09 밤 찬진 OK(총괄 세션). 발행 세트는 작품 세션이 완성.",
+   "short": "43번 결혼기념일 「밥은 먹었어?」",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/JTlMeaiF3pw",
+     "publishAt": "2026-11-10T19:00:00+09:00",
+     "due": "2026-11-10T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-10T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-10T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-10T21:00:00+09:00",
+     "ready": true
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-10T21:00:00+09:00",
      "ready": false
     }
    }
@@ -3808,6 +3922,91 @@
      "who": "chanjin",
      "status": "todo",
      "due": "2026-11-10T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-11_1230",
+   "date": "2026-11-11",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 군대 가서야 알게 된 부모님 12",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "군대 가서야 알게 된 부모님 12",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-11T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-11T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/l-O79ZuRJCY",
+     "publishAt": "2026-11-11T12:30:00+09:00",
+     "due": "2026-11-11T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-11_19b",
+   "date": "2026-11-11",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "43번",
+   "title": "블로그 — 43번 결혼기념일 예고편형 「밥은 먹었어?」 — 블로그 발행 원고 (2026-11-06 작성)",
+   "memo": "11-09 밤 총괄 세션: 블로그 하루 1편 칸 채움",
+   "short": "43번 결혼기념일 「밥은 먹었어?」",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-11T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-12_1230",
+   "date": "2026-11-12",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 아빠 차 조수석에서 보이던 12가지",
+   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
+   "short": "아빠 차 조수석에서 보이던 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-12T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-12T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/shVfyU8SQug",
+     "publishAt": "2026-11-12T12:30:00+09:00",
+     "due": "2026-11-12T19:00:00+09:00",
      "ready": false
     }
    }
@@ -3873,105 +4072,6 @@
     "blog": {
      "who": "chanjin",
      "status": "todo",
-     "due": "2026-11-12T19:00:00+09:00",
-     "ready": false
-    }
-   }
-  },
-  {
-   "id": "2026-11-10_1230",
-   "date": "2026-11-10",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 엄마 나이가 되고 나서야 알게 된 12가지",
-   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
-   "short": "엄마 나이가 되고 나서야 알게 된 12가지",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-10T12:30:00+09:00",
-     "ready": true
-    },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-10T12:30:00+09:00",
-     "ready": true
-    },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/sjGDPouxdGw",
-     "publishAt": "2026-11-10T12:30:00+09:00",
-     "due": "2026-11-10T19:00:00+09:00",
-     "ready": false
-    }
-   }
-  },
-  {
-   "id": "2026-11-11_1230",
-   "date": "2026-11-11",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 군대 가서야 알게 된 부모님 12",
-   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
-   "short": "군대 가서야 알게 된 부모님 12",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-11T12:30:00+09:00",
-     "ready": true
-    },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-11T12:30:00+09:00",
-     "ready": true
-    },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/l-O79ZuRJCY",
-     "publishAt": "2026-11-11T12:30:00+09:00",
-     "due": "2026-11-11T19:00:00+09:00",
-     "ready": false
-    }
-   }
-  },
-  {
-   "id": "2026-11-12_1230",
-   "date": "2026-11-12",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 아빠 차 조수석에서 보이던 12가지",
-   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
-   "short": "아빠 차 조수석에서 보이던 12가지",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-12T12:30:00+09:00",
-     "ready": true
-    },
-    "threads": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-12T12:30:00+09:00",
-     "ready": true
-    },
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/shVfyU8SQug",
-     "publishAt": "2026-11-12T12:30:00+09:00",
      "due": "2026-11-12T19:00:00+09:00",
      "ready": false
     }
@@ -4044,6 +4144,68 @@
    }
   },
   {
+   "id": "2026-11-14_19",
+   "date": "2026-11-14",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "44번",
+   "title": "작품 칸 — 44번 환갑 대사형 「엄마의 나중에」",
+   "memo": "11-09 밤 찬진 OK(총괄 세션). 발행 세트는 작품 세션이 완성.",
+   "short": "44번 환갑 대사형 「엄마의 나중에」",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-14T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-14T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-14T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-14T21:00:00+09:00",
+     "ready": true
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-14T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-14_19b",
+   "date": "2026-11-14",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "44번",
+   "title": "블로그 — 44번 환갑 대사형 「엄마의 나중에」 — 블로그 발행 원고 (2026-11-07 작성)",
+   "memo": "11-09 밤 총괄 세션: 블로그 하루 1편 칸 채움",
+   "short": "44번 환갑 대사형 「엄마의 나중에」",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-14T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
    "id": "2026-11-15_1230",
    "date": "2026-11-15",
    "time": "12:30",
@@ -4110,37 +4272,104 @@
    }
   },
   {
-   "id": "2026-11-09_1230",
-   "date": "2026-11-09",
-   "time": "12:30",
-   "kind": "슬라이드릴스",
-   "work": null,
-   "title": "[슬라이드릴스] 엄마 가방에서 늘 나오던 12가지",
-   "memo": "11-09 월요일 배치 제작 — Codex 인포그래픽 1장(21번 자취 엄마 틀) + 끝 「만드는 사람」 카드 2.4초(실험 ②, 판정 11-23), 21.9초.",
-   "short": "엄마 가방에서 늘 나오던 12가지",
+   "id": "2026-11-16_19",
+   "date": "2026-11-16",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "42번",
+   "title": "작품 칸 — 42번 칠순 「할아버지의 뒷자리」",
+   "memo": "11-09 밤 찬진 OK(총괄 세션). 발행 세트는 작품 세션이 완성.",
+   "short": "42번 칠순 「할아버지의 뒷자리」",
    "prep": [],
    "channels": {
-    "instagram": {
+    "youtube": {
      "who": "session",
-     "status": "published",
-     "due": "2026-11-09T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-09T12:33:48+09:00"
-    },
-    "threads": {
-     "who": "session",
-     "status": "published",
-     "due": "2026-11-09T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-09T12:34:38+09:00"
+     "status": "todo",
+     "due": "2026-11-16T19:00:00+09:00",
+     "ready": false
     },
     "shorts": {
      "who": "session",
-     "status": "scheduled",
-     "url": "https://youtu.be/xz1ApjEMNqI",
-     "publishAt": "2026-11-09T12:30:00+09:00",
-     "due": "2026-11-09T19:00:00+09:00",
+     "status": "todo",
+     "due": "2026-11-16T19:00:00+09:00",
      "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-16T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-16T21:00:00+09:00",
+     "ready": true
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-16T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-16_19b",
+   "date": "2026-11-16",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "42번",
+   "title": "블로그 — 42번 칠순 디럭스 「할아버지의 뒷자리」 — 블로그 발행 원고 (2026-11-06 작성)",
+   "memo": "11-09 밤 총괄 세션: 블로그 하루 1편 칸 채움",
+   "short": "42번 칠순 「할아버지의 뒷자리」",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-16T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-18_19s",
+   "date": "2026-11-18",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "42번",
+   "title": "쇼츠 둘째 — 42번 칠순 「할아버지의 뒷자리」 약속편",
+   "memo": "11-06 찬진 실험: 세로1 웃음 → 이틀 뒤 세로2 뭉클",
+   "short": "42번 칠순 「할아버지의 뒷자리」 쇼츠2",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-18T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "mk_N1A_k76SuAM",
+   "date": "2026-11-09",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "5편 쇼츠 · 전쟁 사이렌은 두 가지 소리가 있다",
+   "memo": "",
+   "short": "5편 쇼츠 · 전쟁 사이렌은 두 가지 소리가 있다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/N1A_k76SuAM",
+     "due": "2026-11-09T19:00+09:00",
+     "ready": true
     }
    }
   },
@@ -4266,27 +4495,6 @@
      "publishAt": "2026-11-10T10:00:00Z",
      "url": "https://youtu.be/BJkD57uT7XU",
      "due": "2026-11-10T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_N1A_k76SuAM",
-   "date": "2026-11-09",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "5편 쇼츠 · 전쟁 사이렌은 두 가지 소리가 있다",
-   "memo": "",
-   "short": "5편 쇼츠 · 전쟁 사이렌은 두 가지 소리가 있다",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-09T10:00:00Z",
-     "url": "https://youtu.be/N1A_k76SuAM",
-     "due": "2026-11-09T19:00+09:00",
      "ready": true
     }
    }
@@ -4497,25 +4705,6 @@
      "publishAt": null,
      "url": "https://youtu.be/ay0xJz6LmHk",
      "due": "2026-10-28T23:19+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_reel_32",
-   "date": "2026-11-09",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "3편 릴스 · 온돌은 원래 가난한 사람의 것",
-   "memo": "",
-   "short": "3편 릴스 · 온돌은 원래 가난한 사람의 것",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-09T19:00+09:00",
      "ready": true
     }
    }
