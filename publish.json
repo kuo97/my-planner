@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09T10:15+09:00",
+ "updated": "2026-11-09T10:16+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3891,13 +3891,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-10T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-10T12:30:00+09:00",
      "ready": true
     },
@@ -3924,13 +3924,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-11T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-11T12:30:00+09:00",
      "ready": true
     },
@@ -3957,13 +3957,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-12T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-12T12:30:00+09:00",
      "ready": true
     },
@@ -3990,13 +3990,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-13T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-13T12:30:00+09:00",
      "ready": true
     },
@@ -4023,13 +4023,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-14T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-14T12:30:00+09:00",
      "ready": true
     },
@@ -4056,13 +4056,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-15T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-15T12:30:00+09:00",
      "ready": true
     },
@@ -4089,13 +4089,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-16T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-16T12:30:00+09:00",
      "ready": true
     },
