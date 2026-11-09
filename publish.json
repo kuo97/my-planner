@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09T10:20+09:00",
+ "updated": "2026-11-09T10:21+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -4122,13 +4122,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-09T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-09T12:30:00+09:00",
      "ready": true
     },
