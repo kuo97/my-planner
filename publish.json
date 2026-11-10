@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09T21:48+09:00",
+ "updated": "2026-11-10T13:42+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3843,16 +3843,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-10T12:34:37+09:00",
      "due": "2026-11-10T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-10T12:34:37+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-10T12:35:25+09:00",
      "due": "2026-11-10T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-10T12:35:25+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -4489,6 +4489,70 @@
      "status": "scheduled",
      "at": "2026-11-16T19:00:00+09:00",
      "due": "2026-11-16T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-18_19",
+   "date": "2026-11-18",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "45번",
+   "title": "작품 칸 — 45번 돌잔치 예고편형 「시우의 첫 번째 대모험」",
+   "memo": "11-10 찬진 \"응, 잡아줘\"(\"진짜 영화예고편 같고 너무 잘 나왔다\") — 다음 주 첫 작품 칸(11-17 화는 정보형 차례).",
+   "short": "45번 돌잔치 예고편형 「시우의 첫 번째 대모험」",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/SmhvQsFKiHc",
+     "publishAt": "2026-11-18T19:00:00+09:00",
+     "due": "2026-11-18T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-18T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-18T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-18T21:00:00+09:00",
+     "ready": true
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-18T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-18_19b",
+   "date": "2026-11-18",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "45번",
+   "title": "블로그 — 돌잔치 영상, 첫 마디가 ‘엄마’도 ‘아빠’도 아니었던 아기의 열두 달 (AI 애니메이션 돌잔치 영상)",
+   "memo": "45번 작품 글",
+   "short": "45번 돌잔치 예고편형",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-18T19:00:00+09:00",
      "ready": false
     }
    }
