@@ -4088,9 +4088,10 @@
     },
     "instagram": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "due": "2026-11-12T21:00:00+09:00",
-     "ready": true
+     "ready": true,
+     "at": "2026-11-12T21:01:43+09:00"
     },
     "threads": {
      "who": "session",
