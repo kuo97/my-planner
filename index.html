@@ -480,6 +480,15 @@
   .badge.overdue { background: var(--danger-soft); color: var(--danger); }
   .badge.repeat { background: var(--sage-soft); color: var(--sage); }
   .badge.plain { background: #EFE9DA; color: var(--muted); }
+  /* 2026-11-14: 신청 링크 칩 + 지우기(✕) 버튼 + 되돌리기 토스트 */
+  .badge.link { background: var(--sage-soft); color: var(--sage); text-decoration: none; cursor: pointer; }
+  .badge.link:hover { filter: brightness(0.94); }
+  .task .t-del { flex-shrink: 0; align-self: center; width: 26px; height: 26px; border: none; background: none; color: var(--muted); font-size: 14px; line-height: 1; border-radius: 50%; cursor: pointer; opacity: 0.4; font-family: inherit; }
+  .task:hover .t-del, .task .t-del:focus-visible { opacity: 1; }
+  .task .t-del:hover { background: var(--danger-soft); color: var(--danger); opacity: 1; }
+  .week-col .task .t-del { display: none; }
+  .toast.act { pointer-events: auto; }
+  .toast .t-undo { margin-left: 10px; background: none; border: none; color: #ffd9a0; font: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
 
 
   /* ---------- 발행 탭 v5 (2026-11-04 찬진: "보기 불편해서 안 보게 돼 — 사업별 탭으로 나눠서")
@@ -1211,6 +1220,8 @@
   <datalist id="projectList"></datalist>
   <label>마감일</label>
   <input type="date" id="editDue">
+  <label>링크 (신청 페이지 등, 있으면 목록에 칩으로 떠요)</label>
+  <input type="url" id="editLink" placeholder="https://...">
   <label>반복 요일 (반복 일정으로 쓰려면 선택)</label>
   <div class="day-row" id="dayRow">
     <button data-d="0">일</button><button data-d="1">월</button><button data-d="2">화</button>
@@ -1330,8 +1341,22 @@ function twoWeekDates() {
 function toast(msg) {
   const t = $("toast");
   t.textContent = msg;
+  t.classList.remove("act");
   t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 1800);
+  clearTimeout(toast.tm);
+  toast.tm = setTimeout(() => t.classList.remove("show"), 1800);
+}
+/* 지운 직후 5초 동안 '되돌리기'를 누를 수 있는 토스트 (휴대폰에는 Ctrl+Z 가 없어서) */
+function toastUndo(msg) {
+  const t = $("toast");
+  t.textContent = msg + " ";
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "t-undo"; b.textContent = "되돌리기";
+  b.addEventListener("click", () => { t.classList.remove("show", "act"); undoLast(); });
+  t.appendChild(b);
+  t.classList.add("show", "act");
+  clearTimeout(toast.tm);
+  toast.tm = setTimeout(() => t.classList.remove("show", "act"), 5000);
 }
 
 /* 체크 시 튀는 색종이 조각 — 정리되는 순간의 손맛 */
@@ -1803,12 +1828,7 @@ function coachCard() {
   const li = arr => (arr || []).map(x => `<li>${escapeHtml(x)}</li>`).join("");
   const quests = (co.quests && co.quests.items) || [];
   const people = co.people || [];
-  // 추천 모임: [{title, when, where, url, why}] — Claude 가 비공개 코칭에 매주 넣는다
-  const safeUrl = u => /^https:\/\//.test(u || "") ? escapeHtml(u) : "";
-  const events = (co.events || []).slice(0, 4).map(ev => `<div class="g-ev">
-      ${safeUrl(ev.url) ? `<a href="${safeUrl(ev.url)}" target="_blank" rel="noopener">${escapeHtml(ev.title || "")}</a>` : `<b>${escapeHtml(ev.title || "")}</b>`}
-      <small>${escapeHtml([ev.when, ev.where].filter(Boolean).join(" · "))}</small>
-      ${ev.why ? `<div>${escapeHtml(ev.why)}</div>` : ""}</div>`).join("");
+  // 2026-11-14 찬진: '가 볼 만한 모임' 칸은 위 할 일과 겹쳐서 뺐다. 신청 링크는 할 일에 🔗 칩으로 단다(co.events 는 읽지 않는다).
   const hasMore = (co.good && co.good.length) || (co.fix && co.fix.length) || quests.length || people.length;
   const card = document.createElement("div");
   card.className = "dcard";
@@ -1817,7 +1837,6 @@ function coachCard() {
     <div class="g-head">${escapeHtml(co.headline)}</div>
     ${co.try ? `<div class="g-try"><b>이번 주 실험</b>${escapeHtml(co.try)}</div>` : ""}
     ${co.mission ? `<div class="g-try"><b>사람 미션</b>${escapeHtml(co.mission)}</div>` : ""}
-    ${events ? `<div class="g-events"><b>가 볼 만한 모임</b>${events}</div>` : ""}
     ${hasMore ? `<button type="button" class="g-more" id="gMore">더 보기 ▾</button>
     <div class="g-detail" id="gDetail" hidden>
       ${co.good && co.good.length ? `<ul>${li(co.good.map(x => "잘한 것 · " + x))}</ul>` : ""}
@@ -4269,7 +4288,8 @@ async function cleanupSchedule() {
   const removeIds = [];
 
   // 1) 은퇴된(더 이상 안 쓰는) 4트랙 사업 일정 제목은 통째로 정리한다
-  tasks.forEach(t => { if (RETIRED_SCHEDULE_TITLES.includes(t.title)) removeIds.push(t.id); });
+  //    2026-11-14 찬진: 매일 "영어 15분" 지워 달라 → 이름이 "영어 15분"으로 시작하는 일정은 어느 기기에서 열어도 지운다
+  tasks.forEach(t => { if (RETIRED_SCHEDULE_TITLES.includes(t.title) || (t.title || "").startsWith("영어 15분")) removeIds.push(t.id); });
 
   // 2) 제목·프로젝트·반복 요일이 완전히 똑같은 반복 일정이 여러 개면 중복 씨딩/중복 입력으로 보고
   //    가장 오래된 것만 남긴다 (사용자가 서로 다른 반복 일정을 우연히 같은 제목으로 만드는 일은 거의 없음)
@@ -4309,28 +4329,9 @@ async function cleanupSchedule() {
     }
   }
 
-  // [1회성 · 2026-10-06] 매일 반복 "영어 15분" 넣기 (찬진 요청, '궁금한 점들 묻기' 세션 경유).
-  // 일정에 시간·메모 칸이 없어 제목에 담는다. 시간은 편집 시트에서 제목만 고치면 된다.
-  // "영어 15분"으로 시작하는 일정이 이미 있거나, 이 기기에서 한 번 넣었으면 다시 안 넣는다(지워도 안 살아남).
-  // [1회성 · 2026-10-07] 제목이 길어 보드가 지저분해서 "영어 15분"으로 줄인다(찬진). 순서 메모는 영어 세션이 관리.
-  for (const t of tasks) {
-    if ((t.title || "").startsWith("영어 15분 · ")) {
-      t.title = "영어 15분";
-      await sb.from("tasks").update({ title: "영어 15분" }).eq("id", t.id);
-    }
-  }
-  let seededEnglish = false;
-  try {
-    const SEED_KEY = "seed_english15_20261006";
-    if (!localStorage.getItem(SEED_KEY) && !tasks.some(t => (t.title || "").startsWith("영어 15분"))) {
-      const { data } = await sb.from("tasks").insert({
-        title: "영어 15분 · 13:30 (GPT 라이브 10분 → 정리표 Claude에 → 링고 카드)",
-        repeat_days: [0, 1, 2, 3, 4, 5, 6],
-      }).select();
-      if (data) { tasks.push(...data); seededEnglish = true; }
-    }
-    localStorage.setItem(SEED_KEY, "1");
-  } catch {}
+  // [2026-11-14] 매일 "영어 15분" 자동 넣기(10-06)와 이름 줄이기(10-07)는 찬진 요청으로 없앴다.
+  // 맨 위 1) 단계가 이름이 "영어 15분"으로 시작하는 일정을 지우고, 여기서 다시 만들지 않는다(새 기기에서도 안 살아난다).
+  const seededEnglish = false;
 
   // 이미 "4트랙 사업 일정"을 불러온 적 있는 사용자에 한해서만 새로 추가된 항목(건강친구 산이 배치일 등)을 채워준다
   const missing = scheduleSeeded() ? SCHEDULE_TASKS.filter(s => !tasks.some(t => t.title === s.title)) : [];
@@ -4582,6 +4583,26 @@ function taskRow(task, doneOverride, onDate = todayStr()) {
       ${badges.length ? `<div class="meta">${badges.join("")}</div>` : ""}
     </div>`;
   div.querySelector(".title").textContent = displayName || task.title;
+  // 신청 링크가 있으면 칩으로 — 눌러도 편집 창이 열리지 않고 새 탭으로 간다
+  if (task.link && /^https?:\/\//i.test(task.link)) {
+    let meta = div.querySelector(".meta");
+    if (!meta) { meta = document.createElement("div"); meta.className = "meta"; div.querySelector(".title").after(meta); }
+    const a = document.createElement("a");
+    a.className = "badge link"; a.href = task.link; a.target = "_blank"; a.rel = "noopener noreferrer"; a.title = task.link;
+    a.textContent = /신청|접수|예약|지원|참가|등록/.test(task.title) ? "🔗 신청하기" : "🔗 링크";
+    a.addEventListener("click", (e) => e.stopPropagation());
+    meta.appendChild(a);
+  }
+  // 관심 없는 건 ✕ 로 바로 지운다(되돌리기 가능). 반복하는 일은 통째로 지워지니 한 번 더 묻는다
+  const delBtn = document.createElement("button");
+  delBtn.type = "button"; delBtn.className = "t-del"; delBtn.title = "지우기"; delBtn.textContent = "✕";
+  delBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    if (isRepeat && !confirm(`"${task.title}" 은(는) 반복하는 일이에요. 앞으로도 전부 지울까요?`)) return;
+    await deleteTask(task);
+    toastUndo("지웠어요");
+  });
+  div.appendChild(delBtn);
   if (hasSub) {
     div.querySelector(".body").appendChild(subChecklist(task, onDate));
     div.querySelector(".chk").style.visibility = "hidden"; // 완료 여부는 편수 체크로만 결정
@@ -4821,6 +4842,7 @@ function openSheet(task) {
   $("editTitle").value = task.title;
   $("editProject").value = task.project || "";
   $("editDue").value = task.due || "";
+  $("editLink").value = task.link || "";
   $("editSubTotal").value = task.sub_total || "";
   $("editSubStart").value = task.sub_start || "";
   const projectNames = [...new Set(tasks.map(t => t.project).filter(Boolean))].sort();
@@ -5187,6 +5209,12 @@ $("btnSave").addEventListener("click", async () => {
     sub_total: subTotalVal ? Math.max(1, parseInt(subTotalVal, 10)) : null,
     sub_start: subStartVal ? Math.max(1, parseInt(subStartVal, 10)) : null,
   };
+  // 링크는 바꿨을 때만 저장(표에 link 칸이 아직 없으면 안 건드려서 다른 저장이 깨지지 않게). https:// 를 안 붙였으면 붙인다
+  {
+    let lk = $("editLink").value.trim();
+    if (lk && !/^https?:\/\//i.test(lk)) lk = "https://" + lk;
+    if (lk !== (beforeSnap.link || "")) upd.link = lk || null;
+  }
   // 시작 호수를 직접 바꾸면 "이번 주 배치가 이 번호부터"라는 뜻이므로,
   // 기준일(sub_anchor)을 이번 주의 해당 반복 요일로 다시 잡는다 (이후 주는 자동 증가)
   if (upd.sub_start && upd.sub_start !== beforeSnap.sub_start && upd.repeat_days) {

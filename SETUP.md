@@ -450,3 +450,11 @@ GitHub에 `my-planner` 저장소를 만들어 푸시하고,
 - **아이폰**: Safari로 접속 → 공유 버튼 → "홈 화면에 추가"
 
 앱처럼 아이콘으로 열림.
+
+## 1-15. 할 일 링크 칸 (2026-11-14) — 추가 SQL
+
+신청하는 할 일에 링크를 달면 목록에 `🔗 신청하기` 칩으로 뜨고 눌러서 바로 열린다. 편집 창의 '링크' 칸, 위젯 우편함(`{"title":"…","link":"https://…"}`, `{"setlink":"이름","link":"https://…"}`)으로 넣는다. 이 SQL 을 한 번 실행하기 전에는 링크 칸이 비어 있어도 다른 기능은 그대로 동작한다.
+
+```sql
+alter table public.tasks add column if not exists link text;
+```

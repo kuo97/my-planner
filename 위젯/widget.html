@@ -57,6 +57,8 @@
   .t { flex: 1; word-break: keep-all; overflow-wrap: anywhere; }
   .t small { color: var(--muted); margin-left: 4px; }
   .over { color: var(--coral); font-size: 10.5px; margin-left: 4px; }
+  .lk { margin-left: 5px; font-size: 11px; cursor: pointer; opacity: 0.75; }
+  .lk:hover { opacity: 1; }
   .nxt { visibility: hidden; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 12px; }
   .item:hover .nxt { visibility: visible; }
   .del { visibility: hidden; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 13px; }
@@ -301,11 +303,14 @@ function itemEl(t, d, num) {
   el.className = "item" + (done ? " done" : "");
   const over = !isRepeat(t) && !done && t.due && t.due < today() ? `<span class="over">${Number(t.due.slice(5,7))}/${Number(t.due.slice(8))} 지남</span>` : "";
   const cnt = sub ? `<small>${subDone(t, d).length}/${t.sub_total}</small>` : "";
-  el.innerHTML = `<div class="num" title="숫자를 쓰면 그 순서로 옮겨요">${num || ""}</div><div class="chk">${done ? "✓" : ""}</div><div class="t">${esc(t.title)}${cnt}${over}</div>` +
+  const lk = t.link && /^https?:\/\//i.test(t.link) ? `<span class="lk" title="신청·참고 링크 열기">🔗</span>` : "";   // 11-14: 링크 달린 할 일은 🔗 를 누르면 열린다
+  el.innerHTML = `<div class="num" title="숫자를 쓰면 그 순서로 옮겨요">${num || ""}</div><div class="chk">${done ? "✓" : ""}</div><div class="t">${esc(t.title)}${cnt}${over}${lk}</div>` +
     (isRepeat(t) ? "" : `<button class="nxt" title="내일로 미루기">→내일</button><button class="del" title="지우기">×</button>`);
   // 편수 체크리스트(여러 편 올리는 배치)는 번호별로 체크해야 해서 마이플래너에서 연다
   el.querySelector(".chk").onclick = () => sub ? widget.openPlanner() : toggle(t, d);
   el.querySelector(".t").ondblclick = () => widget.openPlanner();
+  const lkEl = el.querySelector(".lk");
+  if (lkEl) { lkEl.onclick = (e) => { e.stopPropagation(); widget.open(t.link); }; lkEl.ondblclick = (e) => e.stopPropagation(); }
   const numEl = el.querySelector(".num");
   if (num) numEl.onclick = () => {                       // 숫자를 눌러 순서를 직접 쓴다
     const inp = document.createElement("input");
@@ -559,6 +564,15 @@ async function pullInbox_() {
       if (it.delete) tasks = tasks.filter(x => x.id !== t.id); else t.title = String(it.title);
       continue;
     }
+    // {"setlink":"이름","link":"https://…"} — 있는 할 일에 신청 링크를 달거나(link 가 비면 뗀다). 11-14 찬진: 신청하는 할 일은 링크를 눌러서 열 수 있게
+    if (it.setlink) {
+      const name = String(it.setlink), t = tasks.find(x => x.title === name && !x.done_at) || tasks.find(x => x.title === name);
+      if (!t) { widget.log("우편함: 링크 달 할 일 못 찾음 — " + name); continue; }
+      const lk = it.link ? String(it.link) : null;
+      const { error } = await sb.from("tasks").update({ link: lk }).eq("id", t.id);
+      if (error) { widget.log("우편함 링크 달기 실패: " + name + " / " + error.message + " (tasks 표에 link 칸이 있는지 확인)"); continue; }
+      t.link = lk; continue;
+    }
     // {"done":"이름"} — 안 끝낸 같은 이름 할 일을 완료로(11-06 찬진: "자동화할 수 있는 일은 Claude 가 하고 완료 체크까지")
     if (it.done) {
       const name = String(it.done), t = tasks.find(x => x.title === name && !x.done_at);
@@ -576,9 +590,16 @@ async function pullInbox_() {
     const dup = tasks.find(t => !t.done_at && (key(t.title) === key(it.title) || (who(it.title) && who(t.title) === who(it.title))));
     if (dup) {
       if (it.due && it.due !== dup.due) { const { error } = await sb.from("tasks").update({ due: it.due }).eq("id", dup.id); if (!error) dup.due = it.due; }
+      if (it.link && it.link !== dup.link) { const { error } = await sb.from("tasks").update({ link: String(it.link) }).eq("id", dup.id); if (!error) dup.link = String(it.link); }
       widget.log("우편함: 이미 있음 → 날짜만 " + (it.due || "그대로") + " — " + dup.title); continue;
     }
-    const { data, error } = await sb.from("tasks").insert({ title: String(it.title), due: it.due || today() }).select().single();
+    const row = { title: String(it.title), due: it.due || today() };
+    if (it.link) row.link = String(it.link);
+    let { data, error } = await sb.from("tasks").insert(row).select().single();
+    if (error && row.link) {   // tasks 표에 link 칸이 아직 없으면 링크만 빼고 다시 넣는다(할 일이 사라지지 않게)
+      widget.log("링크 칸 없음 — 링크 빼고 추가: " + it.title + " / " + error.message);
+      delete row.link; ({ data, error } = await sb.from("tasks").insert(row).select().single());
+    }
     if (!error) tasks.push(data); else { msg("우편함 추가 실패: " + error.message); widget.log("할 일 추가 실패: " + it.title + " / " + error.message); }
   }
   render();
