@@ -240,6 +240,8 @@
   .food-pick .fp-act { display: flex; gap: 6px; margin-top: 8px; }
   .food-pick .fp-act button { flex: 1; padding: 7px; border-radius: 10px; border: 1.5px solid var(--line); background: none; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--muted); }
   .food-pick .fp-act .fp-save { background: var(--sage); border-color: var(--sage); color: #fff; font-weight: 700; flex: 2; }
+  .perm-pick .pp-hist { margin: 0 0 8px; font-size: 12.5px; line-height: 1.7; color: var(--ink); }
+  .perm-pick .pp-hist small { color: var(--muted); }
   .dt { padding: 10px 0; border-top: 1px dashed var(--line); }
   .dt:first-of-type { border-top: 0; padding-top: 4px; }
   .dt-top { display: flex; align-items: baseline; justify-content: space-between; }
@@ -2840,6 +2842,47 @@ async function toggleHaircut(date) {
   toast(next ? "✂️ 이발한 날로 기록했어요" : "이발 기록을 지웠어요");
 }
 
+/* ---------- 파마 기록 (2026-11-14 찬진: "이발처럼 추적하되 상시 떠 있지 않고 눌렀을 때만") ----------
+   life_log kind "season" + label "파마" 로 저장(표 변경 없음, 배달·외식과 같은 방식). 달력 날짜 상세의 💇 칩을 눌러야만 펼쳐지고,
+   화면 위쪽에는 "파마한 지 N일" 같은 줄을 띄우지 않는다. 메모(어디서·어떤 파마·얼마)는 meta.note. */
+const PERM_LABEL = "파마";
+const permRecs = () => (lifeLog || []).filter(r => r.kind === "season" && r.label === PERM_LABEL).sort((a, b) => a.on_date.localeCompare(b.on_date));
+const permRec = date => permRecs().find(r => r.on_date === date);
+const permNote = r => (r && r.meta && r.meta.note) || "";
+async function savePerm(date, note) {
+  const hit = permRec(date), meta = note ? { note } : null;
+  const { error } = hit ? await sb.from("life_log").update({ meta }).eq("id", hit.id)
+                        : await sb.from("life_log").insert({ on_date: date, kind: "season", label: PERM_LABEL, meta });
+  if (error) { toast("파마 기록 실패: " + error.message); return false; }
+  await loadLifeLog(); toast(hit ? "💇 파마 기록을 고쳤어요" : "💇 파마한 날로 기록했어요"); return true;
+}
+async function clearPerm(date) {
+  const hit = permRec(date); if (!hit) return true;
+  const { error } = await sb.from("life_log").delete().eq("id", hit.id);
+  if (error) { toast("파마 기록 실패: " + error.message); return false; }
+  await loadLifeLog(); toast("파마 기록을 지웠어요"); return true;
+}
+function permPanelEl(date, onDone) {
+  const all = permRecs(), past = all.filter(r => r.on_date <= todayStr()), rec = permRec(date), box = document.createElement("div");
+  const md = d => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
+  const gap = r => { const i = all.indexOf(r); return i > 0 ? daysSince(all[i - 1].on_date) - daysSince(r.on_date) : 0; };
+  const last = past.length ? past[past.length - 1] : null, n = last ? daysSince(last.on_date) : 0;
+  const avg = past.length > 1 ? Math.round((daysSince(past[0].on_date) - daysSince(last.on_date)) / (past.length - 1)) : 0;
+  const hist = past.slice(-5).reverse().map(r => `<div>${r.on_date}${gap(r) ? ` <small>(앞 파마와 ${gap(r)}일 간격)</small>` : ""}${permNote(r) ? ` - ${escapeHtml(permNote(r))}` : ""}</div>`).join("");
+  box.className = "food-pick perm-pick";
+  box.innerHTML = `<h5>💇 파마 <small style="font-weight:400;color:var(--muted)">${last ? `마지막 ${last.on_date}, ${n === 0 ? "오늘" : n + "일 전"}${avg ? `, 평균 ${avg}일 간격` : ""}` : "아직 기록이 없어요"}</small></h5>
+    ${hist ? `<div class="pp-hist">${hist}</div>` : ""}
+    <input class="fp-other" type="text" maxlength="60" placeholder="메모 (선택) - 어디서, 어떤 파마, 얼마" value="${escapeHtml(permNote(rec))}">
+    <div class="fp-act">${rec ? '<button type="button" class="fp-del">기록 지우기</button>' : ""}<button type="button" class="fp-close">닫기</button><button type="button" class="fp-save">${rec ? "메모 고치기" : `${md(date)} 파마했어요`}</button></div>`;
+  const done = () => { try { onDone(); } catch (e) { console.warn(e); } }, inp = box.querySelector(".fp-other");
+  const save = async () => { if (await savePerm(date, inp.value.trim())) done(); };
+  box.querySelector(".fp-close").addEventListener("click", done);
+  const del = box.querySelector(".fp-del"); if (del) del.addEventListener("click", async () => { if (await clearPerm(date)) done(); });
+  box.querySelector(".fp-save").addEventListener("click", save);
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); save(); } });
+  return box;
+}
+
 /* ---------- 생활 기록 (2026-10-06): 계절(에어컨·난방 켠 날/끈 날) + 공과금 — Supabase life_log 표(SETUP.md 1-8) ----------
    계절은 달력 날짜 상세의 작은 칩으로 찍고, 해마다 비교해서 "언제부터 시원해지나"를 본다.
    공과금은 청구월(YYYY-MM-01) + 항목 + 금액. 달력 아래 접힌 카드 하나에만 보인다. */
@@ -3514,6 +3557,12 @@ function renderCalendarView() {
     detail.querySelector(".cd-body").textContent = entry.content || "";
     const cdMeals = detail.querySelector(".cd-meals"); if (cdMeals) cdMeals.textContent = "🍚 " + entry.meals;
   }
+  const permRow = permRec(calSel);   // 파마한 날이면 그 날짜를 눌렀을 때 한 줄로 보인다
+  if (permRow) {
+    const ce = detail.querySelector(".cd-empty"); if (ce) ce.remove();
+    const pd = document.createElement("div"); pd.className = "cd-feel"; pd.style.color = "var(--ink)";
+    pd.textContent = "💇 파마한 날" + (permNote(permRow) ? ": " + permNote(permRow) : ""); detail.appendChild(pd);
+  }
   if (selEvents.length) {
     const evWrap = document.createElement("div");
     evWrap.className = "gcal-events gcal-chips";
@@ -3547,6 +3596,11 @@ function renderCalendarView() {
     mk(hairDone ? "✂️ 이발함" : "✂️ 이발", hairDone, hairDone ? "누르면 이발 기록을 지워요" : "이 날 이발했어요", () => toggleHaircut(calSel));
     if (lifeLog) {
       const sumHtml = () => foodSummary(calSel) ? `<div class="food-sum">${foodSummary(calSel)}</div>` : "";
+      const permHere = !!permRec(calSel);
+      mk(permHere ? "💇 파마함" : "💇 파마", permHere, "눌러야 파마 기록이 펼쳐져요", () => {   // 11-14: 상시 표시 없이 칩을 눌렀을 때만
+        if (sub.dataset.open === "perm") { sub.dataset.open = ""; sub.innerHTML = sumHtml(); return; }
+        sub.dataset.open = "perm"; sub.innerHTML = ""; sub.appendChild(permPanelEl(calSel, () => { calSeasonOpen = false; renderCalendarView(); }));
+      });
       if ((SHOW_DIET || SHOW_FOOD) && calSel >= DIET_START) {   // 올해 1월 이후면 지난 날짜도
         if (SHOW_DIET) mk("🍺 술", seasonOn(calSel).some(r => r.label === "술 마심"), "술 마신 날 — 누르면 기록/취소", () => toggleSeason(calSel, "술 마심"));
         mk("🛵 배달·외식", !!foodRec(calSel), "치킨·피자·돈까스·배달 먹은 날 — 뭘 먹었는지 고르거나 적어요", () => {
