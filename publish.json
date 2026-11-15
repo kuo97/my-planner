@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15T23:12+09:00",
+ "updated": "2026-11-15T23:13+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -4522,6 +4522,39 @@
    }
   },
   {
+   "id": "2026-11-17_1230",
+   "date": "2026-11-17",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 결혼 준비하고 나서야 알게 된 부모님 12가지",
+   "memo": "11-16 월요일 배치 · 깨달음형/대비형 + 회차 글씨(11-14 행)",
+   "short": "결혼 준비하고 나서야 알게 된 부모님 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-17T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-17T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/ZraXrJuC0ng",
+     "publishAt": "2026-11-17T12:30:00+09:00",
+     "due": "2026-11-17T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
    "id": "2026-11-17_19b",
    "date": "2026-11-17",
    "time": "19:00",
@@ -4779,6 +4812,37 @@
    }
   },
   {
+   "id": "2026-11-20_1230",
+   "date": "2026-11-20",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 아빠 나이가 되고 나서야 알게 된 12가지 (부모님께 보내기용)",
+   "memo": "11-16 월요일 배치 · 깨달음형/대비형 + 회차 글씨(11-14 행)",
+   "short": "아빠 나이가 되고 나서야 알게 된 12가지 (부모님께 보내기용)",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-20T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-20T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-20T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
    "id": "2026-11-20_19",
    "date": "2026-11-20",
    "time": "19:00",
@@ -4840,6 +4904,37 @@
      "who": "chanjin",
      "status": "todo",
      "due": "2026-11-20T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-21_1230",
+   "date": "2026-11-21",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 어릴 땐 몰랐고, 지금은 아는 엄마의 6가지",
+   "memo": "11-16 월요일 배치 · 깨달음형/대비형 + 회차 글씨(11-14 행)",
+   "short": "어릴 땐 몰랐고, 지금은 아는 엄마의 6가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-21T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-21T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-21T19:00:00+09:00",
      "ready": false
     }
    }
