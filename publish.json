@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T13:43+09:00",
+ "updated": "2026-11-15T22:48+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -3894,16 +3894,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-10T21:02:21+09:00",
      "due": "2026-11-10T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-10T21:02:21+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-10T21:03:14+09:00",
      "due": "2026-11-10T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-10T21:03:14+09:00"
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
@@ -3927,8 +3927,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-10T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-10T18:20:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224470788815",
      "due": "2026-11-10T19:00:00+09:00",
      "ready": false
     }
@@ -3948,16 +3949,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-11T12:34:17+09:00",
      "due": "2026-11-11T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-11T12:34:17+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-11T12:35:25+09:00",
      "due": "2026-11-11T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-11T12:35:25+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -3982,8 +3983,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-11T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-11T18:30:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224470793531",
      "due": "2026-11-11T19:00:00+09:00",
      "ready": false
     }
@@ -4011,16 +4013,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-11T21:02:23+09:00",
      "due": "2026-11-11T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-11T21:02:23+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-11T21:03:30+09:00",
      "due": "2026-11-11T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-11T21:03:30+09:00"
+     "ready": true
     }
    }
   },
@@ -4038,16 +4040,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-12T12:33:50+09:00",
      "due": "2026-11-12T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-12T12:33:50+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-12T12:34:43+09:00",
      "due": "2026-11-12T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-12T12:34:43+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -4089,16 +4091,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-12T21:01:43+09:00",
      "due": "2026-11-12T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-12T21:01:43+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-12T21:02:30+09:00",
      "due": "2026-11-12T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-12T21:02:30+09:00"
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
@@ -4122,8 +4124,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-12T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-12T18:50:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224470798933",
      "due": "2026-11-12T19:00:00+09:00",
      "ready": false
     }
@@ -4143,16 +4146,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-13T12:34:22+09:00",
      "due": "2026-11-13T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-13T12:34:22+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-13T12:35:16+09:00",
      "due": "2026-11-13T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-13T12:35:16+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -4177,8 +4180,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-13T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-13T18:30:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224470802036",
      "due": "2026-11-13T19:00:00+09:00",
      "ready": false
     }
@@ -4206,16 +4210,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-13T21:02:08+09:00",
      "due": "2026-11-13T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-13T21:02:08+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-13T21:03:34+09:00",
      "due": "2026-11-13T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-13T21:03:34+09:00"
+     "ready": true
     }
    }
   },
@@ -4233,16 +4237,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-14T12:33:45+09:00",
      "due": "2026-11-14T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-14T12:33:45+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-14T12:34:30+09:00",
      "due": "2026-11-14T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-14T12:34:30+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -4284,16 +4288,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-14T21:01:49+09:00",
      "due": "2026-11-14T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-14T21:01:49+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-14T21:02:36+09:00",
      "due": "2026-11-14T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-14T21:02:36+09:00"
+     "ready": true
     },
     "clip": {
      "who": "chanjin",
@@ -4317,8 +4321,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-14T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-14T18:40:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224470804830",
      "due": "2026-11-14T19:00:00+09:00",
      "ready": false
     }
@@ -4338,16 +4343,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-15T12:33:47+09:00",
      "due": "2026-11-15T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-15T12:33:47+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-15T12:34:34+09:00",
      "due": "2026-11-15T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-15T12:34:34+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -4372,8 +4377,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-15T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-15T18:30:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224470808198",
      "due": "2026-11-15T19:00:00+09:00",
      "ready": false
     }
@@ -4401,16 +4407,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-15T21:01:57+09:00",
      "due": "2026-11-15T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-15T21:01:57+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-15T21:03:03+09:00",
      "due": "2026-11-15T21:00:00+09:00",
-     "ready": true,
-     "at": "2026-11-15T21:03:03+09:00"
+     "ready": true
     }
    }
   },
@@ -4516,6 +4522,87 @@
    }
   },
   {
+   "id": "2026-11-17_19b",
+   "date": "2026-11-17",
+   "time": "19:00",
+   "kind": "파생·블로그",
+   "work": "38번",
+   "title": "블로그 — 송년회 영상 제작하는법, 1년 치 사진을 장면 네 개로 줄이는 순서",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표)",
+   "short": "송년회 영상 제작하는법, 1년 치 사진을 장면 네 개로 줄이는 순",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-17T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-17_21",
+   "date": "2026-11-17",
+   "time": "21:00",
+   "kind": "정보형",
+   "work": "38번",
+   "title": "회사 송년회 영상, 이것 때문에 썰렁해집니다",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표)",
+   "short": "회사 송년회 영상, 이것 때문에 썰렁해집니다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-17T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-17T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-17T21:00:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "2026-11-18_1230",
+   "date": "2026-11-18",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 수능 앞둔 부모가 1년 동안 몰래 한 12가지",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표) · 수능 전날",
+   "short": "수능 앞둔 부모가 1년 동안 몰래 한 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-18T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-18T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-18T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
    "id": "2026-11-18_19",
    "date": "2026-11-18",
    "time": "19:00",
@@ -4603,6 +4690,333 @@
    }
   },
   {
+   "id": "2026-11-19_1230",
+   "date": "2026-11-19",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 입사 1년 지나고 알게 된, 우리 팀장님 12가지",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표)",
+   "short": "입사 1년 지나고 알게 된, 우리 팀장님 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-19T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-19T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-19T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-19_19b",
+   "date": "2026-11-19",
+   "time": "19:00",
+   "kind": "파생·블로그",
+   "work": "39번",
+   "title": "블로그 — 회사 창립기념일 행사, 처음 다섯 명이던 날부터 보여 주는 창립기념 영상",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표)",
+   "short": "회사 창립기념일 행사, 처음 다섯 명이던 날부터 보여 주는 창립기",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-19T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-20_19",
+   "date": "2026-11-20",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "39번",
+   "title": "작품 칸 — 39번 지자체 성과공유회 「우리 동네가 바뀐 1년」",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표) · 기업 송년회 주문 마감 안내 주간",
+   "short": "39번 지자체 성과공유회 「우리 동네가 바뀐 1년」",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-20T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-20T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-20T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-20T21:00:00+09:00",
+     "ready": true
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-20T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-20_19b",
+   "date": "2026-11-20",
+   "time": "19:00",
+   "kind": "파생·블로그",
+   "work": "39번",
+   "title": "블로그 — 성과공유회 영상 제작, 주민 손으로 바뀐 골목 1년을 담은 오프닝",
+   "memo": "39번 작품 글",
+   "short": "성과공유회 영상 제작, 주민 손으로 바뀐 골목 1년을 담은 오프닝",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-20T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-21_19b",
+   "date": "2026-11-21",
+   "time": "19:00",
+   "kind": "파생·블로그",
+   "work": "11번",
+   "title": "블로그 — 수능 끝나고 선물, 합격 발표와 졸업식 때 더 오래 남는 12년 성장 영상",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표)",
+   "short": "수능 끝나고 선물, 합격 발표와 졸업식 때 더 오래 남는 12년 ",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-21T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-22_19",
+   "date": "2026-11-22",
+   "time": "19:00",
+   "kind": "작품",
+   "work": "47번",
+   "title": "작품 칸 — 47번 동물 캐릭터 프로포즈 「백 번째 산책」",
+   "memo": "11-16 월요일 배치 — 11-23 상품 업그레이드 주간 전날, 35번과 2주 간격",
+   "short": "47번 동물 캐릭터 프로포즈 「백 번째 산책」",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-22T19:00:00+09:00",
+     "ready": false
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-22T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-22T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-22T21:00:00+09:00",
+     "ready": true
+    },
+    "clip": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-22T21:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-22_19b",
+   "date": "2026-11-22",
+   "time": "19:00",
+   "kind": "파생·블로그",
+   "work": "47번",
+   "title": "블로그 — 프로포즈 영상 제작, 얼굴이 나오지 않는 특별한 프로포즈",
+   "memo": "47번 작품 글",
+   "short": "프로포즈 영상 제작, 얼굴이 나오지 않는 특별한 프로포즈",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-22T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-23_19b",
+   "date": "2026-11-23",
+   "time": "19:00",
+   "kind": "파생·블로그",
+   "work": "38번",
+   "title": "블로그 — 시무식 식순, 대표 인사 앞에 지난해 3분을 놓으면 박수로 시작합니다",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표)",
+   "short": "시무식 식순, 대표 인사 앞에 지난해 3분을 놓으면 박수로 시작합",
+   "prep": [],
+   "channels": {
+    "blog": {
+     "who": "chanjin",
+     "status": "todo",
+     "due": "2026-11-23T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-23_21",
+   "date": "2026-11-23",
+   "time": "21:00",
+   "kind": "정보형",
+   "work": "38번",
+   "title": "시무식 식순, 영상 하나 넣을 자리는 여기입니다",
+   "memo": "11-16 월요일 배치(찬진 11-11 \"만들어 봐\" 회사 행사 7편 · 기념일 표)",
+   "short": "시무식 식순, 영상 하나 넣을 자리는 여기입니다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-23T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-23T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "scheduled",
+     "due": "2026-11-23T21:00:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_MAkqUMbvWAw",
+   "date": "2026-11-12",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "6편 쇼츠 · 조선에도 기관총이 있었다?",
+   "memo": "",
+   "short": "6편 쇼츠 · 조선에도 기관총이 있었다?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/MAkqUMbvWAw",
+     "due": "2026-11-12T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_WBF_gyMgsmA",
+   "date": "2026-11-11",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "6편 쇼츠 · 임진왜란에 기관총 한 정이면 몇 분 버틸까?",
+   "memo": "",
+   "short": "6편 쇼츠 · 임진왜란에 기관총 한 정이면 몇 분 버틸까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/WBF_gyMgsmA",
+     "due": "2026-11-11T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_BJkD57uT7XU",
+   "date": "2026-11-10",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "5편 쇼츠 · 전쟁 나면 대피소는 철문 벙커일까?",
+   "memo": "",
+   "short": "5편 쇼츠 · 전쟁 나면 대피소는 철문 벙커일까?",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/BJkD57uT7XU",
+     "due": "2026-11-10T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
+   "id": "mk_36NTK4nEDH0",
+   "date": "2026-11-10",
+   "time": "19:00",
+   "kind": "만약상자",
+   "work": "만약상자",
+   "title": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
+   "memo": "",
+   "short": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
+   "prep": [],
+   "channels": {
+    "youtube": {
+     "who": "session",
+     "status": "published",
+     "publishAt": null,
+     "url": "https://youtu.be/36NTK4nEDH0",
+     "due": "2026-11-10T19:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "mk_N1A_k76SuAM",
    "date": "2026-11-09",
    "time": "19:00",
@@ -4645,27 +5059,6 @@
    }
   },
   {
-   "id": "mk_36NTK4nEDH0",
-   "date": "2026-11-10",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
-   "memo": "",
-   "short": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-10T10:00:00Z",
-     "url": "https://youtu.be/36NTK4nEDH0",
-     "due": "2026-11-10T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
    "id": "mk_Dh9dEfEU4JY",
    "date": "2026-11-07",
    "time": "19:00",
@@ -4682,69 +5075,6 @@
      "publishAt": null,
      "url": "https://youtu.be/Dh9dEfEU4JY",
      "due": "2026-11-07T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_MAkqUMbvWAw",
-   "date": "2026-11-12",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "6편 쇼츠 · 조선에도 기관총이 있었다?",
-   "memo": "",
-   "short": "6편 쇼츠 · 조선에도 기관총이 있었다?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-12T10:00:00Z",
-     "url": "https://youtu.be/MAkqUMbvWAw",
-     "due": "2026-11-12T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_WBF_gyMgsmA",
-   "date": "2026-11-11",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "6편 쇼츠 · 임진왜란에 기관총 한 정이면 몇 분 버틸까?",
-   "memo": "",
-   "short": "6편 쇼츠 · 임진왜란에 기관총 한 정이면 몇 분 버틸까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-11T10:00:00Z",
-     "url": "https://youtu.be/WBF_gyMgsmA",
-     "due": "2026-11-11T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_BJkD57uT7XU",
-   "date": "2026-11-10",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "5편 쇼츠 · 전쟁 나면 대피소는 철문 벙커일까?",
-   "memo": "",
-   "short": "5편 쇼츠 · 전쟁 나면 대피소는 철문 벙커일까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-10T10:00:00Z",
-     "url": "https://youtu.be/BJkD57uT7XU",
-     "due": "2026-11-10T19:00+09:00",
      "ready": true
     }
    }
@@ -4913,67 +5243,6 @@
      "publishAt": null,
      "url": "https://youtu.be/dNPcqhXb8aY",
      "due": "2026-11-02T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_JNQe3r6G2Jo",
-   "date": "2026-10-30",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "3편 · 보일러 없던 조선 사람들은 겨울밤을 어떻게 버텼을까?",
-   "memo": "",
-   "short": "3편 · 보일러 없던 조선 사람들은 겨울밤을 어떻게 버텼을까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/JNQe3r6G2Jo",
-     "due": "2026-10-30T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_ay0xJz6LmHk",
-   "date": "2026-10-28",
-   "time": "23:19",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "2편 · 지금 태어난 아이가 65살이 되면 한국에 벌어지는 일",
-   "memo": "",
-   "short": "2편 · 지금 태어난 아이가 65살이 되면 한국에 벌어지는 일",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/ay0xJz6LmHk",
-     "due": "2026-10-28T23:19+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_reel_31",
-   "date": "2026-11-10",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "3편 릴스 · 조선의 온돌방 정말 따뜻했을까",
-   "memo": "",
-   "short": "3편 릴스 · 조선의 온돌방 정말 따뜻했을까",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-10T19:00+09:00",
      "ready": true
     }
    }
