@@ -4897,6 +4897,39 @@
    }
   },
   {
+   "id": "2026-11-22_1230",
+   "date": "2026-11-22",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 타지에서 일하고 나서야 알게 된 엄마의 12가지",
+   "memo": "11-16 월요일 배치 · 깨달음형 + 회차 글씨(11-14 행)",
+   "short": "타지에서 일하고 나서야 알게 된 엄마의 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-22T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-22T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/M1uRyxLWcVQ",
+     "publishAt": "2026-11-22T12:30:00+09:00",
+     "due": "2026-11-22T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
    "id": "2026-11-22_19",
    "date": "2026-11-22",
    "time": "19:00",
@@ -4958,6 +4991,37 @@
      "who": "chanjin",
      "status": "todo",
      "due": "2026-11-22T19:00:00+09:00",
+     "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-23_1230",
+   "date": "2026-11-23",
+   "time": "12:30",
+   "kind": "슬라이드릴스",
+   "work": null,
+   "title": "[슬라이드릴스] 한 살 더 먹고 나서야 알게 된 부모님 12가지",
+   "memo": "11-16 월요일 배치 · 깨달음형 + 회차 글씨(11-14 행)",
+   "short": "한 살 더 먹고 나서야 알게 된 부모님 12가지",
+   "prep": [],
+   "channels": {
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-23T12:30:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-23T12:30:00+09:00",
+     "ready": true
+    },
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-23T19:00:00+09:00",
      "ready": false
     }
    }
