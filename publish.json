@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15T23:03+09:00",
+ "updated": "2026-11-15T23:08+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -4746,6 +4746,39 @@
    }
   },
   {
+   "id": "2026-11-19_21",
+   "date": "2026-11-19",
+   "time": "21:00",
+   "kind": "정보형",
+   "work": "7번",
+   "title": "상견례 식사비, 이렇게 정하면 분위기가 싸해집니다",
+   "memo": "11-16 월요일 배치 · 상견례 준비 5편 · 11-05 행(검은 화면 한 문장) 적용",
+   "short": "상견례 식사비, 이렇게 정하면 분위기가 싸해집니다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "scheduled",
+     "url": "https://youtu.be/anb1IqF_0Sk",
+     "publishAt": "2026-11-19T19:00:00+09:00",
+     "due": "2026-11-19T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-19T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-19T21:00:00+09:00",
+     "ready": true
+    }
+   }
+  },
+  {
    "id": "2026-11-20_19",
    "date": "2026-11-20",
    "time": "19:00",
@@ -4827,6 +4860,37 @@
      "status": "todo",
      "due": "2026-11-21T19:00:00+09:00",
      "ready": false
+    }
+   }
+  },
+  {
+   "id": "2026-11-21_21",
+   "date": "2026-11-21",
+   "time": "21:00",
+   "kind": "정보형",
+   "work": "7번",
+   "title": "상견례 복장, 이것만 맞춰 두면 부모님이 먼저 편해하십니다",
+   "memo": "11-16 월요일 배치 · 상견례 준비 6편 · 11-06 행(고객 장면 첫 줄) 적용",
+   "short": "상견례 복장, 이것만 맞춰 두면 부모님이 먼저 편해하십니다",
+   "prep": [],
+   "channels": {
+    "shorts": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-21T19:00:00+09:00",
+     "ready": false
+    },
+    "instagram": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-21T21:00:00+09:00",
+     "ready": true
+    },
+    "threads": {
+     "who": "session",
+     "status": "todo",
+     "due": "2026-11-21T21:00:00+09:00",
+     "ready": true
     }
    }
   },
@@ -4947,340 +5011,6 @@
      "ready": true
     }
    }
-  },
-  {
-   "id": "mk_MAkqUMbvWAw",
-   "date": "2026-11-12",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "6편 쇼츠 · 조선에도 기관총이 있었다?",
-   "memo": "",
-   "short": "6편 쇼츠 · 조선에도 기관총이 있었다?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/MAkqUMbvWAw",
-     "due": "2026-11-12T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_WBF_gyMgsmA",
-   "date": "2026-11-11",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "6편 쇼츠 · 임진왜란에 기관총 한 정이면 몇 분 버틸까?",
-   "memo": "",
-   "short": "6편 쇼츠 · 임진왜란에 기관총 한 정이면 몇 분 버틸까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/WBF_gyMgsmA",
-     "due": "2026-11-11T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_BJkD57uT7XU",
-   "date": "2026-11-10",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "5편 쇼츠 · 전쟁 나면 대피소는 철문 벙커일까?",
-   "memo": "",
-   "short": "5편 쇼츠 · 전쟁 나면 대피소는 철문 벙커일까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/BJkD57uT7XU",
-     "due": "2026-11-10T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_36NTK4nEDH0",
-   "date": "2026-11-10",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
-   "memo": "",
-   "short": "8편 · 한국은 정말 몇 달이면 핵무기를 만들 수 있을까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/36NTK4nEDH0",
-     "due": "2026-11-10T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_N1A_k76SuAM",
-   "date": "2026-11-09",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "5편 쇼츠 · 전쟁 사이렌은 두 가지 소리가 있다",
-   "memo": "",
-   "short": "5편 쇼츠 · 전쟁 사이렌은 두 가지 소리가 있다",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/N1A_k76SuAM",
-     "due": "2026-11-09T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_Jnl_Z1k7d_k",
-   "date": "2026-11-08",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "5편 · 오늘 밤 전쟁이 나면 서울은 어떻게 될까?",
-   "memo": "",
-   "short": "5편 · 오늘 밤 전쟁이 나면 서울은 어떻게 될까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/Jnl_Z1k7d_k",
-     "due": "2026-11-08T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_Dh9dEfEU4JY",
-   "date": "2026-11-07",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "2편 쇼츠 · 2090년, 65살이 경로당 막내가 되는 이유",
-   "memo": "",
-   "short": "2편 쇼츠 · 2090년, 65살이 경로당 막내가 되는 이유",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/Dh9dEfEU4JY",
-     "due": "2026-11-07T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_7llhSqYWIIM",
-   "date": "2026-11-06",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "6편 · 임진왜란에 기관총 한 정이 있었다면 어떻게 됐을까?",
-   "memo": "",
-   "short": "6편 · 임진왜란에 기관총 한 정이 있었다면 어떻게 됐을까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/7llhSqYWIIM",
-     "due": "2026-11-06T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_8yfY-jK_60U",
-   "date": "2026-11-06",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "2편 쇼츠 · 인구가 절반이면 집값도 반값이 될까?",
-   "memo": "",
-   "short": "2편 쇼츠 · 인구가 절반이면 집값도 반값이 될까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/8yfY-jK_60U",
-     "due": "2026-11-06T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_5yvowoyY-YQ",
-   "date": "2026-11-05",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "2편 쇼츠 · 인구가 절반이 되면 지하철이 한산해질까?",
-   "memo": "",
-   "short": "2편 쇼츠 · 인구가 절반이 되면 지하철이 한산해질까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/5yvowoyY-YQ",
-     "due": "2026-11-05T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk__YUhyr7sbyI",
-   "date": "2026-11-04",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "3편 쇼츠 · 조선의 온돌방, 정말 따뜻했을까?",
-   "memo": "",
-   "short": "3편 쇼츠 · 조선의 온돌방, 정말 따뜻했을까?",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/_YUhyr7sbyI",
-     "due": "2026-11-04T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_JEhbrD45YpY",
-   "date": "2026-11-17",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "7편 쇼츠 · 만약 이봉창 의사가 여든까지 살았다면",
-   "memo": "",
-   "short": "7편 쇼츠 · 만약 이봉창 의사가 여든까지 살았다면",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "scheduled",
-     "publishAt": "2026-11-17T10:00:00Z",
-     "url": "https://youtu.be/JEhbrD45YpY",
-     "due": "2026-11-17T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_hHhhKMHqSX4",
-   "date": "2026-11-03",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "4편 · AI가 일자리를 뺏는다면, 정말 공장부터일까?",
-   "memo": "",
-   "short": "4편 · AI가 일자리를 뺏는다면, 정말 공장부터일까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/hHhhKMHqSX4",
-     "due": "2026-11-03T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_XDc2MjfHjBU",
-   "date": "2026-11-03",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "3편 쇼츠 · 온돌은 원래 가난한 사람의 것이었다",
-   "memo": "",
-   "short": "3편 쇼츠 · 온돌은 원래 가난한 사람의 것이었다",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/XDc2MjfHjBU",
-     "due": "2026-11-03T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_dNPcqhXb8aY",
-   "date": "2026-11-02",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "3편 쇼츠 · 온돌이 조선의 산을 먹어 치웠다",
-   "memo": "",
-   "short": "3편 쇼츠 · 온돌이 조선의 산을 먹어 치웠다",
-   "prep": [],
-   "channels": {
-    "shorts": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/dNPcqhXb8aY",
-     "due": "2026-11-02T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_reel_7",
-   "date": "2026-11-17",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "7편 릴스 · 이봉창, 살지 못한 세월",
-   "memo": "",
-   "short": "7편 릴스 · 이봉창, 살지 못한 세월",
-   "prep": [],
-   "channels": {
-    "instagram": {
-     "who": "session",
-     "status": "scheduled",
-     "due": "2026-11-17T19:00+09:00",
-     "ready": true
-    }
-   }
   }
  ],
  "deadlines": [
@@ -5290,14 +5020,6 @@
    "due": "2026-09-25",
    "kind": "의뢰작 납기",
    "memo": "09-19 초안 전달 → 1분30초 확정(추가금 12만 입금). 09-21(월) 고객 자막 수정본 → 최종본 → 09-25 납기 · 09-22 최종본 전달 완료(납기 3일 앞당김)",
-   "status": "done"
-  },
-  {
-   "id": "mk_6편썸네일",
-   "title": "6편 기관총 썸네일",
-   "due": "2026-11-04",
-   "kind": "만약상자 · 찬진 할 일",
-   "memo": "예약은 찬진이 허락할 때만",
    "status": "done"
   }
  ]
