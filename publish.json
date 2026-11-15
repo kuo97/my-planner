@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15T23:13+09:00",
+ "updated": "2026-11-15T23:14+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -4534,13 +4534,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-17T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-17T12:30:00+09:00",
      "ready": true
     },
@@ -4824,13 +4824,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-20T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-20T12:30:00+09:00",
      "ready": true
     },
@@ -4923,13 +4923,13 @@
    "channels": {
     "instagram": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-21T12:30:00+09:00",
      "ready": true
     },
     "threads": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
      "due": "2026-11-21T12:30:00+09:00",
      "ready": true
     },
