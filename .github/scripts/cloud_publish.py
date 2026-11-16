@@ -94,10 +94,12 @@ def unhost(name):
         request_pages_build()
 
 
-def publish_instagram(tok, url, caption):
+def publish_instagram(tok, url, caption, trial=None):
     uid, t = tok["ig_user_id"], tok["access_token"]
-    c = meta_api("https://graph.instagram.com/v21.0/%s/media" % uid,
-                 {"media_type": "REELS", "video_url": url, "caption": caption, "access_token": t})
+    body = {"media_type": "REELS", "video_url": url, "caption": caption, "access_token": t}
+    if trial:                                   # 체험 릴스 (2026-11-16) — 팔로워 비노출, MANUAL = 앱에서 직접 공개 전환
+        body["trial_params"] = json.dumps({"graduation_strategy": trial})
+    c = meta_api("https://graph.instagram.com/v21.0/%s/media" % uid, body)
     for i in range(60):
         time.sleep(10)
         st = meta_api("https://graph.instagram.com/v21.0/%s?fields=status_code,status&access_token=%s" % (c["id"], t))
@@ -309,7 +311,7 @@ def run(force_id=None):
             for ch in todo:
                 try:
                     if ch == "instagram":
-                        mid = publish_instagram(json.loads(os.environ["IG_TOKEN_JSON"]), url, m["ig_caption"])
+                        mid = publish_instagram(json.loads(os.environ["IG_TOKEN_JSON"]), url, m["ig_caption"], m.get("ig_trial"))
                         rid = None
                     else:
                         mid, rid = publish_threads(json.loads(os.environ["TH_TOKEN_JSON"]), url,
