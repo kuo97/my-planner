@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15T23:15+09:00",
+ "updated": "2026-11-16T20:54+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -4434,16 +4434,16 @@
     "instagram": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-16T12:33:45+09:00",
      "due": "2026-11-16T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-16T12:33:45+09:00"
+     "ready": true
     },
     "threads": {
      "who": "session",
      "status": "published",
+     "at": "2026-11-16T12:34:31+09:00",
      "due": "2026-11-16T12:30:00+09:00",
-     "ready": true,
-     "at": "2026-11-16T12:34:31+09:00"
+     "ready": true
     },
     "shorts": {
      "who": "session",
@@ -4516,8 +4516,9 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "scheduled",
-     "at": "2026-11-16T19:00:00+09:00",
+     "status": "published",
+     "at": "2026-11-16T18:40:00+09:00",
+     "url": "https://blog.naver.com/chanjakstudio/224470811935",
      "due": "2026-11-16T19:00:00+09:00",
      "ready": false
     }
@@ -4569,7 +4570,8 @@
    "channels": {
     "blog": {
      "who": "chanjin",
-     "status": "todo",
+     "status": "scheduled",
+     "at": "2026-11-17T19:00:00+09:00",
      "due": "2026-11-17T19:00:00+09:00",
      "ready": false
     }
