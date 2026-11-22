@@ -5103,9 +5103,10 @@
     },
     "threads": {
      "who": "session",
-     "status": "scheduled",
+     "status": "published",
      "due": "2026-11-22T21:00:00+09:00",
-     "ready": true
+     "ready": true,
+     "at": "2026-11-22T21:02:17+09:00"
     },
     "clip": {
      "who": "chanjin",
