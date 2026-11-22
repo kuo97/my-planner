@@ -5247,7 +5247,8 @@
     },
     "shorts": {
      "who": "session",
-     "status": "todo",
+     "status": "scheduled",
+     "url": "https://youtu.be/VaWtYOgOIHo",
      "publishAt": "2026-11-24T12:30:00+09:00",
      "due": "2026-11-24T19:00:00+09:00",
      "ready": false
