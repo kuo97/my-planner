@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T23:16+09:00",
+ "updated": "2026-11-23T09:37+09:00",
  "slots": [
   {
    "id": "2026-09-17_19",
@@ -6107,27 +6107,6 @@
      "publishAt": null,
      "url": "https://youtu.be/N1A_k76SuAM",
      "due": "2026-11-09T19:00+09:00",
-     "ready": true
-    }
-   }
-  },
-  {
-   "id": "mk_Jnl_Z1k7d_k",
-   "date": "2026-11-08",
-   "time": "19:00",
-   "kind": "만약상자",
-   "work": "만약상자",
-   "title": "5편 · 오늘 밤 전쟁이 나면 서울은 어떻게 될까?",
-   "memo": "",
-   "short": "5편 · 오늘 밤 전쟁이 나면 서울은 어떻게 될까?",
-   "prep": [],
-   "channels": {
-    "youtube": {
-     "who": "session",
-     "status": "published",
-     "publishAt": null,
-     "url": "https://youtu.be/Jnl_Z1k7d_k",
-     "due": "2026-11-08T19:00+09:00",
      "ready": true
     }
    }
